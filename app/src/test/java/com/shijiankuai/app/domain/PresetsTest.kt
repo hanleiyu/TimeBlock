@@ -10,13 +10,13 @@ class PresetsTest {
         val byId = Presets.types.associate { it.id to it.color }
         assertEquals(0xFF808BD0, byId.getValue(SLEEP_TYPE_ID))
         assertEquals(0xFF8EBFD2, byId.getValue("work"))
-        assertEquals(0xFFA8A6A3, byId.getValue("commute"))
         assertEquals(0xFFE5AD8C, byId.getValue("eat"))
         assertEquals(0xFFE3C783, byId.getValue("play"))
         assertEquals(0xFFDE8B9D, byId.getValue("read"))
         assertEquals(0xFF9CCB97, byId.getValue("social"))
         assertEquals(0xFFA996CF, byId.getValue("study"))
         assertEquals(0xFF74B3AE, byId.getValue("sport"))
+        assertEquals(0xFFA8A6A3, byId.getValue("other"))
     }
 
     @Test
@@ -26,12 +26,13 @@ class PresetsTest {
     }
 
     @Test
-    fun commuteSitsAfterWorkAndIsDistinct() {
-        assertEquals(listOf("work", "commute"), Presets.types.take(2).map { it.id })
-        val commute = Presets.types.single { it.id == "commute" }
-        assertEquals("通勤", commute.name)
-        assertTrue(rgbDist(commute.color, 0xFFEDE6E0) > 50)
-        assertTrue(rgbDist(commute.color, 0xFF8EBFD2) > 40)
+    fun otherSitsLastAfterSportAndIsDistinct() {
+        assertEquals(listOf("sport", "other"), Presets.types.takeLast(2).map { it.id })
+        val other = Presets.types.single { it.id == "other" }
+        assertEquals("其他", other.name)
+        assertTrue(Presets.types.none { it.id == "commute" || it.name == "通勤" })
+        assertTrue(rgbDist(other.color, 0xFFEDE6E0) > 50)
+        assertTrue(rgbDist(other.color, 0xFF8EBFD2) > 40)
     }
 
     private fun rgbDist(a: Long, b: Long): Double {

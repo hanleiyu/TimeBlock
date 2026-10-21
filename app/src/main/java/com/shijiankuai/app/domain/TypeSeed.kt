@@ -4,17 +4,28 @@ data class TypeSeedPlan(
     val insert: List<BlockType>,
     val sortUpdates: Map<String, Int>,
     val recolors: List<BlockType>,
+    val retireIds: List<String> = emptyList(),
 )
 
 object TypeSeed {
+    const val LEFTOVER_COMMUTE_ID = "commute"
+
     fun plan(
         existing: List<BlockType>,
+        usedTypeIds: Set<String> = emptySet(),
         catalog: List<BlockType> = Presets.types,
     ): TypeSeedPlan {
         val working = existing.toMutableList()
         val insert = mutableListOf<BlockType>()
         val sortUpdates = mutableMapOf<String, Int>()
         val recolors = mutableListOf<BlockType>()
+        val retireIds = mutableListOf<String>()
+
+        val leftover = working.find { it.id == LEFTOVER_COMMUTE_ID }
+        if (leftover != null && leftover.id !in usedTypeIds) {
+            working.removeAll { it.id == LEFTOVER_COMMUTE_ID }
+            retireIds += LEFTOVER_COMMUTE_ID
+        }
 
         catalog.forEachIndexed { index, preset ->
             val matchIdx = working.indexOfFirst { it.id == preset.id }
@@ -51,6 +62,11 @@ object TypeSeed {
             working += placed
         }
 
-        return TypeSeedPlan(insert = insert, sortUpdates = sortUpdates, recolors = recolors)
+        return TypeSeedPlan(
+            insert = insert,
+            sortUpdates = sortUpdates,
+            recolors = recolors,
+            retireIds = retireIds,
+        )
     }
 }

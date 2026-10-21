@@ -27,6 +27,9 @@ interface TypeDao {
     @Query("SELECT COALESCE(MAX(sortOrder), -1) FROM block_types")
     suspend fun maxSort(): Int
 
+    @Query("DELETE FROM block_types WHERE id = :id")
+    suspend fun delete(id: String)
+
     @Query("DELETE FROM block_types")
     suspend fun clearAll()
 }
@@ -44,6 +47,9 @@ interface BlockDao {
 
     @Query("SELECT * FROM blocks")
     suspend fun all(): List<BlockRow>
+
+    @Query("SELECT DISTINCT typeId FROM blocks")
+    suspend fun usedTypeIds(): List<String>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsert(row: BlockRow)

@@ -26,8 +26,10 @@ abstract class AppDatabase : RoomDatabase() {
 
         suspend fun seedIfNeeded(db: AppDatabase) {
             val existing = db.types().all()
-            val plan = TypeSeed.plan(existing.map { it.toSeedType() })
-            val byId = existing.associateBy { it.id }
+            val used = db.blocks().usedTypeIds().toSet()
+            val plan = TypeSeed.plan(existing.map { it.toSeedType() }, usedTypeIds = used)
+            plan.retireIds.forEach { db.types().delete(it) }
+            val byId = db.types().all().associateBy { it.id }
             plan.sortUpdates.forEach { (id, sort) ->
                 byId[id]?.let { db.types().update(it.copy(sortOrder = sort)) }
             }
