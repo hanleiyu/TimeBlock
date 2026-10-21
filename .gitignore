@@ -1,2 +1,9 @@
 mockups/node_modules/
 .DS_Store
+.gradle/
+.idea/
+**/build/
+local.properties
+*.iml
+.cxx/
+artifacts/*.apk

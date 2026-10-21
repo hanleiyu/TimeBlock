@@ -1,37 +1,25 @@
-# 时间块 · 界面稿
+# 时间块
 
-这是 **时间块** 的高保真界面稿，不是 Android 应用。一天是日历日 00:00–24:00，144 个 10 分钟块。睡觉也是一种块：点「我睡了 / 我醒了」自动填「睡觉」，午睡也用手动画「睡觉」。
+离线 Android 应用：一天 = 日历日 00:00–24:00 = 144 个 10 分钟块。睡觉也是类型。点「我睡了 / 我醒了」按多数重叠规则自动填「睡觉」，可跨午夜。无账号、无网络。
 
-手机画幅 390 × 844，文案简体中文，类型色是莫兰迪低饱和色。数据都标了「示例」。
+界面稿在 `mockups/`。文案简体中文。
 
-## 看稿
+## 构建
 
-```bash
-cd mockups
-npm install
-npm run preview
-```
-
-打开 http://127.0.0.1:4721 看六屏并排。
-
-重新出 PNG：
+需要 JDK 17 与 Android SDK（compileSdk 35）。
 
 ```bash
-npm run render
+# local.properties
+sdk.dir=/path/to/android-sdk
+
+./gradlew test
+./gradlew assembleDebug
 ```
 
-## 已导出的 PNG
+Debug APK：`app/build/outputs/apk/debug/app-debug.apk`
 
-| 文件 | 画面 |
-| --- | --- |
-| `mockups/export/00-overview.png` | 六屏总览 |
-| `mockups/export/01-today-wake.png` | 今天 · 还在睡，「我醒了」 |
-| `mockups/export/02-today-grid.png` | 今天 · 刚醒，toast + 日格 |
-| `mockups/export/03-type-picker.png` | 框选 + 类型底板 |
-| `mockups/export/04-stats.png` | 统计 · 日 / 饼图 / 窄列表 |
-| `mockups/export/05-settings.png` | 设置 |
-| `mockups/export/06-type-manage.png` | 类型管理 / 添加类型 |
+## 规则
 
-同一套文件也在 `/opt/cursor/artifacts/`。
+一块算睡觉，当且仅当它与 `[入睡, 醒来)` 重叠至少 5 分钟（半块）。00:42 入睡不会填 00:00–00:40。
 
-示例日：2026-10-21 周三，00:42 入睡，07:12 醒来，144 块。
+统计的「未填」只计已经过去的块；未来格子可以先填，但不计入未填。

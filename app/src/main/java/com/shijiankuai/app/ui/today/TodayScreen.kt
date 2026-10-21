@@ -1,0 +1,537 @@
+package com.shijiankuai.app.ui.today
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TimePicker
+import androidx.compose.material3.rememberDatePickerState
+import androidx.compose.material3.rememberTimePickerState
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.shijiankuai.app.domain.BLOCKS_PER_DAY
+import com.shijiankuai.app.domain.BlockType
+import com.shijiankuai.app.ui.TodayUi
+import com.shijiankuai.app.ui.hoursLabel
+import com.shijiankuai.app.ui.theme.Card
+import com.shijiankuai.app.ui.theme.EmptyFuture
+import com.shijiankuai.app.ui.theme.EmptyPast
+import com.shijiankuai.app.ui.theme.Ink
+import com.shijiankuai.app.ui.theme.Ink2
+import com.shijiankuai.app.ui.theme.Ink3
+import com.shijiankuai.app.ui.theme.Line
+import com.shijiankuai.app.ui.theme.Paper
+import com.shijiankuai.app.ui.theme.Sleep
+import com.shijiankuai.app.ui.theme.Wake
+import com.shijiankuai.app.ui.toCn
+import com.shijiankuai.app.ui.toHm
+import java.time.Instant
+import java.time.LocalDate
+import java.time.LocalTime
+import java.time.ZoneOffset
+import kotlin.math.roundToInt
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun TodayScreen(
+    ui: TodayUi,
+    zone: java.time.ZoneId,
+    onSleep: () -> Unit,
+    onWake: () -> Unit,
+    onWakeWithStart: (LocalTime) -> Unit,
+    onSkipSleepStart: () -> Unit,
+    onSetRange: (Int, Int, String?) -> Unit,
+    onShiftDate: (Int) -> Unit,
+    onSetDate: (LocalDate) -> Unit,
+    onEditLast: (LocalTime, LocalTime) -> Unit,
+    onAddType: (String, Long) -> Unit,
+    needSleepStart: Boolean,
+    onDismissToast: () -> Unit,
+) {
+    if (ui.isToday && ui.isAsleep) {
+        AsleepScreen(date = ui.date, onWake = onWake)
+        if (needSleepStart) SleepStartDialog(onConfirm = onWakeWithStart, onSkip = onSkipSleepStart)
+        return
+    }
+
+    var showDate by remember { mutableStateOf(false) }
+    var showEdit by remember { mutableStateOf(false) }
+    var sel by remember { mutableStateOf<IntRange?>(null) }
+    var showSheet by remember { mutableStateOf(false) }
+
+    Column(
+        Modifier
+            .fillMaxSize()
+            .background(Paper),
+    ) {
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .padding(start = 20.dp, end = 16.dp, top = 6.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            var dragAcc by remember { mutableStateOf(0f) }
+            Text(
+                ui.date.toCn(),
+                fontSize = 22.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = Ink,
+                modifier = Modifier
+                    .weight(1f)
+                    .pointerInput(ui.date) {
+                        detectHorizontalDragGestures(
+                            onDragEnd = {
+                                if (dragAcc > 64) onShiftDate(-1)
+                                else if (dragAcc < -64) onShiftDate(1)
+                                dragAcc = 0f
+                            },
+                            onHorizontalDrag = { _, dx -> dragAcc += dx },
+                        )
+                    }
+                    .clickable { showDate = true },
+            )
+            if (ui.isToday) {
+                Text(
+                    "我睡了",
+                    color = Color(0xFFEEF0F5),
+                    fontSize = 12.sp,
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(999.dp))
+                        .background(Sleep)
+                        .clickable(onClick = onSleep)
+                        .padding(horizontal = 12.dp, vertical = 6.dp),
+                )
+            }
+        }
+        Row(
+            Modifier.padding(start = 20.dp, end = 16.dp, top = 6.dp, bottom = 8.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            if (ui.lastWake != null) {
+                Text(
+                    "醒了 ${ui.lastWake.toHm(zone)}",
+                    color = Ink2,
+                    fontSize = 12.sp,
+                    modifier = Modifier.clickable { showEdit = true },
+                )
+            }
+            Text("144 块", color = Ink2, fontSize = 12.sp)
+        }
+
+        if (ui.toast != null) {
+            Row(
+                Modifier
+                    .padding(horizontal = 16.dp)
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(Color(0xFF3D4252))
+                    .clickable(onClick = onDismissToast)
+                    .padding(horizontal = 14.dp, vertical = 10.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Box(Modifier.size(8.dp).clip(CircleShape).background(Color(0xFF8B93A8)))
+                Text(ui.toast, color = Color(0xFFEEF0F5), fontSize = 13.sp, modifier = Modifier.padding(start = 8.dp))
+            }
+            Spacer(Modifier.height(10.dp))
+        }
+
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            StatCard(ui.elapsed.toString(), "已过", highlight = true, modifier = Modifier.weight(1f))
+            StatCard(ui.remaining.toString(), "剩余", modifier = Modifier.weight(1f))
+            StatCard(ui.slept.toString(), "已睡", modifier = Modifier.weight(1f))
+        }
+        Spacer(Modifier.height(8.dp))
+
+        BlockGrid(
+            blocks = ui.blocks,
+            types = ui.types,
+            elapsed = ui.elapsed,
+            nowIndex = ui.nowIndex,
+            selection = sel,
+            onSelect = { range ->
+                sel = range
+                showSheet = true
+            },
+            modifier = Modifier.weight(1f),
+        )
+    }
+
+    if (showSheet && sel != null) {
+        TypePickerSheet(
+            count = sel!!.count(),
+            types = ui.types.filter { !it.archived },
+            onPick = { id ->
+                onSetRange(sel!!.first, sel!!.last, id)
+                sel = null
+                showSheet = false
+            },
+            onClear = {
+                onSetRange(sel!!.first, sel!!.last, null)
+                sel = null
+                showSheet = false
+            },
+            onCancel = {
+                sel = null
+                showSheet = false
+            },
+            onAddType = onAddType,
+        )
+    }
+
+    if (showDate) {
+        val state = rememberDatePickerState(
+            initialSelectedDateMillis = ui.date.atStartOfDay().toInstant(ZoneOffset.UTC).toEpochMilli(),
+        )
+        DatePickerDialog(
+            onDismissRequest = { showDate = false },
+            confirmButton = {
+                TextButton(onClick = {
+                    state.selectedDateMillis?.let {
+                        onSetDate(Instant.ofEpochMilli(it).atZone(ZoneOffset.UTC).toLocalDate())
+                    }
+                    showDate = false
+                }) { Text("确定") }
+            },
+            dismissButton = { TextButton(onClick = { showDate = false }) { Text("取消") } },
+        ) { DatePicker(state = state) }
+    }
+
+    if (showEdit && ui.lastSleep != null && ui.lastWake != null) {
+        EditTimesDialog(
+            start = ui.lastSleep.atZone(zone).toLocalTime(),
+            end = ui.lastWake.atZone(zone).toLocalTime(),
+            onDismiss = { showEdit = false },
+            onConfirm = { a, b ->
+                onEditLast(a, b)
+                showEdit = false
+            },
+        )
+    }
+
+    if (needSleepStart) SleepStartDialog(onConfirm = onWakeWithStart, onSkip = onSkipSleepStart)
+}
+
+@Composable
+private fun StatCard(value: String, label: String, highlight: Boolean = false, modifier: Modifier = Modifier) {
+    Column(
+        modifier
+            .clip(RoundedCornerShape(14.dp))
+            .background(if (highlight) Color(0xFFF4E4DA) else Card)
+            .border(1.dp, if (highlight) Color(0xFFECD2C4) else Line, RoundedCornerShape(14.dp))
+            .padding(vertical = 10.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Text(value, fontSize = 22.sp, fontWeight = FontWeight.Bold, color = if (highlight) Color(0xFFA8563C) else Ink)
+        Text(label, fontSize = 11.sp, color = Ink3)
+    }
+}
+
+@Composable
+fun BlockGrid(
+    blocks: Map<Int, String>,
+    types: List<BlockType>,
+    elapsed: Int,
+    nowIndex: Int?,
+    selection: IntRange?,
+    onSelect: (IntRange) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val colors = remember(types) { types.associate { it.id to Color(it.color.toInt()) } }
+    val scroll = rememberScrollState()
+    val density = LocalDensity.current
+    val rowH = 44.dp
+    val labelW = 42.dp
+
+    LaunchedEffect(nowIndex) {
+        if (nowIndex != null) {
+            val hour = nowIndex / 6
+            val y = with(density) { (rowH * hour).roundToPx() - 80 }
+            scroll.animateScrollTo(y.coerceAtLeast(0))
+        }
+    }
+
+    var dragStart by remember { mutableStateOf<Int?>(null) }
+    var dragEnd by remember { mutableStateOf<Int?>(null) }
+    val liveSel = if (dragStart != null && dragEnd != null) {
+        val a = minOf(dragStart!!, dragEnd!!)
+        val b = maxOf(dragStart!!, dragEnd!!)
+        a..b
+    } else selection
+
+    BoxWithConstraints(modifier.padding(start = 10.dp, end = 14.dp)) {
+        val cellW = (maxWidth - labelW - 6.dp) / 6
+        val rowPx = with(density) { rowH.toPx() }
+        val labelPx = with(density) { labelW.toPx() }
+        val cellPx = with(density) { cellW.toPx() }
+
+        fun indexAt(pos: Offset): Int? {
+            val y = pos.y + scroll.value
+            val hour = (y / rowPx).toInt().coerceIn(0, 23)
+            val x = pos.x - labelPx
+            if (x < 0) return hour * 6
+            val col = (x / (cellPx + with(density) { 5.dp.toPx() })).toInt().coerceIn(0, 5)
+            return (hour * 6 + col).coerceIn(0, BLOCKS_PER_DAY - 1)
+        }
+
+        Column(
+            Modifier
+                .fillMaxSize()
+                .verticalScroll(scroll)
+                .pointerInput(scroll.value) {
+                    detectTapGestures { off ->
+                        indexAt(off)?.let { onSelect(it..it) }
+                    }
+                }
+                .pointerInput(scroll.value) {
+                    detectDragGesturesAfterLongPress(
+                        onDragStart = { off ->
+                            val i = indexAt(off)
+                            dragStart = i
+                            dragEnd = i
+                        },
+                        onDragEnd = {
+                            val a = dragStart
+                            val b = dragEnd
+                            dragStart = null
+                            dragEnd = null
+                            if (a != null && b != null) onSelect(minOf(a, b)..maxOf(a, b))
+                        },
+                        onDragCancel = { dragStart = null; dragEnd = null },
+                        onDrag = { change, _ ->
+                            dragEnd = indexAt(change.position)
+                        },
+                    )
+                },
+        ) {
+            repeat(24) { hour ->
+                HourRow(
+                    hour = hour,
+                    blocks = blocks,
+                    colors = colors,
+                    elapsed = elapsed,
+                    nowIndex = nowIndex,
+                    selection = liveSel,
+                    rowHeight = rowH,
+                    labelWidth = labelW,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun HourRow(
+    hour: Int,
+    blocks: Map<Int, String>,
+    colors: Map<String, Color>,
+    elapsed: Int,
+    nowIndex: Int?,
+    selection: IntRange?,
+    rowHeight: androidx.compose.ui.unit.Dp,
+    labelWidth: androidx.compose.ui.unit.Dp,
+) {
+    Box(
+        Modifier
+            .fillMaxWidth()
+            .height(rowHeight)
+            .padding(bottom = 6.dp),
+    ) {
+        Row(Modifier.fillMaxSize(), verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                "%02d:00".format(hour),
+                fontSize = 11.sp,
+                color = Ink3,
+                modifier = Modifier.size(width = labelWidth, height = rowHeight),
+                maxLines = 1,
+            )
+            Row(
+                Modifier.weight(1f),
+                horizontalArrangement = Arrangement.spacedBy(5.dp),
+            ) {
+                repeat(6) { col ->
+                    val idx = hour * 6 + col
+                    val typeId = blocks[idx]
+                    val future = idx >= elapsed
+                    val color = when {
+                        typeId != null -> colors[typeId] ?: EmptyPast
+                        future -> EmptyFuture
+                        else -> EmptyPast
+                    }
+                    val selected = selection?.contains(idx) == true
+                    Box(
+                        Modifier
+                            .weight(1f)
+                            .height(rowHeight - 6.dp)
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(if (typeId != null && future) color.copy(alpha = 0.48f) else color)
+                            .then(
+                                if (typeId == null && future) {
+                                    Modifier.border(1.dp, Color(0xFFE3D8C6), RoundedCornerShape(8.dp))
+                                } else Modifier
+                            )
+                            .then(
+                                if (selected) Modifier.border(2.dp, Ink, RoundedCornerShape(8.dp))
+                                else Modifier
+                            ),
+                    )
+                }
+            }
+        }
+        if (nowIndex != null && nowIndex / 6 == hour) {
+            val frac = (nowIndex % 6) / 6f
+            val density = LocalDensity.current
+            // line across the current block's leading edge — visual "now"
+            Box(
+                Modifier
+                    .fillMaxWidth()
+                    .padding(start = labelWidth)
+                    .align(Alignment.CenterStart)
+                    .offset { IntOffset(0, 0) },
+            ) {
+                Box(
+                    Modifier
+                        .fillMaxWidth()
+                        .height(2.dp)
+                        .background(Wake),
+                )
+                Text(
+                    "现在",
+                    color = Color(0xFFFFF8F3),
+                    fontSize = 10.sp,
+                    modifier = Modifier
+                        .align(Alignment.CenterEnd)
+                        .clip(RoundedCornerShape(999.dp))
+                        .background(Wake)
+                        .padding(horizontal = 6.dp, vertical = 1.dp),
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun AsleepScreen(date: LocalDate, onWake: () -> Unit) {
+    Column(
+        Modifier
+            .fillMaxSize()
+            .background(Paper)
+            .padding(horizontal = 24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Row(Modifier.fillMaxWidth().padding(top = 8.dp), horizontalArrangement = Arrangement.SpaceBetween) {
+            Text("时间块", fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = Ink)
+        }
+        Spacer(Modifier.weight(1f))
+        Text(
+            "${date.year}年${date.monthValue}月${date.dayOfMonth}日 · 星期${listOf("一","二","三","四","五","六","日")[date.dayOfWeek.value - 1]}",
+            color = Ink2,
+            fontSize = 15.sp,
+        )
+        Text("还在睡", fontSize = 30.sp, fontWeight = FontWeight.SemiBold, color = Ink, modifier = Modifier.padding(top = 10.dp))
+        Spacer(Modifier.height(36.dp))
+        Box(
+            Modifier
+                .size(188.dp)
+                .clip(CircleShape)
+                .background(Wake)
+                .clickable(onClick = onWake),
+            contentAlignment = Alignment.Center,
+        ) {
+            Text("我醒了", color = Color(0xFFFFF8F3), fontSize = 28.sp, fontWeight = FontWeight.SemiBold)
+        }
+        Spacer(Modifier.weight(1.2f))
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun SleepStartDialog(onConfirm: (LocalTime) -> Unit, onSkip: () -> Unit) {
+    val state = rememberTimePickerState(is24Hour = true)
+    androidx.compose.material3.AlertDialog(
+        onDismissRequest = onSkip,
+        title = { Text("没有入睡记录") },
+        text = {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                TimePicker(state = state)
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = { onConfirm(LocalTime.of(state.hour, state.minute)) }) { Text("按此时入睡") }
+        },
+        dismissButton = { TextButton(onClick = onSkip) { Text("直接醒来") } },
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun EditTimesDialog(
+    start: LocalTime,
+    end: LocalTime,
+    onDismiss: () -> Unit,
+    onConfirm: (LocalTime, LocalTime) -> Unit,
+) {
+    var which by remember { mutableStateOf(0) }
+    val s = rememberTimePickerState(initialHour = start.hour, initialMinute = start.minute, is24Hour = true)
+    val e = rememberTimePickerState(initialHour = end.hour, initialMinute = end.minute, is24Hour = true)
+    androidx.compose.material3.AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(if (which == 0) "入睡时间" else "醒来时间") },
+        text = { TimePicker(state = if (which == 0) s else e) },
+        confirmButton = {
+            Row {
+                if (which == 0) {
+                    TextButton(onClick = { which = 1 }) { Text("下一步") }
+                } else {
+                    TextButton(onClick = {
+                        onConfirm(LocalTime.of(s.hour, s.minute), LocalTime.of(e.hour, e.minute))
+                    }) { Text("保存") }
+                }
+            }
+        },
+        dismissButton = { TextButton(onClick = onDismiss) { Text("取消") } },
+    )
+}
