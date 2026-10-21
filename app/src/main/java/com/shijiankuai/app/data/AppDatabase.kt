@@ -4,7 +4,8 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
-import com.shijiankuai.app.domain.Presets
+import com.shijiankuai.app.domain.BlockType
+import com.shijiankuai.app.domain.TypeSeed
 
 @Database(
     entities = [TypeRow::class, BlockRow::class, SleepRow::class, KvRow::class],
@@ -24,29 +25,35 @@ abstract class AppDatabase : RoomDatabase() {
                 .build()
 
         suspend fun seedIfNeeded(db: AppDatabase) {
-            db.types().insertIgnore(
-                Presets.types.map {
-                    TypeRow(
-                        id = it.id,
-                        name = it.name,
-                        color = it.color,
-                        sortOrder = it.sortOrder,
-                        archived = it.archived,
-                        isPreset = it.isPreset,
-                        isSleep = it.isSleep,
-                    )
-                },
-            )
-            val next = Presets.types.associateBy { it.id }
-            db.types().all().forEach { row ->
-                val preset = next[row.id] ?: return@forEach
-                if (row.isPreset && row.color != preset.color) {
-                    db.types().update(row.copy(color = preset.color))
-                }
+            val existing = db.types().all()
+            val plan = TypeSeed.plan(existing.map { it.toSeedType() })
+            val byId = existing.associateBy { it.id }
+            plan.sortUpdates.forEach { (id, sort) ->
+                byId[id]?.let { db.types().update(it.copy(sortOrder = sort)) }
+            }
+            plan.recolors.forEach { type ->
+                val row = byId[type.id] ?: return@forEach
+                db.types().update(
+                    row.copy(
+                        color = type.color,
+                        sortOrder = plan.sortUpdates[type.id] ?: row.sortOrder,
+                    ),
+                )
+            }
+            if (plan.insert.isNotEmpty()) {
+                db.types().insertIgnore(plan.insert.map { it.toRow() })
             }
             if (db.kv().get("is_asleep") == null) {
                 db.kv().put(KvRow("is_asleep", "1"))
             }
         }
+
+        private fun TypeRow.toSeedType() = BlockType(
+            id, name, color, sortOrder, archived, isPreset, isSleep,
+        )
+
+        private fun BlockType.toRow() = TypeRow(
+            id, name, color, sortOrder, archived, isPreset, isSleep,
+        )
     }
 }
