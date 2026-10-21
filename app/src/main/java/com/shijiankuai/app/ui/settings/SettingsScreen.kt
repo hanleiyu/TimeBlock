@@ -17,9 +17,15 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -43,11 +49,13 @@ fun SettingsScreen(
     onOpenTypes: () -> Unit,
     exportCsv: suspend () -> String,
     exportBackup: suspend () -> String,
-    restore: suspend (String) -> Unit,
+    restore: suspend (String) -> Boolean,
 ) {
     val ctx = LocalContext.current
     val scope = rememberCoroutineScope()
-    val pending = androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf<String?>(null) }
+    val pending = remember { mutableStateOf<String?>(null) }
+    var confirmRestore by remember { mutableStateOf<String?>(null) }
+    var banner by remember { mutableStateOf<String?>(null) }
     val create = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("text/plain")) { uri: Uri? ->
         val body = pending.value ?: return@rememberLauncherForActivityResult
         pending.value = null
@@ -57,7 +65,7 @@ fun SettingsScreen(
     val open = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri: Uri? ->
         uri ?: return@rememberLauncherForActivityResult
         val text = ctx.contentResolver.openInputStream(uri)?.use { it.readBytes().toString(Charsets.UTF_8) } ?: return@rememberLauncherForActivityResult
-        scope.launch { restore(text) }
+        confirmRestore = text
     }
 
     Column(
@@ -67,6 +75,20 @@ fun SettingsScreen(
             .padding(horizontal = 16.dp, vertical = 4.dp),
     ) {
         Text("设置", fontSize = 22.sp, fontWeight = FontWeight.SemiBold, color = Ink)
+        if (banner != null) {
+            Text(
+                banner!!,
+                color = Ink2,
+                fontSize = 12.sp,
+                modifier = Modifier
+                    .padding(top = 8.dp)
+                    .clip(RoundedCornerShape(10.dp))
+                    .background(Color(0xFFE8E0D4))
+                    .clickable { banner = null }
+                    .padding(horizontal = 12.dp, vertical = 8.dp)
+                    .fillMaxWidth(),
+            )
+        }
         Spacer(Modifier.height(14.dp))
         Group("时间块") {
             RowItem(title = "时间块长度", value = "10 分钟")
@@ -116,6 +138,26 @@ fun SettingsScreen(
             fontSize = 11.sp,
             color = Ink3,
             modifier = Modifier.fillMaxWidth(),
+        )
+    }
+
+    confirmRestore?.let { body ->
+        AlertDialog(
+            onDismissRequest = { confirmRestore = null },
+            title = { Text("从备份恢复？") },
+            text = { Text("会覆盖当前本机的类型、时间块和睡觉记录，且不能撤销。") },
+            confirmButton = {
+                TextButton(onClick = {
+                    val json = body
+                    confirmRestore = null
+                    scope.launch {
+                        banner = if (restore(json)) "已从备份恢复" else "备份文件读不出来"
+                    }
+                }) { Text("覆盖恢复") }
+            },
+            dismissButton = {
+                TextButton(onClick = { confirmRestore = null }) { Text("取消") }
+            },
         )
     }
 }

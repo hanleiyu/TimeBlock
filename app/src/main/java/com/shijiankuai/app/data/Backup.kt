@@ -54,6 +54,12 @@ object Backup {
         return root.toString()
     }
 
+    fun tryParse(json: String): Snapshot? = try {
+        parse(json)
+    } catch (_: Exception) {
+        null
+    }
+
     fun parse(json: String): Snapshot {
         val root = JSONObject(json)
         val types = root.getJSONArray("types").let { arr ->

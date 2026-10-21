@@ -26,6 +26,9 @@ interface TypeDao {
 
     @Query("SELECT COALESCE(MAX(sortOrder), -1) FROM block_types")
     suspend fun maxSort(): Int
+
+    @Query("DELETE FROM block_types")
+    suspend fun clearAll()
 }
 
 @Dao

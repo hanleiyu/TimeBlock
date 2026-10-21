@@ -6,7 +6,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -87,13 +86,19 @@ fun TodayScreen(
     needSleepStart: Boolean,
     onDismissToast: () -> Unit,
 ) {
+    var showDate by remember { mutableStateOf(false) }
+
     if (ui.isToday && ui.isAsleep) {
-        AsleepScreen(date = ui.date, onWake = onWake)
+        AsleepScreen(
+            date = ui.date,
+            onWake = onWake,
+            onShiftDate = onShiftDate,
+            onOpenDate = { showDate = true },
+        )
+        if (showDate) DatePick(ui.date, onSetDate) { showDate = false }
         if (needSleepStart) SleepStartDialog(onConfirm = onWakeWithStart, onSkip = onSkipSleepStart)
         return
     }
-
-    var showDate by remember { mutableStateOf(false) }
     var showEdit by remember { mutableStateOf(false) }
     var sel by remember { mutableStateOf<IntRange?>(null) }
     var showSheet by remember { mutableStateOf(false) }
@@ -129,6 +134,18 @@ fun TodayScreen(
                     }
                     .clickable { showDate = true },
             )
+            if (!ui.isToday) {
+                Text(
+                    "今天",
+                    color = Ink2,
+                    fontSize = 12.sp,
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(999.dp))
+                        .background(Card)
+                        .clickable { onSetDate(LocalDate.now(zone)) }
+                        .padding(horizontal = 10.dp, vertical = 6.dp),
+                )
+            }
             if (ui.isToday) {
                 Text(
                     "我睡了",
@@ -191,6 +208,7 @@ fun TodayScreen(
             types = ui.types,
             elapsed = ui.elapsed,
             nowIndex = ui.nowIndex,
+            nowTime = ui.nowTime,
             selection = sel,
             onSelect = { range ->
                 sel = range
@@ -222,23 +240,7 @@ fun TodayScreen(
         )
     }
 
-    if (showDate) {
-        val state = rememberDatePickerState(
-            initialSelectedDateMillis = ui.date.atStartOfDay().toInstant(ZoneOffset.UTC).toEpochMilli(),
-        )
-        DatePickerDialog(
-            onDismissRequest = { showDate = false },
-            confirmButton = {
-                TextButton(onClick = {
-                    state.selectedDateMillis?.let {
-                        onSetDate(Instant.ofEpochMilli(it).atZone(ZoneOffset.UTC).toLocalDate())
-                    }
-                    showDate = false
-                }) { Text("确定") }
-            },
-            dismissButton = { TextButton(onClick = { showDate = false }) { Text("取消") } },
-        ) { DatePicker(state = state) }
-    }
+    if (showDate) DatePick(ui.date, onSetDate) { showDate = false }
 
     if (showEdit && ui.lastSleep != null && ui.lastWake != null) {
         EditTimesDialog(
@@ -276,6 +278,7 @@ fun BlockGrid(
     types: List<BlockType>,
     elapsed: Int,
     nowIndex: Int?,
+    nowTime: LocalTime?,
     selection: IntRange?,
     onSelect: (IntRange) -> Unit,
     modifier: Modifier = Modifier,
@@ -353,7 +356,7 @@ fun BlockGrid(
                     blocks = blocks,
                     colors = colors,
                     elapsed = elapsed,
-                    nowIndex = nowIndex,
+                    nowTime = nowTime,
                     selection = liveSel,
                     rowHeight = rowH,
                     labelWidth = labelW,
@@ -369,7 +372,7 @@ private fun HourRow(
     blocks: Map<Int, String>,
     colors: Map<String, Color>,
     elapsed: Int,
-    nowIndex: Int?,
+    nowTime: LocalTime?,
     selection: IntRange?,
     rowHeight: androidx.compose.ui.unit.Dp,
     labelWidth: androidx.compose.ui.unit.Dp,
@@ -421,16 +424,17 @@ private fun HourRow(
                 }
             }
         }
-        if (nowIndex != null && nowIndex / 6 == hour) {
-            val frac = (nowIndex % 6) / 6f
+        if (nowTime != null && nowTime.hour == hour) {
+            val yFrac = (nowTime.minute + nowTime.second / 60f) / 60f
             val density = LocalDensity.current
-            // line across the current block's leading edge — visual "now"
             Box(
                 Modifier
                     .fillMaxWidth()
                     .padding(start = labelWidth)
-                    .align(Alignment.CenterStart)
-                    .offset { IntOffset(0, 0) },
+                    .align(Alignment.TopStart)
+                    .offset {
+                        IntOffset(0, (with(density) { (rowHeight - 6.dp).toPx() } * yFrac).roundToInt())
+                    },
             ) {
                 Box(
                     Modifier
@@ -439,11 +443,12 @@ private fun HourRow(
                         .background(Wake),
                 )
                 Text(
-                    "现在",
+                    "现在 ${"%02d:%02d".format(nowTime.hour, nowTime.minute)}",
                     color = Color(0xFFFFF8F3),
                     fontSize = 10.sp,
                     modifier = Modifier
                         .align(Alignment.CenterEnd)
+                        .offset(y = (-9).dp)
                         .clip(RoundedCornerShape(999.dp))
                         .background(Wake)
                         .padding(horizontal = 6.dp, vertical = 1.dp),
@@ -454,7 +459,13 @@ private fun HourRow(
 }
 
 @Composable
-fun AsleepScreen(date: LocalDate, onWake: () -> Unit) {
+fun AsleepScreen(
+    date: LocalDate,
+    onWake: () -> Unit,
+    onShiftDate: (Int) -> Unit = {},
+    onOpenDate: () -> Unit = {},
+) {
+    var dragAcc by remember { mutableStateOf(0f) }
     Column(
         Modifier
             .fillMaxSize()
@@ -470,6 +481,18 @@ fun AsleepScreen(date: LocalDate, onWake: () -> Unit) {
             "${date.year}年${date.monthValue}月${date.dayOfMonth}日 · 星期${listOf("一","二","三","四","五","六","日")[date.dayOfWeek.value - 1]}",
             color = Ink2,
             fontSize = 15.sp,
+            modifier = Modifier
+                .pointerInput(date) {
+                    detectHorizontalDragGestures(
+                        onDragEnd = {
+                            if (dragAcc > 64) onShiftDate(-1)
+                            else if (dragAcc < -64) onShiftDate(1)
+                            dragAcc = 0f
+                        },
+                        onHorizontalDrag = { _, dx -> dragAcc += dx },
+                    )
+                }
+                .clickable(onClick = onOpenDate),
         )
         Text("还在睡", fontSize = 30.sp, fontWeight = FontWeight.SemiBold, color = Ink, modifier = Modifier.padding(top = 10.dp))
         Spacer(Modifier.height(36.dp))
@@ -485,6 +508,26 @@ fun AsleepScreen(date: LocalDate, onWake: () -> Unit) {
         }
         Spacer(Modifier.weight(1.2f))
     }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun DatePick(date: LocalDate, onSetDate: (LocalDate) -> Unit, onDismiss: () -> Unit) {
+    val state = rememberDatePickerState(
+        initialSelectedDateMillis = date.atStartOfDay().toInstant(ZoneOffset.UTC).toEpochMilli(),
+    )
+    DatePickerDialog(
+        onDismissRequest = onDismiss,
+        confirmButton = {
+            TextButton(onClick = {
+                state.selectedDateMillis?.let {
+                    onSetDate(Instant.ofEpochMilli(it).atZone(ZoneOffset.UTC).toLocalDate())
+                }
+                onDismiss()
+            }) { Text("确定") }
+        },
+        dismissButton = { TextButton(onClick = onDismiss) { Text("取消") } },
+    ) { DatePicker(state = state) }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

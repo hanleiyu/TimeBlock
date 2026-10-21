@@ -42,6 +42,7 @@ fun PreviewAwake() {
                 remaining = 101,
                 slept = 43,
                 nowIndex = 43,
+                nowTime = java.time.LocalTime.of(7, 12),
                 lastSleep = null,
                 lastWake = null,
                 toast = "00:42 入睡 · 已记 39 块睡觉",

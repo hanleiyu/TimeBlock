@@ -5,9 +5,9 @@
     android:viewportWidth="1024"
     android:viewportHeight="1024">
     <!--
-      Spec geometry is on a 1024 canvas (center 512, ring r=300, block 130×100).
-      Outer ring radius is 350. Adaptive safe zone is the inner 66% circle (r≈338).
-      Scale 0.94 around center so the ring sits inside that circle with a little air.
+      Placeholder clock-face. Swap this file + background + monochrome when the
+      final launcher mark lands. Geometry is 1024 canvas, scaled 0.94 for the
+      inner 66% adaptive safe zone.
     -->
     <group
         android:pivotX="512"

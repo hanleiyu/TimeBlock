@@ -4,7 +4,7 @@
 
 界面稿在 `mockups/`。文案简体中文。
 
-启动图标是色块钟面：自适应矢量（背景 / 前景 / 单色层），512² PNG 在 `app/src/main/ic_launcher-playstore.png`。源稿 `design/icon.html`。
+启动图标目前是色块钟面占位（自适应矢量：背景 / 前景 / 单色层），方便之后整组替换。512² PNG 在 `app/src/main/ic_launcher-playstore.png`，源稿 `design/icon.html`。
 
 ## 构建
 

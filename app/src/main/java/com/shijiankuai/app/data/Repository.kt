@@ -1,5 +1,6 @@
 package com.shijiankuai.app.data
 
+import androidx.room.withTransaction
 import com.shijiankuai.app.domain.AppClock
 import com.shijiankuai.app.domain.BlockId
 import com.shijiankuai.app.domain.BlockType
@@ -79,12 +80,12 @@ class Repository(
         _isAsleep.value = false
     }
 
-    suspend fun editLastSession(start: Instant, end: Instant) {
-        val latest = db.sleeps().latest() ?: return
-        val oldStart = Instant.ofEpochMilli(latest.startedAtMillis)
-        val oldEnd = latest.endedAtMillis?.let(Instant::ofEpochMilli) ?: clock.now()
+    suspend fun editSession(oldStart: Instant, oldEnd: Instant, start: Instant, end: Instant) {
+        val row = db.sleeps().all().firstOrNull {
+            it.startedAtMillis == oldStart.toEpochMilli() && it.endedAtMillis == oldEnd.toEpochMilli()
+        } ?: return
         db.sleeps().update(
-            latest.copy(startedAtMillis = start.toEpochMilli(), endedAtMillis = end.toEpochMilli()),
+            row.copy(startedAtMillis = start.toEpochMilli(), endedAtMillis = end.toEpochMilli()),
         )
         applySleepSpan(start, end, previous = oldStart to oldEnd)
         db.kv().put(KvRow("is_asleep", "0"))
@@ -162,16 +163,20 @@ class Repository(
     suspend fun exportBackup(): String =
         Backup.exportJson(db.types().all(), db.blocks().all(), db.sleeps().all(), db.kv().all())
 
-    suspend fun restoreBackup(json: String) {
-        val snap = Backup.parse(json)
-        db.blocks().clearAll()
-        db.sleeps().clearAll()
-        db.kv().clearAll()
-        snap.types.forEach { db.types().upsert(it) }
-        db.blocks().upsertAll(snap.blocks)
-        snap.sleeps.forEach { db.sleeps().insert(it.copy(id = 0)) }
-        snap.kv.forEach { db.kv().put(it) }
+    suspend fun restoreBackup(json: String): Boolean {
+        val snap = Backup.tryParse(json) ?: return false
+        db.withTransaction {
+            db.types().clearAll()
+            db.blocks().clearAll()
+            db.sleeps().clearAll()
+            db.kv().clearAll()
+            snap.types.forEach { db.types().upsert(it) }
+            db.blocks().upsertAll(snap.blocks)
+            snap.sleeps.forEach { db.sleeps().insert(it.copy(id = 0)) }
+            snap.kv.forEach { db.kv().put(it) }
+        }
         _isAsleep.value = db.kv().get("is_asleep") != "0"
+        return true
     }
 
     fun sleptBlocksToday(date: LocalDate, map: Map<Int, String>): Int =

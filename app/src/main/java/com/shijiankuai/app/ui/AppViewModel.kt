@@ -4,7 +4,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.shijiankuai.app.data.Repository
-import com.shijiankuai.app.data.SleepRow
 import com.shijiankuai.app.data.WakeOutcome
 import com.shijiankuai.app.domain.BLOCK_MINUTES
 import com.shijiankuai.app.domain.BLOCKS_PER_DAY
@@ -13,6 +12,8 @@ import com.shijiankuai.app.domain.BlockType
 import com.shijiankuai.app.domain.PeriodKind
 import com.shijiankuai.app.domain.PeriodStats
 import com.shijiankuai.app.domain.SLEEP_TYPE_ID
+import com.shijiankuai.app.domain.SleepSession
+import com.shijiankuai.app.domain.SleepSessions
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalTime
@@ -39,6 +40,7 @@ data class TodayUi(
     val remaining: Int,
     val slept: Int,
     val nowIndex: Int?,
+    val nowTime: LocalTime?,
     val lastSleep: Instant?,
     val lastWake: Instant?,
     val toast: String? = null,
@@ -78,13 +80,15 @@ class AppViewModel(private val repo: Repository) : ViewModel() {
             val zone = repo.clock.zone()
             val todayDate = now.atZone(zone).toLocalDate()
             val elapsed = BlockMath.elapsedCount(date, now, zone)
-            val nowIndex = if (date == todayDate) {
-                BlockMath.indexContaining(now.atZone(zone).toLocalTime())
-            } else {
-                null
+            val nowTime = if (date == todayDate) now.atZone(zone).toLocalTime() else null
+            val nowIndex = nowTime?.let(BlockMath::indexContaining)
+            val mapped = sessions.map {
+                SleepSession(
+                    Instant.ofEpochMilli(it.startedAtMillis),
+                    it.endedAtMillis?.let(Instant::ofEpochMilli),
+                )
             }
-            val open = sessions.firstOrNull { it.endedAtMillis == null }
-            val lastClosed = sessions.firstOrNull { it.endedAtMillis != null }
+            val closed = SleepSessions.closedForDate(date, mapped, zone)
             TodayUi(
                 date = date,
                 isToday = date == todayDate,
@@ -95,9 +99,9 @@ class AppViewModel(private val repo: Repository) : ViewModel() {
                 remaining = BLOCKS_PER_DAY - elapsed,
                 slept = blocks.values.count { it == SLEEP_TYPE_ID },
                 nowIndex = nowIndex,
-                lastSleep = open?.startedAtMillis?.let(Instant::ofEpochMilli)
-                    ?: lastClosed?.startedAtMillis?.let(Instant::ofEpochMilli),
-                lastWake = lastClosed?.endedAtMillis?.let(Instant::ofEpochMilli),
+                nowTime = nowTime,
+                lastSleep = closed?.startedAt,
+                lastWake = closed?.endedAt,
                 toast = t,
             )
         }.stateIn(
@@ -113,6 +117,7 @@ class AppViewModel(private val repo: Repository) : ViewModel() {
             remaining = BLOCKS_PER_DAY,
             slept = 0,
             nowIndex = null,
+            nowTime = null,
             lastSleep = null,
             lastWake = null,
         ),
@@ -176,12 +181,12 @@ class AppViewModel(private val repo: Repository) : ViewModel() {
 
     fun editLast(start: LocalTime, end: LocalTime) {
         viewModelScope.launch {
-            val zone = repo.clock.zone()
-            val date = viewedDate.value
-            var s = date.atTime(start).atZone(zone).toInstant()
-            var e = date.atTime(end).atZone(zone).toInstant()
-            if (!e.isAfter(s)) s = s.minusSeconds(24 * 3600)
-            repo.editLastSession(s, e)
+            val oldStart = today.value.lastSleep ?: return@launch
+            val oldEnd = today.value.lastWake ?: return@launch
+            val (s, e) = SleepSessions.editInstants(
+                start, end, oldStart, oldEnd, repo.clock.zone(),
+            )
+            repo.editSession(oldStart, oldEnd, s, e)
         }
     }
 
@@ -205,7 +210,7 @@ class AppViewModel(private val repo: Repository) : ViewModel() {
 
     suspend fun exportCsv(): String = repo.exportCsv()
     suspend fun exportBackup(): String = repo.exportBackup()
-    suspend fun restore(json: String) = repo.restoreBackup(json)
+    suspend fun restore(json: String): Boolean = repo.restoreBackup(json)
 
     fun addType(name: String, color: Long) {
         viewModelScope.launch { repo.addType(name, color) }
