@@ -8,7 +8,6 @@ import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -35,19 +34,19 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.shijiankuai.app.domain.BLOCKS_PER_DAY
 import com.shijiankuai.app.domain.BlockType
 import com.shijiankuai.app.ui.TodayUi
 import com.shijiankuai.app.ui.hoursLabel
@@ -291,6 +290,17 @@ fun BlockGrid(
     val density = LocalDensity.current
     val rowH = 44.dp
     val labelW = 42.dp
+    val gap = 5.dp
+
+    var gridWidthPx by remember { mutableStateOf(0f) }
+    val layout = BlockHitLayout(
+        rowHeightPx = with(density) { rowH.toPx() },
+        labelWidthPx = with(density) { labelW.toPx() },
+        gapPx = with(density) { gap.toPx() },
+        gridWidthPx = gridWidthPx,
+    )
+    val layoutState = rememberUpdatedState(layout)
+    val onSelectState = rememberUpdatedState(onSelect)
 
     LaunchedEffect(nowIndex) {
         if (nowIndex != null) {
@@ -302,69 +312,67 @@ fun BlockGrid(
 
     var dragStart by remember { mutableStateOf<Int?>(null) }
     var dragEnd by remember { mutableStateOf<Int?>(null) }
+    LaunchedEffect(selection) {
+        if (selection == null) {
+            dragStart = null
+            dragEnd = null
+        }
+    }
     val liveSel = if (dragStart != null && dragEnd != null) {
         val a = minOf(dragStart!!, dragEnd!!)
         val b = maxOf(dragStart!!, dragEnd!!)
         a..b
     } else selection
 
-    BoxWithConstraints(modifier.padding(start = 10.dp, end = 14.dp)) {
-        val cellW = (maxWidth - labelW - 6.dp) / 6
-        val rowPx = with(density) { rowH.toPx() }
-        val labelPx = with(density) { labelW.toPx() }
-        val cellPx = with(density) { cellW.toPx() }
-
-        fun indexAt(pos: Offset): Int? {
-            val y = pos.y + scroll.value
-            val hour = (y / rowPx).toInt().coerceIn(0, 23)
-            val x = pos.x - labelPx
-            if (x < 0) return hour * 6
-            val col = (x / (cellPx + with(density) { 5.dp.toPx() })).toInt().coerceIn(0, 5)
-            return (hour * 6 + col).coerceIn(0, BLOCKS_PER_DAY - 1)
-        }
-
-        Column(
-            Modifier
-                .fillMaxSize()
-                .verticalScroll(scroll)
-                .pointerInput(scroll.value) {
-                    detectTapGestures { off ->
-                        indexAt(off)?.let { onSelect(it..it) }
-                    }
+    Column(
+        modifier
+            .fillMaxSize()
+            .padding(start = 10.dp, end = 14.dp)
+            .onSizeChanged { gridWidthPx = it.width.toFloat() }
+            .pointerInput(Unit) {
+                detectTapGestures { off ->
+                    val idx = BlockHitTest.indexAt(off.x, off.y, scroll.value, layoutState.value)
+                    idx?.let { onSelectState.value(it..it) }
                 }
-                .pointerInput(scroll.value) {
-                    detectDragGesturesAfterLongPress(
-                        onDragStart = { off ->
-                            val i = indexAt(off)
-                            dragStart = i
-                            dragEnd = i
-                        },
-                        onDragEnd = {
-                            val a = dragStart
-                            val b = dragEnd
-                            dragStart = null
-                            dragEnd = null
-                            if (a != null && b != null) onSelect(minOf(a, b)..maxOf(a, b))
-                        },
-                        onDragCancel = { dragStart = null; dragEnd = null },
-                        onDrag = { change, _ ->
-                            dragEnd = indexAt(change.position)
-                        },
-                    )
-                },
-        ) {
-            repeat(24) { hour ->
-                HourRow(
-                    hour = hour,
-                    blocks = blocks,
-                    colors = colors,
-                    elapsed = elapsed,
-                    nowTime = nowTime,
-                    selection = liveSel,
-                    rowHeight = rowH,
-                    labelWidth = labelW,
+            }
+            .pointerInput(Unit) {
+                detectDragGesturesAfterLongPress(
+                    onDragStart = { off ->
+                        val i = BlockHitTest.indexAt(off.x, off.y, scroll.value, layoutState.value)
+                        dragStart = i
+                        dragEnd = i
+                    },
+                    onDragEnd = {
+                        val a = dragStart
+                        val b = dragEnd
+                        dragStart = null
+                        dragEnd = null
+                        if (a != null && b != null) onSelectState.value(minOf(a, b)..maxOf(a, b))
+                    },
+                    onDragCancel = { dragStart = null; dragEnd = null },
+                    onDrag = { change, _ ->
+                        dragEnd = BlockHitTest.indexAt(
+                            change.position.x,
+                            change.position.y,
+                            scroll.value,
+                            layoutState.value,
+                        )
+                    },
                 )
             }
+            .verticalScroll(scroll),
+    ) {
+        repeat(24) { hour ->
+            HourRow(
+                hour = hour,
+                blocks = blocks,
+                colors = colors,
+                elapsed = elapsed,
+                nowTime = nowTime,
+                selection = liveSel,
+                rowHeight = rowH,
+                labelWidth = labelW,
+            )
         }
     }
 }
