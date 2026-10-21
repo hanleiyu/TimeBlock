@@ -28,9 +28,9 @@
       --paper: #fbf5f1;
       --paper-deep: #f3ebe5;
       --card: #fffcf9;
-      --ink: #5a5f92;
-      --ink-2: #7b80a0;
-      --ink-3: #9a9db5;
+      --ink: #2b2e45;
+      --ink-2: #5c5f75;
+      --ink-3: #5e6178;
       --line: #e8e0d8;
       --line-2: #ddd4cc;
       --accent: #5a5f92;
@@ -58,6 +58,7 @@
     body {
       font-family: "Noto Sans SC", "WenQuanYi Micro Hei", sans-serif;
       color: var(--ink);
+      font-weight: 500;
       -webkit-font-smoothing: antialiased;
     }
     .num { font-family: "Inter", "Noto Sans SC", sans-serif; font-feature-settings: "tnum" 1; }
@@ -154,8 +155,9 @@
       flex: 1; display: flex; flex-direction: column;
       align-items: center; justify-content: center; gap: 3px;
       color: var(--ink-3); font-size: 11px; letter-spacing: 0.04em;
+      font-weight: 500;
     }
-    .tab.on { color: var(--ink); font-weight: 560; }
+    .tab.on { color: var(--ink); font-weight: 600; }
     .tab svg { display: block; }
 
     .gesture {
@@ -270,7 +272,7 @@
       box-shadow: 0 1px 0 rgba(255,255,255,0.7) inset, 0 6px 14px rgba(80,60,40,0.04);
     }
     .stat .n { font-size: 22px; font-weight: 700; letter-spacing: -0.03em; line-height: 1.1; }
-    .stat .l { margin-top: 4px; font-size: 11px; color: var(--ink-3); letter-spacing: 0.04em; }
+    .stat .l { margin-top: 4px; font-size: 11px; color: var(--ink-3); letter-spacing: 0.04em; font-weight: 500; }
     .stat.em { background: #e8e9f4; border-color: #d4d6e8; }
     .stat.em .n { color: var(--accent); }
 
@@ -301,6 +303,7 @@
     .hour-t {
       font-size: 11px; color: var(--ink-3); text-align: right; padding-right: 2px;
       font-family: "Inter", "Noto Sans SC", sans-serif;
+      font-weight: 500;
     }
     .cells { display: grid; grid-template-columns: repeat(6, 1fr); gap: 5px; height: 100%; }
     .c {
@@ -426,8 +429,9 @@
     .seg i {
       text-align: center; font-style: normal;
       font-size: 13px; padding: 7px 0; border-radius: 10px; color: var(--ink-2);
+      font-weight: 500;
     }
-    .seg i.on { background: var(--card); color: var(--ink); font-weight: 560; box-shadow: 0 1px 2px rgba(44,40,36,0.06); }
+    .seg i.on { background: var(--card); color: var(--ink); font-weight: 600; box-shadow: 0 1px 2px rgba(44,40,36,0.06); }
 
     .period {
       display: flex; align-items: center; justify-content: space-between;
@@ -443,6 +447,7 @@
     .sum3 {
       display: flex; gap: 0; justify-content: space-between;
       padding: 8px 4px 4px; font-size: 12px; color: var(--ink-2);
+      font-weight: 500;
     }
     .sum3 b { display: block; font-size: 16px; color: var(--ink); font-weight: 650; margin-bottom: 2px; }
 
@@ -475,7 +480,7 @@
       z-index: 1;
     }
     .pie-label .n { font-size: 22px; font-weight: 700; letter-spacing: -0.03em; line-height: 1; }
-    .pie-label .l { font-size: 10px; color: var(--ink-3); margin-top: 3px; }
+    .pie-label .l { font-size: 10px; color: var(--ink-3); margin-top: 3px; font-weight: 500; }
 
     .tlist { margin-top: 6px; }
     .trow {
@@ -489,7 +494,7 @@
     }
     .trow:last-child { border-bottom: 0; }
     .trow .dot { width: 10px; height: 10px; }
-    .trow .name { font-weight: 560; }
+    .trow .name { font-weight: 600; }
     .trow .fig {
       font-size: 12px; color: var(--ink-2); white-space: nowrap;
       font-family: "Inter", "Noto Sans SC", sans-serif;
@@ -508,6 +513,7 @@
     }
     .group .cap {
       padding: 10px 14px 0; font-size: 11px; color: var(--ink-3); letter-spacing: 0.08em;
+      font-weight: 500;
     }
     .srow {
       display: flex; align-items: center; gap: 12px;
@@ -521,15 +527,15 @@
       flex: none;
     }
     .srow .txt { flex: 1; min-width: 0; }
-    .srow .ttl { font-size: 14px; }
-    .srow .sub { font-size: 11px; color: var(--ink-3); margin-top: 2px; }
+    .srow .ttl { font-size: 14px; font-weight: 500; }
+    .srow .sub { font-size: 11px; color: var(--ink-3); margin-top: 2px; font-weight: 500; }
     .srow .val { font-size: 13px; color: var(--ink-2); }
     .srow .chev { border: 0; background: transparent; width: 16px; height: 16px; }
 
     .dots { display: flex; gap: 4px; }
     .dots i { width: 10px; height: 10px; border-radius: 50%; display: block; }
 
-    .fineprint { text-align: center; font-size: 11px; color: var(--ink-3); line-height: 1.7; padding: 6px 12px 0; }
+    .fineprint { text-align: center; font-size: 11px; color: var(--ink-3); line-height: 1.7; padding: 6px 12px 0; font-weight: 500; }
 
     /* ===== 类型管理 ===== */
     .type-page { flex: 1; display: flex; flex-direction: column; min-height: 0; }

@@ -32,6 +32,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -162,6 +163,6 @@ private fun TabItem(
     ) {
         Spacer(Modifier.height(8.dp))
         Icon(icon, contentDescription = label, tint = if (on) Ink else Ink3)
-        Text(label, fontSize = 11.sp, color = if (on) Ink else Ink3)
+        Text(label, fontSize = 11.sp, fontWeight = FontWeight.Medium, color = if (on) Ink else Ink3)
     }
 }

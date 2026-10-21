@@ -6,6 +6,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.shijiankuai.app.domain.BLOCKS_PER_DAY
 import com.shijiankuai.app.domain.Presets
 import com.shijiankuai.app.domain.SLEEP_TYPE_ID
+import com.shijiankuai.app.ui.settings.SettingsScreen
 import com.shijiankuai.app.ui.stats.StatsScreen
 import com.shijiankuai.app.ui.theme.TimeBlockTheme
 import com.shijiankuai.app.ui.today.AsleepScreen
@@ -81,6 +82,20 @@ fun PreviewStats() {
             stats = stats,
             onKind = {},
             onShift = {},
+        )
+    }
+}
+
+@Preview(showBackground = true, widthDp = 390, heightDp = 844)
+@Composable
+fun PreviewSettings() {
+    TimeBlockTheme {
+        SettingsScreen(
+            types = Presets.types,
+            onOpenTypes = {},
+            exportCsv = { "" },
+            exportBackup = { "" },
+            restore = { false },
         )
     }
 }

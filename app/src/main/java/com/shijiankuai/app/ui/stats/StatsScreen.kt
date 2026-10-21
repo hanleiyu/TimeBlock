@@ -84,7 +84,7 @@ fun StatsScreen(
                         .padding(vertical = 7.dp),
                     contentAlignment = Alignment.Center,
                 ) {
-                    Text(label, fontSize = 13.sp, color = if (on) Ink else Ink2, fontWeight = if (on) FontWeight.Medium else FontWeight.Normal)
+                    Text(label, fontSize = 13.sp, color = if (on) Ink else Ink2, fontWeight = if (on) FontWeight.SemiBold else FontWeight.Medium)
                 }
             }
         }
@@ -170,7 +170,7 @@ private fun StatRow(color: Color, name: String, blocks: Int, total: Int) {
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Box(Modifier.size(10.dp).clip(CircleShape).background(color))
-        Text(name, fontSize = 13.sp, color = Ink, fontWeight = FontWeight.Medium, modifier = Modifier.padding(start = 8.dp).weight(1f))
+        Text(name, fontSize = 13.sp, color = Ink, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(start = 8.dp).weight(1f))
         Text(
             "$blocks 块 · ${hoursLabel(blocks)} · $pct%",
             fontSize = 12.sp,

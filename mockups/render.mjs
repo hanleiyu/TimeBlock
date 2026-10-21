@@ -94,6 +94,7 @@ const aliases = [
   ["02-today-grid.png", "app-today-awake.png"],
   ["03-type-picker.png", "app-type-sheet.png"],
   ["04-stats.png", "app-stats.png"],
+  ["05-settings.png", "app-settings.png"],
 ];
 for (const [src, dest] of aliases) {
   copyFileSync(resolve(outDir, src), resolve(artifactDir, dest));
