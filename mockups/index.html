@@ -41,7 +41,7 @@
       --sheet: #fffdf9;
       --work: #7a8b99;
       --eat: #c9a07c;
-      --nap: #a3b194;
+      --sleep: #545d72;
       --study: #8e7f9a;
       --read: #b88888;
       --play: #d0b07a;
@@ -187,7 +187,27 @@
     .wake-mid { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding-bottom: 24px; }
     .wake-date { font-size: 15px; color: var(--ink-2); letter-spacing: 0.08em; }
     .wake-title { margin-top: 10px; font-size: 30px; font-weight: 620; letter-spacing: 0.04em; }
-    .wake-copy { margin-top: 10px; font-size: 13px; color: var(--ink-2); line-height: 1.7; text-align: center; }
+    .wake.asleep {
+      background:
+        radial-gradient(ellipse 90% 50% at 50% 16%, #c8ccd6 0%, transparent 64%),
+        radial-gradient(ellipse 70% 40% at 80% 90%, #d8d3c8 0%, transparent 60%),
+        var(--paper);
+    }
+    .sleep-btn {
+      font-size: 12px; color: #eef0f5; background: var(--sleep);
+      padding: 6px 12px; border-radius: 999px; letter-spacing: 0.06em;
+    }
+    .toast {
+      margin: 0 16px 10px;
+      background: #3d4252; color: #eef0f5;
+      border-radius: 12px; padding: 10px 14px;
+      font-size: 13px; display: flex; align-items: center; gap: 8px;
+      box-shadow: 0 8px 20px rgba(44,40,36,0.12);
+    }
+    .toast i {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: #8b93a8; flex: none;
+    }
 
     .wake-btn-wrap { margin-top: 36px; position: relative; }
     .halo {
@@ -290,7 +310,7 @@
     .c.f { background: #f7f1e6; box-shadow: inset 0 0 0 1px #e3d8c6; }
     .c.work { background: var(--work); }
     .c.eat { background: var(--eat); }
-    .c.nap { background: var(--nap); }
+    .c.sleep { background: var(--sleep); }
     .c.study { background: var(--study); }
     .c.read { background: var(--read); }
     .c.play { background: var(--play); }
@@ -431,13 +451,13 @@
     .pie {
       width: 148px; height: 148px; border-radius: 50%;
       background: conic-gradient(
-        var(--work) 0 41.18%,
-        var(--study) 41.18% 64.71%,
-        var(--eat) 64.71% 76.47%,
-        var(--nap) 76.47% 85.29%,
-        var(--read) 85.29% 91.18%,
-        var(--social) 91.18% 97.06%,
-        var(--sport) 97.06% 100%
+        var(--sleep) 0 47.9%,
+        var(--work) 47.9% 70.8%,
+        var(--study) 70.8% 83.3%,
+        var(--eat) 83.3% 89.6%,
+        var(--read) 89.6% 93.8%,
+        var(--social) 93.8% 98.0%,
+        var(--sport) 98.0% 100%
       );
       position: relative;
       box-shadow: 0 8px 20px rgba(80,60,40,0.08);
@@ -456,31 +476,23 @@
     .pie-label .n { font-size: 22px; font-weight: 700; letter-spacing: -0.03em; line-height: 1; }
     .pie-label .l { font-size: 10px; color: var(--ink-3); margin-top: 3px; }
 
-    .tlist { margin-top: 2px; }
+    .tlist { margin-top: 6px; }
     .trow {
       display: grid;
-      grid-template-columns: 12px minmax(0, 1fr);
+      grid-template-columns: 12px minmax(0, 1fr) auto;
       align-items: center;
       gap: 8px;
-      padding: 6px 0;
-      font-size: 12px;
+      height: 36px;
+      font-size: 13px;
       border-bottom: 1px solid #e8dccb;
     }
     .trow:last-child { border-bottom: 0; }
     .trow .dot { width: 10px; height: 10px; }
-    .trow .head {
-      display: flex; align-items: baseline; justify-content: space-between; gap: 8px;
-    }
     .trow .name { font-weight: 560; }
-    .trow .meta {
-      margin: 0; font-size: 11px; color: var(--ink-2); white-space: nowrap;
+    .trow .fig {
+      font-size: 12px; color: var(--ink-2); white-space: nowrap;
+      font-family: "Inter", "Noto Sans SC", sans-serif;
     }
-    .bar {
-      margin-top: 5px; height: 6px; border-radius: 99px;
-      background: #e8dccb; overflow: hidden;
-    }
-    .bar i { display: block; height: 100%; border-radius: 99px; min-width: 6px; }
-    .trow .meta { letter-spacing: 0.02em; }
 
     /* ===== 设置 ===== */
     .set-page { flex: 1; padding: 4px 16px 0; }
@@ -580,10 +592,10 @@
 <body class="gallery">
   <header class="gallery-head">
     <h1>时间块</h1>
-    <p>界面稿 · 390 × 844 · 示例数据（2026年10月21日，周三）· 起床 07:12 · 就寝 00:30 · 共 105 块</p>
+    <p>界面稿 · 390 × 844 · 示例数据（2026年10月21日，周三）· 日历日 144 块 · 00:42 入睡 · 07:12 醒来</p>
   </header>
   <div class="gallery-grid">
-    <figure class="frame" id="f1"><div class="phone" id="p1"></div><figcaption><strong>01</strong>　今天 · 起床签到前</figcaption></figure>
+    <figure class="frame" id="f1"><div class="phone" id="p1"></div><figcaption><strong>01</strong>　今天 · 还在睡</figcaption></figure>
     <figure class="frame" id="f2"><div class="phone" id="p2"></div><figcaption><strong>02</strong>　今天 · 日格与计数</figcaption></figure>
     <figure class="frame" id="f3"><div class="phone" id="p3"></div><figcaption><strong>03</strong>　框选 + 类型底板</figcaption></figure>
     <figure class="frame" id="f4"><div class="phone" id="p4"></div><figcaption><strong>04</strong>　统计 · 日视图</figcaption></figure>
@@ -593,13 +605,13 @@
 
   <div id="overview-board" class="overview-wrap" style="display:none">
     <h1>时间块 · 界面总览</h1>
-    <p class="sub">示例数据 · 2026年10月21日周三 · 07:12 起床 · 00:30 就寝 · 10 分钟 / 块 · 共 105 块</p>
+    <p class="sub">示例数据 · 2026年10月21日周三 · 日历日 144 块 · 00:42 入睡 · 07:12 醒来</p>
     <div class="overview-row" id="overview-row"></div>
   </div>
 
 <template id="tpl-status">
   <div class="sb">
-    <span class="num">14:20</span>
+    <span class="num" data-clock>14:20</span>
     <div class="sb-right">
       <svg width="15" height="12" viewBox="0 0 15 12" fill="currentColor"><path d="M1 8.2c2.4-2.4 6.6-2.4 9 0l1.1-1.1C8.2 4.2 2.8 4.2 0 7.1L1 8.2zm2.3 0c1.3-1.2 3.2-1.2 4.5 0l1.1-1.2c-1.9-1.8-4.8-1.8-6.7 0l1.1 1.2zM6.8 10.6a1.2 1.2 0 1 1-1.6 0l.8-.8.8.8z"/></svg>
       <svg width="16" height="12" viewBox="0 0 16 12" fill="currentColor"><rect x="0" y="8" width="3" height="4" rx="0.5"/><rect x="4.2" y="5.5" width="3" height="6.5" rx="0.5"/><rect x="8.4" y="3" width="3" height="9" rx="0.5"/><rect x="12.6" y="0.5" width="3" height="11.5" rx="0.5" opacity=".35"/></svg>
@@ -628,30 +640,22 @@
 
 <template id="tpl-s1">
   <div class="screen" data-shot="01-wake">
-    <div data-status></div>
-    <div class="wake">
+    <div data-status="07:12"></div>
+    <div class="wake asleep">
       <div class="wake-top">
         <div class="brand">时间块</div>
         <span class="badge-ex">示例</span>
       </div>
       <div class="wake-mid">
         <div class="wake-date">2026年10月21日 · 星期三</div>
-        <div class="wake-title">新的一天还没开始</div>
-        <div class="wake-copy">点一下记录醒来的时刻。<br>今天的 10 分钟格子，从这一刻起算。</div>
+        <div class="wake-title">还在睡</div>
         <div class="wake-btn-wrap">
           <div class="halo"></div>
           <div class="wake-btn">
             <div class="lbl">我醒了</div>
-            <div class="sub">开始今天</div>
           </div>
         </div>
-        <div class="ghost-grid" aria-hidden="true">
-          <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
-          <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
-          <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
-        </div>
       </div>
-      <div class="wake-foot">计划就寝 00:30 · 每块 10 分钟 · 可跨午夜</div>
     </div>
     <div data-tabs="today"></div>
   </div>
@@ -659,70 +663,61 @@
 
 <template id="tpl-s2">
   <div class="screen" data-shot="02-today">
-    <div data-status></div>
+    <div data-status="07:12"></div>
     <div class="today">
       <div class="today-head">
         <div class="row">
           <h1>10月21日 周三</h1>
-          <span class="edit">改起床时间</span>
+          <span class="sleep-btn">我睡了</span>
         </div>
         <div class="meta">
-          <span>起床 <b class="num">07:12</b></span>
-          <span>就寝 <b class="num">00:30</b></span>
+          <span>醒了 <b class="num">07:12</b></span>
+          <span>144 块</span>
           <span class="badge-ex">示例数据</span>
         </div>
       </div>
+      <div class="toast"><i></i>00:42 入睡 · 已记 43 块睡觉</div>
       <div class="stats">
-        <div class="stat"><div class="n num">105</div><div class="l">今日总块</div></div>
-        <div class="stat em"><div class="n num">44</div><div class="l">已过</div></div>
-        <div class="stat"><div class="n num">61</div><div class="l">剩余</div></div>
+        <div class="stat em"><div class="n num">43</div><div class="l">已过</div></div>
+        <div class="stat"><div class="n num">101</div><div class="l">剩余</div></div>
+        <div class="stat"><div class="n num">43</div><div class="l">已睡</div></div>
       </div>
       <div class="grid-wrap">
         <div class="grid-fade-top"></div>
         <div class="hour">
-          <div class="hour-t num">09:00</div>
-          <div class="cells"><i class="c read"></i><i class="c read"></i><i class="c read"></i><i class="c work"></i><i class="c work"></i><i class="c work"></i></div>
+          <div class="hour-t num">00:00</div>
+          <div class="cells"><i class="c sleep"></i><i class="c sleep"></i><i class="c sleep"></i><i class="c sleep"></i><i class="c sleep"></i><i class="c sleep"></i></div>
         </div>
         <div class="hour">
-          <div class="hour-t num">10:00</div>
-          <div class="cells"><i class="c work"></i><i class="c work"></i><i class="c work"></i><i class="c work"></i><i class="c work"></i><i class="c work"></i></div>
+          <div class="hour-t num">01:00</div>
+          <div class="cells"><i class="c sleep"></i><i class="c sleep"></i><i class="c sleep"></i><i class="c sleep"></i><i class="c sleep"></i><i class="c sleep"></i></div>
         </div>
         <div class="hour">
-          <div class="hour-t num">11:00</div>
-          <div class="cells"><i class="c work"></i><i class="c work"></i><i class="c work"></i><i class="c work"></i><i class="c social"></i><i class="c social"></i></div>
+          <div class="hour-t num">02:00</div>
+          <div class="cells"><i class="c sleep"></i><i class="c sleep"></i><i class="c sleep"></i><i class="c sleep"></i><i class="c sleep"></i><i class="c sleep"></i></div>
         </div>
         <div class="hour">
-          <div class="hour-t num">12:00</div>
-          <div class="cells"><i class="c eat"></i><i class="c eat"></i><i class="c eat"></i><i class="c eat"></i><i class="c nap"></i><i class="c nap"></i></div>
+          <div class="hour-t num">03:00</div>
+          <div class="cells"><i class="c sleep"></i><i class="c sleep"></i><i class="c sleep"></i><i class="c sleep"></i><i class="c sleep"></i><i class="c sleep"></i></div>
         </div>
         <div class="hour">
-          <div class="hour-t num">13:00</div>
-          <div class="cells"><i class="c nap"></i><i class="c study"></i><i class="c study"></i><i class="c study"></i><i class="c study"></i><i class="c study"></i></div>
+          <div class="hour-t num">04:00</div>
+          <div class="cells"><i class="c sleep"></i><i class="c sleep"></i><i class="c sleep"></i><i class="c sleep"></i><i class="c sleep"></i><i class="c sleep"></i></div>
+        </div>
+        <div class="hour">
+          <div class="hour-t num">05:00</div>
+          <div class="cells"><i class="c sleep"></i><i class="c sleep"></i><i class="c sleep"></i><i class="c sleep"></i><i class="c sleep"></i><i class="c sleep"></i></div>
+        </div>
+        <div class="hour">
+          <div class="hour-t num">06:00</div>
+          <div class="cells"><i class="c sleep"></i><i class="c sleep"></i><i class="c sleep"></i><i class="c sleep"></i><i class="c sleep"></i><i class="c sleep"></i></div>
         </div>
         <div class="hour" style="position:relative">
-          <div class="hour-t num">14:00</div>
-          <div class="cells"><i class="c study"></i><i class="c study"></i><i class="c"></i><i class="c"></i><i class="c"></i><i class="c"></i></div>
-          <div class="now-line" style="top:33%"><i></i><span class="num">现在 14:20</span></div>
-        </div>
-        <div class="hour">
-          <div class="hour-t num">15:00</div>
-          <div class="cells"><i class="c f"></i><i class="c f"></i><i class="c f"></i><i class="c f"></i><i class="c sport plan"></i><i class="c sport plan"></i></div>
-        </div>
-        <div class="hour">
-          <div class="hour-t num">16:00</div>
-          <div class="cells"><i class="c f"></i><i class="c f"></i><i class="c f"></i><i class="c f"></i><i class="c f"></i><i class="c f"></i></div>
+          <div class="hour-t num">07:00</div>
+          <div class="cells"><i class="c sleep"></i><i class="c"></i><i class="c"></i><i class="c"></i><i class="c"></i><i class="c f"></i></div>
+          <div class="now-line" style="top:20%"><i></i><span class="num">现在 07:12</span></div>
         </div>
         <div class="grid-fade-bot"></div>
-      </div>
-      <div class="legend">
-        <span><b style="background:var(--work)"></b>工作</span>
-        <span><b style="background:var(--read)"></b>阅读</span>
-        <span><b style="background:var(--eat)"></b>吃饭</span>
-        <span><b style="background:var(--nap)"></b>小憩</span>
-        <span><b style="background:var(--study)"></b>学习</span>
-        <span><b style="background:var(--social)"></b>人际</span>
-        <span><b style="background:var(--sport)"></b>运动</span>
-        <span><b style="background:#f7f1e6;box-shadow:inset 0 0 0 1px #d8d0c4"></b>未来</span>
       </div>
     </div>
     <div data-tabs="today"></div>
@@ -731,28 +726,28 @@
 
 <template id="tpl-s3">
   <div class="screen" data-shot="03-picker">
-    <div data-status></div>
+    <div data-status="14:20"></div>
     <div class="today">
       <div class="today-head">
         <div class="row">
           <h1>10月21日 周三</h1>
-          <span class="edit">改起床时间</span>
+          <span class="sleep-btn">我睡了</span>
         </div>
         <div class="meta">
-          <span>起床 <b class="num">07:12</b></span>
-          <span>就寝 <b class="num">00:30</b></span>
+          <span>醒了 <b class="num">07:12</b></span>
+          <span>144 块</span>
           <span class="badge-ex">示例数据</span>
         </div>
       </div>
       <div class="stats">
-        <div class="stat"><div class="n num">105</div><div class="l">今日总块</div></div>
-        <div class="stat em"><div class="n num">44</div><div class="l">已过</div></div>
-        <div class="stat"><div class="n num">61</div><div class="l">剩余</div></div>
+        <div class="stat em"><div class="n num">86</div><div class="l">已过</div></div>
+        <div class="stat"><div class="n num">58</div><div class="l">剩余</div></div>
+        <div class="stat"><div class="n num">46</div><div class="l">已睡</div></div>
       </div>
       <div class="grid-wrap">
         <div class="hour">
           <div class="hour-t num">13:00</div>
-          <div class="cells"><i class="c nap"></i><i class="c study"></i><i class="c study"></i><i class="c study"></i><i class="c study"></i><i class="c study"></i></div>
+          <div class="cells"><i class="c sleep"></i><i class="c study"></i><i class="c study"></i><i class="c study"></i><i class="c study"></i><i class="c study"></i></div>
         </div>
         <div class="hour" style="position:relative">
           <div class="hour-t num">14:00</div>
@@ -774,11 +769,11 @@
     <div class="sheet">
       <div class="sheet-handle"></div>
       <h2>标记这 4 个时间块</h2>
-      <div class="hint num">15:00 – 15:40 · 按住拖过格子再选类型</div>
+      <div class="hint num">15:00 – 15:40</div>
       <div class="types">
         <div class="type"><i class="dot" style="background:var(--work)"></i>工作</div>
         <div class="type"><i class="dot" style="background:var(--eat)"></i>吃饭</div>
-        <div class="type"><i class="dot" style="background:var(--nap)"></i>小憩</div>
+        <div class="type"><i class="dot" style="background:var(--sleep)"></i>睡觉</div>
         <div class="type"><i class="dot" style="background:var(--study)"></i>学习</div>
         <div class="type"><i class="dot" style="background:var(--read)"></i>阅读</div>
         <div class="type"><i class="dot" style="background:var(--play)"></i>玩</div>
@@ -810,24 +805,24 @@
         <div class="chev">›</div>
       </div>
       <div class="sum3">
-        <div><b class="num">105</b>清醒块</div>
-        <div><b class="num">68</b>已填</div>
-        <div><b class="num">37</b>未填</div>
+        <div><b class="num">144</b>总块</div>
+        <div><b class="num">96</b>已填</div>
+        <div><b class="num">48</b>未填</div>
       </div>
       <div class="pie-wrap">
         <div class="pie">
-          <div class="pie-label"><div class="n num">68</div><div class="l">已填 / 105</div></div>
+          <div class="pie-label"><div class="n num">96</div><div class="l">已填 / 144</div></div>
         </div>
       </div>
       <div class="tlist">
-        <div class="trow"><i class="dot" style="background:var(--work)"></i><div><div class="head"><span class="name">工作</span><span class="meta num">28 块 · 4.7 时 · 27%</span></div><div class="bar"><i style="width:76%;background:var(--work)"></i></div></div></div>
-        <div class="trow"><i class="dot" style="background:var(--study)"></i><div><div class="head"><span class="name">学习</span><span class="meta num">16 块 · 2.7 时 · 15%</span></div><div class="bar"><i style="width:43%;background:var(--study)"></i></div></div></div>
-        <div class="trow"><i class="dot" style="background:var(--eat)"></i><div><div class="head"><span class="name">吃饭</span><span class="meta num">8 块 · 1.3 时 · 8%</span></div><div class="bar"><i style="width:22%;background:var(--eat)"></i></div></div></div>
-        <div class="trow"><i class="dot" style="background:var(--nap)"></i><div><div class="head"><span class="name">小憩</span><span class="meta num">6 块 · 1.0 时 · 6%</span></div><div class="bar"><i style="width:16%;background:var(--nap)"></i></div></div></div>
-        <div class="trow"><i class="dot" style="background:var(--read)"></i><div><div class="head"><span class="name">阅读</span><span class="meta num">4 块 · 0.7 时 · 4%</span></div><div class="bar"><i style="width:11%;background:var(--read)"></i></div></div></div>
-        <div class="trow"><i class="dot" style="background:var(--social)"></i><div><div class="head"><span class="name">人际</span><span class="meta num">4 块 · 0.7 时 · 4%</span></div><div class="bar"><i style="width:11%;background:var(--social)"></i></div></div></div>
-        <div class="trow"><i class="dot" style="background:var(--sport)"></i><div><div class="head"><span class="name">运动</span><span class="meta num">2 块 · 0.3 时 · 2%</span></div><div class="bar"><i style="width:8%;background:var(--sport)"></i></div></div></div>
-        <div class="trow"><i class="dot" style="background:var(--unfilled)"></i><div><div class="head"><span class="name">未填</span><span class="meta num">37 块 · 6.2 时 · 35%</span></div><div class="bar"><i style="width:100%;background:#cfc3b0"></i></div></div></div>
+        <div class="trow"><i class="dot" style="background:var(--sleep)"></i><span class="name">睡觉</span><span class="fig">46 块 · 7.7 时 · 32%</span></div>
+        <div class="trow"><i class="dot" style="background:var(--work)"></i><span class="name">工作</span><span class="fig">22 块 · 3.7 时 · 15%</span></div>
+        <div class="trow"><i class="dot" style="background:var(--study)"></i><span class="name">学习</span><span class="fig">12 块 · 2.0 时 · 8%</span></div>
+        <div class="trow"><i class="dot" style="background:var(--eat)"></i><span class="name">吃饭</span><span class="fig">6 块 · 1.0 时 · 4%</span></div>
+        <div class="trow"><i class="dot" style="background:var(--read)"></i><span class="name">阅读</span><span class="fig">4 块 · 0.7 时 · 3%</span></div>
+        <div class="trow"><i class="dot" style="background:var(--social)"></i><span class="name">人际</span><span class="fig">4 块 · 0.7 时 · 3%</span></div>
+        <div class="trow"><i class="dot" style="background:var(--sport)"></i><span class="name">运动</span><span class="fig">2 块 · 0.3 时 · 1%</span></div>
+        <div class="trow"><i class="dot" style="background:var(--unfilled)"></i><span class="name">未填</span><span class="fig">48 块 · 8.0 时 · 33%</span></div>
       </div>
     </div>
     <div data-tabs="stats"></div>
@@ -840,20 +835,12 @@
     <div class="set-page">
       <h1>设置</h1>
       <div class="group">
-        <div class="cap">一天的边界</div>
-        <div class="srow">
-          <div class="sico" style="background:#f4e4da;color:var(--wake-deep)">
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M11.8 10.4A5.1 5.1 0 0 1 6.6 3.4 5.2 5.2 0 1 0 12.4 11c-.2 0-.4-.1-.6-.1z"/></svg>
-          </div>
-          <div class="txt"><div class="ttl">计划就寝</div><div class="sub">可晚于午夜，今天会跨到次日</div></div>
-          <div class="val num">00:30</div>
-          <div class="chev">›</div>
-        </div>
+        <div class="cap">时间块</div>
         <div class="srow">
           <div class="sico" style="background:#e6e4dc;color:var(--ink-2)">
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="8" cy="8" r="5.2"/><path d="M8 5.2V8l1.8 1.2"/></svg>
           </div>
-          <div class="txt"><div class="ttl">时间块长度</div><div class="sub">固定，暂不开放更改</div></div>
+          <div class="txt"><div class="ttl">时间块长度</div></div>
           <div class="val">10 分钟</div>
         </div>
       </div>
@@ -871,7 +858,7 @@
           <div class="dots">
             <i style="background:var(--work)"></i>
             <i style="background:var(--eat)"></i>
-            <i style="background:var(--nap)"></i>
+            <i style="background:var(--sleep)"></i>
             <i style="background:var(--study)"></i>
             <i style="background:var(--read)"></i>
           </div>
@@ -903,7 +890,7 @@
           <div class="chev">›</div>
         </div>
       </div>
-      <div class="fineprint">离线使用 · 无账号 · 无网络<br>一天以起床签到的日期为界</div>
+      <div class="fineprint">离线使用 · 无账号 · 无网络</div>
     </div>
     <div data-tabs="set"></div>
   </div>
@@ -921,7 +908,7 @@
       <div class="tmanage">
         <div class="mrow"><i class="dot" style="background:var(--work)"></i><div class="name">工作</div><span class="tag">预设</span><span class="grip">≡</span></div>
         <div class="mrow"><i class="dot" style="background:var(--eat)"></i><div class="name">吃饭</div><span class="tag">预设</span><span class="grip">≡</span></div>
-        <div class="mrow"><i class="dot" style="background:var(--nap)"></i><div class="name">小憩</div><span class="tag">预设</span><span class="grip">≡</span></div>
+        <div class="mrow"><i class="dot" style="background:var(--sleep)"></i><div class="name">睡觉</div><span class="tag">预设</span><span class="grip">≡</span></div>
         <div class="mrow"><i class="dot" style="background:var(--study)"></i><div class="name">学习</div><span class="tag">预设</span><span class="grip">≡</span></div>
         <div class="mrow"><i class="dot" style="background:var(--read)"></i><div class="name">阅读</div><span class="tag">预设</span><span class="grip">≡</span></div>
         <div class="mrow"><i class="dot" style="background:var(--play)"></i><div class="name">玩</div><span class="tag">预设</span><span class="grip">≡</span></div>
@@ -942,7 +929,7 @@
       <div class="colors">
         <i class="sw" style="background:var(--work)"></i>
         <i class="sw" style="background:var(--eat)"></i>
-        <i class="sw" style="background:var(--nap)"></i>
+        <i class="sw" style="background:var(--sleep)"></i>
         <i class="sw" style="background:var(--study)"></i>
         <i class="sw" style="background:var(--read)"></i>
         <i class="sw" style="background:var(--play)"></i>
@@ -961,8 +948,11 @@
 
 <script>
   function stamp(root, tab) {
+    const slotSt = root.querySelector("[data-status]");
+    const clock = slotSt && slotSt.getAttribute("data-status");
     const st = document.getElementById("tpl-status").content.cloneNode(true);
-    root.querySelector("[data-status]").replaceWith(st);
+    if (clock) st.querySelector("[data-clock]").textContent = clock;
+    slotSt.replaceWith(st);
     const slot = root.querySelector("[data-tabs]");
     if (!slot) return;
     const tabs = document.getElementById("tpl-tabs").content.cloneNode(true);

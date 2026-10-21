@@ -1,6 +1,6 @@
 # 时间块 · 界面稿
 
-这是 **时间块** 的高保真界面稿，不是 Android 应用。按 Tim Urban 的 *100 Blocks a Day*：清醒的一天按 10 分钟切成块。先定视觉，再写 Kotlin。
+这是 **时间块** 的高保真界面稿，不是 Android 应用。一天是日历日 00:00–24:00，144 个 10 分钟块。睡觉也是一种块：点「我睡了 / 我醒了」自动填「睡觉」，午睡也用手动画「睡觉」。
 
 手机画幅 390 × 844，文案简体中文，类型色是莫兰迪低饱和色。数据都标了「示例」。
 
@@ -25,8 +25,8 @@ npm run render
 | 文件 | 画面 |
 | --- | --- |
 | `mockups/export/00-overview.png` | 六屏总览 |
-| `mockups/export/01-today-wake.png` | 今天 · 起床前，「我醒了」 |
-| `mockups/export/02-today-grid.png` | 今天 · 计数 + 日格 |
+| `mockups/export/01-today-wake.png` | 今天 · 还在睡，「我醒了」 |
+| `mockups/export/02-today-grid.png` | 今天 · 刚醒，toast + 日格 |
 | `mockups/export/03-type-picker.png` | 框选 + 类型底板 |
 | `mockups/export/04-stats.png` | 统计 · 日 / 饼图 / 窄列表 |
 | `mockups/export/05-settings.png` | 设置 |
@@ -34,4 +34,4 @@ npm run render
 
 同一套文件也在 `/opt/cursor/artifacts/`。
 
-示例日：2026-10-21 周三，07:12 起床，00:30 就寝，共 105 块；截稿时刻 14:20，已过 44，剩余 61。
+示例日：2026-10-21 周三，00:42 入睡，07:12 醒来，144 块。
