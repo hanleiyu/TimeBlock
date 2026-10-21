@@ -1,0 +1,1011 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>时间块 · 界面稿</title>
+  <style>
+    @font-face {
+      font-family: "Noto Sans SC";
+      src: url("fonts/NotoSansSC-Variable.ttf") format("truetype");
+      font-weight: 100 900;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: "Inter";
+      src: url("fonts/Inter-Medium.ttf") format("truetype");
+      font-weight: 500;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: "Inter";
+      src: url("fonts/Inter-Bold.ttf") format("truetype");
+      font-weight: 700;
+      font-display: swap;
+    }
+
+    :root {
+      --paper: #efe6d8;
+      --paper-deep: #e4d8c6;
+      --card: #fff9f1;
+      --ink: #2c2824;
+      --ink-2: #6a635a;
+      --ink-3: #8f877c;
+      --line: #ddd2c0;
+      --line-2: #cfc3b0;
+      --wake: #c26a4a;
+      --wake-deep: #a8563c;
+      --now: #c26a4a;
+      --empty-past: #e7dfd2;
+      --empty-future: #f6f1e8;
+      --sheet: #fffdf9;
+      --work: #7a8b99;
+      --eat: #c9a07c;
+      --nap: #a3b194;
+      --study: #8e7f9a;
+      --read: #b88888;
+      --play: #d0b07a;
+      --social: #7fa0a0;
+      --sport: #c48a6e;
+      --write: #8a9b7a;
+      --unfilled: #d8d0c4;
+      --sel: #2c2824;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { background: #d8cfc0; }
+    body {
+      font-family: "Noto Sans SC", "WenQuanYi Micro Hei", sans-serif;
+      color: var(--ink);
+      -webkit-font-smoothing: antialiased;
+    }
+    .num { font-family: "Inter", "Noto Sans SC", sans-serif; font-feature-settings: "tnum" 1; }
+
+    body.gallery {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        radial-gradient(1200px 600px at 20% -10%, #f7efe3 0%, transparent 50%),
+        #d8cfc0;
+      padding: 48px 40px 80px;
+    }
+
+    .gallery-head { max-width: 1480px; margin: 0 auto 36px; }
+    .gallery-head h1 {
+      font-size: 32px; font-weight: 620; letter-spacing: 0.04em;
+    }
+    .gallery-head p {
+      margin-top: 8px; color: var(--ink-2); font-size: 15px; line-height: 1.6;
+    }
+    .gallery-grid {
+      display: flex; flex-wrap: wrap; gap: 36px 28px;
+      max-width: 1480px; margin: 0 auto;
+    }
+    .frame { width: 390px; }
+    .frame figcaption {
+      margin-top: 14px; text-align: center;
+      font-size: 13px; color: var(--ink-2); letter-spacing: 0.06em;
+    }
+    .frame figcaption strong { color: var(--ink); font-weight: 560; }
+
+    .phone {
+      width: 390px; height: 844px;
+      border-radius: 36px;
+      overflow: hidden;
+      position: relative;
+      background: var(--paper);
+      box-shadow:
+        0 0 0 10px #2a2622,
+        0 0 0 12px #1a1816,
+        0 24px 50px rgba(44, 40, 36, 0.28);
+    }
+    body.shot .phone {
+      border-radius: 0;
+      box-shadow: none;
+    }
+    body.shot, body.shot html { background: #000; }
+    body.shot { padding: 0; }
+    body.shot .gallery-head,
+    body.shot .gallery-grid,
+    body.shot figcaption { display: none !important; }
+    body.shot .frame { margin: 0; }
+    body.shot .phone { display: none; }
+    body.shot .phone.target { display: block; }
+
+    body.overview-page {
+      background: #cfc6b6;
+      padding: 56px 48px 64px;
+      min-width: 2680px;
+    }
+    .overview-wrap { width: 2584px; }
+    .overview-wrap h1 {
+      font-size: 36px; font-weight: 620; letter-spacing: 0.10em; margin-bottom: 8px;
+    }
+    .overview-wrap .sub {
+      color: var(--ink-2); font-size: 16px; margin-bottom: 40px;
+    }
+    .overview-row {
+      display: flex; gap: 32px; align-items: flex-start;
+    }
+
+    .screen {
+      width: 390px; height: 844px;
+      display: flex; flex-direction: column;
+      background: var(--paper);
+      position: relative;
+    }
+
+    .sb {
+      height: 36px; padding: 0 22px 0 24px;
+      display: flex; align-items: center; justify-content: space-between;
+      font-size: 13px; font-weight: 600; flex: none;
+    }
+    .sb-right { display: flex; align-items: center; gap: 6px; }
+    .sb-right svg { display: block; }
+
+    .tabs {
+      height: 64px; flex: none;
+      display: flex; padding: 0 12px 10px;
+      border-top: 1px solid var(--line);
+      background: #faf6ee;
+    }
+    .tab {
+      flex: 1; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; gap: 3px;
+      color: var(--ink-3); font-size: 11px; letter-spacing: 0.04em;
+    }
+    .tab.on { color: var(--ink); font-weight: 560; }
+    .tab svg { display: block; }
+
+    .gesture {
+      position: absolute; left: 50%; bottom: 7px;
+      width: 118px; height: 4px; margin-left: -59px;
+      background: #2c2824; border-radius: 4px; opacity: 0.28;
+    }
+
+    .badge-ex {
+      display: inline-flex; align-items: center;
+      height: 20px; padding: 0 8px;
+      border-radius: 999px;
+      background: #e8d4c0; color: #7a5340;
+      font-size: 11px; letter-spacing: 0.04em;
+    }
+
+    /* ===== 1 起床前 ===== */
+    .wake {
+      flex: 1; display: flex; flex-direction: column;
+      padding: 8px 24px 0;
+      background:
+        radial-gradient(ellipse 90% 55% at 50% 18%, #f7d7c2 0%, transparent 62%),
+        radial-gradient(ellipse 70% 40% at 80% 90%, #e7ddd0 0%, transparent 60%),
+        var(--paper);
+    }
+    .wake-top {
+      display: flex; align-items: flex-start; justify-content: space-between;
+    }
+    .brand { font-size: 15px; font-weight: 620; letter-spacing: 0.18em; }
+    .wake-mid { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding-bottom: 24px; }
+    .wake-date { font-size: 15px; color: var(--ink-2); letter-spacing: 0.08em; }
+    .wake-title { margin-top: 10px; font-size: 30px; font-weight: 620; letter-spacing: 0.04em; }
+    .wake-copy { margin-top: 10px; font-size: 13px; color: var(--ink-2); line-height: 1.7; text-align: center; }
+
+    .wake-btn-wrap { margin-top: 36px; position: relative; }
+    .halo {
+      position: absolute; inset: -18px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(194,106,74,0.20), transparent 68%);
+    }
+    .wake-btn {
+      position: relative;
+      width: 188px; height: 188px; border-radius: 50%;
+      background: linear-gradient(180deg, #d27a58 0%, #c26a4a 55%, #b35d40 100%);
+      color: #fff8f3;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      box-shadow:
+        0 16px 32px rgba(163, 74, 48, 0.28),
+        inset 0 1px 0 rgba(255,255,255,0.28);
+    }
+    .wake-btn .lbl { font-size: 28px; font-weight: 620; letter-spacing: 0.12em; }
+    .wake-btn .sub { margin-top: 6px; font-size: 12px; opacity: 0.82; letter-spacing: 0.08em; }
+
+    .ghost-grid {
+      display: grid; grid-template-columns: repeat(8, 10px); gap: 5px;
+      margin-top: 40px; opacity: 0.45;
+    }
+    .ghost-grid i {
+      width: 10px; height: 10px; border-radius: 3px; background: #d7ccbc;
+    }
+    .ghost-grid i:nth-child(3n) { background: #c9bba8; }
+
+    .wake-foot {
+      text-align: center; color: var(--ink-3); font-size: 12px;
+      padding-bottom: 8px; letter-spacing: 0.04em;
+    }
+
+    /* ===== 2/3 今日格 ===== */
+    .today { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+    .today-head { padding: 6px 20px 10px; }
+    .today-head .row {
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .today-head h1 { font-size: 22px; font-weight: 620; letter-spacing: 0.02em; }
+    .edit {
+      font-size: 12px; color: var(--wake-deep); padding: 4px 8px;
+      border-radius: 999px; background: #f4e4da;
+    }
+    .meta { margin-top: 6px; font-size: 12px; color: var(--ink-2); display: flex; gap: 12px; }
+    .meta b { color: var(--ink); font-weight: 560; }
+
+    .stats {
+      display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px;
+      padding: 0 16px 12px;
+    }
+    .stat {
+      background: var(--card);
+      border: 1px solid #d8ccb8;
+      border-radius: 14px;
+      padding: 10px 8px 9px;
+      text-align: center;
+      box-shadow: 0 1px 0 rgba(255,255,255,0.7) inset, 0 6px 14px rgba(80,60,40,0.04);
+    }
+    .stat .n { font-size: 22px; font-weight: 700; letter-spacing: -0.03em; line-height: 1.1; }
+    .stat .l { margin-top: 4px; font-size: 11px; color: var(--ink-3); letter-spacing: 0.04em; }
+    .stat.em { background: #f4e4da; border-color: #ecd2c4; }
+    .stat.em .n { color: var(--wake-deep); }
+
+    .grid-wrap {
+      padding: 0 14px 0 10px;
+      position: relative;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+    }
+    .grid-fade-top, .grid-fade-bot {
+      position: absolute; left: 0; right: 0; height: 12px; z-index: 3; pointer-events: none;
+    }
+    .grid-fade-top { top: 0; background: linear-gradient(var(--paper), transparent); }
+    .grid-fade-bot { bottom: 0; background: linear-gradient(transparent, var(--paper)); }
+
+    .hour {
+      display: grid;
+      grid-template-columns: 42px 1fr;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 6px;
+      position: relative;
+      flex: 1;
+      min-height: 0;
+    }
+    .hour-t {
+      font-size: 11px; color: var(--ink-3); text-align: right; padding-right: 2px;
+      font-family: "Inter", "Noto Sans SC", sans-serif;
+    }
+    .cells { display: grid; grid-template-columns: repeat(6, 1fr); gap: 5px; height: 100%; }
+    .c {
+      height: 100%; min-height: 28px; border-radius: 8px;
+      background: var(--empty-past);
+      position: relative;
+    }
+    .c.f { background: #f7f1e6; box-shadow: inset 0 0 0 1px #e3d8c6; }
+    .c.work { background: var(--work); }
+    .c.eat { background: var(--eat); }
+    .c.nap { background: var(--nap); }
+    .c.study { background: var(--study); }
+    .c.read { background: var(--read); }
+    .c.play { background: var(--play); }
+    .c.social { background: var(--social); }
+    .c.sport { background: var(--sport); }
+    .c.plan { opacity: 0.48; }
+
+    .now-line {
+      position: absolute; left: 42px; right: 0; top: 50%;
+      height: 0; z-index: 4; pointer-events: none;
+    }
+    .now-line::before {
+      content: "";
+      position: absolute; left: 0; right: 0; top: 0;
+      border-top: 2px solid var(--now);
+    }
+    .now-line span {
+      position: absolute; right: 0; top: -9px;
+      background: var(--now); color: #fff8f3;
+      font-size: 10px; padding: 1px 6px; border-radius: 999px;
+      letter-spacing: 0.04em;
+    }
+    .now-line i {
+      position: absolute; left: -5px; top: -4px;
+      width: 8px; height: 8px; border-radius: 50%; background: var(--now);
+    }
+
+    .c.sel {
+      outline: 2px solid var(--ink);
+      outline-offset: 1px;
+      box-shadow: 0 0 0 4px rgba(44,40,36,0.10);
+      z-index: 2;
+    }
+    .screen[data-shot="03-picker"] .today { flex: none; }
+    .screen[data-shot="03-picker"] .grid-wrap { flex: none; }
+    .screen[data-shot="03-picker"] .hour { flex: none; height: 42px; }
+    .screen[data-shot="03-picker"] .c { height: 36px; min-height: 0; }
+    .sel-chip {
+      position: absolute; left: 50px; top: -13px;
+      background: var(--ink); color: #f7f1e8;
+      font-size: 10px; padding: 2px 7px; border-radius: 999px;
+      z-index: 5;
+    }
+
+    .legend {
+      display: flex; flex-wrap: wrap; gap: 8px 10px;
+      padding: 8px 20px 6px;
+      font-size: 11px; color: var(--ink-2);
+    }
+    .legend b { display: inline-block; width: 8px; height: 8px; border-radius: 2px; margin-right: 4px; vertical-align: 1px; }
+
+    /* ===== sheet ===== */
+    .dim {
+      position: absolute; inset: 0;
+      background: rgba(44, 40, 36, 0.34);
+      z-index: 6;
+    }
+    .sheet {
+      position: absolute; left: 0; right: 0; bottom: 0;
+      background: var(--sheet);
+      border-radius: 22px 22px 0 0;
+      padding: 10px 18px 28px;
+      z-index: 7;
+      box-shadow: 0 -12px 40px rgba(44,40,36,0.16);
+    }
+    .sheet-handle {
+      width: 40px; height: 4px; border-radius: 4px;
+      background: #ddd4c6; margin: 2px auto 12px;
+    }
+    .sheet h2 { font-size: 16px; font-weight: 620; }
+    .sheet .hint { margin-top: 4px; font-size: 12px; color: var(--ink-2); }
+
+    .types {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+      margin-top: 14px;
+    }
+    .type.add { grid-column: 1 / -1; justify-content: center; }
+    .type {
+      display: flex; align-items: center; gap: 10px;
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 10px 12px;
+      font-size: 14px;
+    }
+    .dot { width: 14px; height: 14px; border-radius: 50%; flex: none; }
+    .type.add {
+      border-style: dashed; color: var(--ink-2); background: transparent;
+    }
+    .type.add .plus {
+      width: 14px; height: 14px; border-radius: 50%;
+      border: 1.2px solid var(--ink-3);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; line-height: 1;
+    }
+    .sheet-actions { display: flex; gap: 8px; margin-top: 12px; }
+    .ghost-btn, .pri-btn {
+      flex: 1; height: 40px; border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px;
+    }
+    .ghost-btn { background: var(--paper-deep); color: var(--ink-2); }
+    .pri-btn { background: var(--ink); color: #f7f1e8; }
+
+    /* ===== 统计 ===== */
+    .stats-page { flex: 1; display: flex; flex-direction: column; min-height: 0; padding: 4px 16px 0; }
+    .stats-page h1 { font-size: 22px; font-weight: 620; }
+    .seg {
+      margin-top: 12px; display: grid; grid-template-columns: repeat(4, 1fr);
+      background: #e8e0d4; border-radius: 12px; padding: 3px;
+    }
+    .seg i {
+      text-align: center; font-style: normal;
+      font-size: 13px; padding: 7px 0; border-radius: 10px; color: var(--ink-2);
+    }
+    .seg i.on { background: var(--card); color: var(--ink); font-weight: 560; box-shadow: 0 1px 2px rgba(44,40,36,0.06); }
+
+    .period {
+      display: flex; align-items: center; justify-content: space-between;
+      margin: 12px 2px 8px; font-size: 14px;
+    }
+    .chev {
+      width: 28px; height: 28px; border-radius: 50%;
+      background: var(--card); border: 1px solid var(--line);
+      display: flex; align-items: center; justify-content: center;
+      color: var(--ink-2);
+    }
+
+    .sum3 {
+      display: flex; gap: 0; justify-content: space-between;
+      padding: 8px 4px 4px; font-size: 12px; color: var(--ink-2);
+    }
+    .sum3 b { display: block; font-size: 16px; color: var(--ink); font-weight: 650; margin-bottom: 2px; }
+
+    .pie-wrap {
+      display: flex; justify-content: center; padding: 6px 0 8px;
+    }
+    .pie {
+      width: 148px; height: 148px; border-radius: 50%;
+      background: conic-gradient(
+        var(--work) 0 41.18%,
+        var(--study) 41.18% 64.71%,
+        var(--eat) 64.71% 76.47%,
+        var(--nap) 76.47% 85.29%,
+        var(--read) 85.29% 91.18%,
+        var(--social) 91.18% 97.06%,
+        var(--sport) 97.06% 100%
+      );
+      position: relative;
+      box-shadow: 0 8px 20px rgba(80,60,40,0.08);
+    }
+    .pie::after {
+      content: "";
+      position: absolute; inset: 36px;
+      background: var(--paper);
+      border-radius: 50%;
+    }
+    .pie-label {
+      position: absolute; inset: 36px;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      z-index: 1;
+    }
+    .pie-label .n { font-size: 22px; font-weight: 700; letter-spacing: -0.03em; line-height: 1; }
+    .pie-label .l { font-size: 10px; color: var(--ink-3); margin-top: 3px; }
+
+    .tlist { margin-top: 2px; }
+    .trow {
+      display: grid;
+      grid-template-columns: 12px minmax(0, 1fr);
+      align-items: center;
+      gap: 8px;
+      padding: 6px 0;
+      font-size: 12px;
+      border-bottom: 1px solid #e8dccb;
+    }
+    .trow:last-child { border-bottom: 0; }
+    .trow .dot { width: 10px; height: 10px; }
+    .trow .head {
+      display: flex; align-items: baseline; justify-content: space-between; gap: 8px;
+    }
+    .trow .name { font-weight: 560; }
+    .trow .meta {
+      margin: 0; font-size: 11px; color: var(--ink-2); white-space: nowrap;
+    }
+    .bar {
+      margin-top: 5px; height: 6px; border-radius: 99px;
+      background: #e8dccb; overflow: hidden;
+    }
+    .bar i { display: block; height: 100%; border-radius: 99px; min-width: 6px; }
+    .trow .meta { letter-spacing: 0.02em; }
+
+    /* ===== 设置 ===== */
+    .set-page { flex: 1; padding: 4px 16px 0; }
+    .set-page h1 { font-size: 22px; font-weight: 620; margin-bottom: 14px; }
+    .group {
+      background: var(--card);
+      border: 1px solid #d8ccb8;
+      border-radius: 16px;
+      overflow: hidden;
+      margin-bottom: 12px;
+      box-shadow: 0 6px 16px rgba(80,60,40,0.04);
+    }
+    .group .cap {
+      padding: 10px 14px 0; font-size: 11px; color: var(--ink-3); letter-spacing: 0.08em;
+    }
+    .srow {
+      display: flex; align-items: center; gap: 12px;
+      padding: 13px 14px;
+      border-top: 1px solid #f0e8db;
+    }
+    .group .srow:first-of-type { border-top: 0; }
+    .sico {
+      width: 28px; height: 28px; border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      flex: none;
+    }
+    .srow .txt { flex: 1; min-width: 0; }
+    .srow .ttl { font-size: 14px; }
+    .srow .sub { font-size: 11px; color: var(--ink-3); margin-top: 2px; }
+    .srow .val { font-size: 13px; color: var(--ink-2); }
+    .srow .chev { border: 0; background: transparent; width: 16px; height: 16px; }
+
+    .dots { display: flex; gap: 4px; }
+    .dots i { width: 10px; height: 10px; border-radius: 50%; display: block; }
+
+    .fineprint { text-align: center; font-size: 11px; color: var(--ink-3); line-height: 1.7; padding: 6px 12px 0; }
+
+    /* ===== 类型管理 ===== */
+    .type-page { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+    .type-nav {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 6px 16px 8px;
+    }
+    .type-nav .back { font-size: 14px; color: var(--ink-2); }
+    .type-nav h1 { font-size: 17px; font-weight: 620; }
+    .type-nav .done { font-size: 14px; color: var(--wake-deep); }
+
+    .tmanage { padding: 0 16px; }
+    .mrow {
+      display: flex; align-items: center; gap: 10px;
+      background: var(--card);
+      border: 1px solid #d8ccb8;
+      border-radius: 12px;
+      padding: 10px 12px;
+      margin-bottom: 8px;
+    }
+    .mrow .dot { width: 16px; height: 16px; }
+    .mrow .name { flex: 1; font-size: 14px; }
+    .tag {
+      font-size: 10px; color: var(--ink-3);
+      background: var(--paper-deep); padding: 2px 6px; border-radius: 6px;
+    }
+    .grip { color: var(--line-2); letter-spacing: -1px; font-size: 14px; }
+
+    .colors {
+      display: grid; grid-template-columns: repeat(8, 1fr); gap: 8px;
+      margin-top: 12px;
+    }
+    .sw {
+      aspect-ratio: 1; border-radius: 50%;
+      box-shadow: inset 0 0 0 1px rgba(44,40,36,0.08);
+      position: relative;
+    }
+    .sw.on::after {
+      content: "";
+      position: absolute; inset: 3px;
+      border: 2px solid #fffdf9; border-radius: 50%;
+    }
+    .field {
+      margin-top: 12px;
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 10px 12px;
+    }
+    .field label { display: block; font-size: 11px; color: var(--ink-3); }
+    .field .input { margin-top: 4px; font-size: 16px; font-weight: 560; }
+
+    .preview-chip {
+      margin-top: 12px;
+      display: inline-flex; align-items: center; gap: 8px;
+      background: var(--paper); border: 1px solid var(--line);
+      border-radius: 999px; padding: 6px 12px; font-size: 13px;
+    }
+  </style>
+</head>
+<body class="gallery">
+  <header class="gallery-head">
+    <h1>时间块</h1>
+    <p>界面稿 · 390 × 844 · 示例数据（2026年10月21日，周三）· 起床 07:12 · 就寝 00:30 · 共 105 块</p>
+  </header>
+  <div class="gallery-grid">
+    <figure class="frame" id="f1"><div class="phone" id="p1"></div><figcaption><strong>01</strong>　今天 · 起床签到前</figcaption></figure>
+    <figure class="frame" id="f2"><div class="phone" id="p2"></div><figcaption><strong>02</strong>　今天 · 日格与计数</figcaption></figure>
+    <figure class="frame" id="f3"><div class="phone" id="p3"></div><figcaption><strong>03</strong>　框选 + 类型底板</figcaption></figure>
+    <figure class="frame" id="f4"><div class="phone" id="p4"></div><figcaption><strong>04</strong>　统计 · 日视图</figcaption></figure>
+    <figure class="frame" id="f5"><div class="phone" id="p5"></div><figcaption><strong>05</strong>　设置</figcaption></figure>
+    <figure class="frame" id="f6"><div class="phone" id="p6"></div><figcaption><strong>06</strong>　类型管理 / 添加</figcaption></figure>
+  </div>
+
+  <div id="overview-board" class="overview-wrap" style="display:none">
+    <h1>时间块 · 界面总览</h1>
+    <p class="sub">示例数据 · 2026年10月21日周三 · 07:12 起床 · 00:30 就寝 · 10 分钟 / 块 · 共 105 块</p>
+    <div class="overview-row" id="overview-row"></div>
+  </div>
+
+<template id="tpl-status">
+  <div class="sb">
+    <span class="num">14:20</span>
+    <div class="sb-right">
+      <svg width="15" height="12" viewBox="0 0 15 12" fill="currentColor"><path d="M1 8.2c2.4-2.4 6.6-2.4 9 0l1.1-1.1C8.2 4.2 2.8 4.2 0 7.1L1 8.2zm2.3 0c1.3-1.2 3.2-1.2 4.5 0l1.1-1.2c-1.9-1.8-4.8-1.8-6.7 0l1.1 1.2zM6.8 10.6a1.2 1.2 0 1 1-1.6 0l.8-.8.8.8z"/></svg>
+      <svg width="16" height="12" viewBox="0 0 16 12" fill="currentColor"><rect x="0" y="8" width="3" height="4" rx="0.5"/><rect x="4.2" y="5.5" width="3" height="6.5" rx="0.5"/><rect x="8.4" y="3" width="3" height="9" rx="0.5"/><rect x="12.6" y="0.5" width="3" height="11.5" rx="0.5" opacity=".35"/></svg>
+      <svg width="23" height="12" viewBox="0 0 23 12" fill="none"><rect x="0.6" y="1.2" width="19" height="9.6" rx="2.2" stroke="currentColor" stroke-width="1.2"/><rect x="20.2" y="4" width="1.6" height="4" rx="0.6" fill="currentColor"/><rect x="2.2" y="2.8" width="14.2" height="6.4" rx="1.2" fill="currentColor"/></svg>
+    </div>
+  </div>
+</template>
+
+<template id="tpl-tabs">
+  <nav class="tabs">
+    <div class="tab TODAY">
+      <svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="4.5" width="16" height="14" rx="3"/><path d="M3 8.5h16M8 3.5v3M14 3.5v3"/><rect x="7.2" y="11.2" width="2.4" height="2.4" rx="0.4" fill="currentColor" stroke="none"/><rect x="11.4" y="11.2" width="2.4" height="2.4" rx="0.4" fill="currentColor" stroke="none" opacity=".45"/></svg>
+      今天
+    </div>
+    <div class="tab STATS">
+      <svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M11 4v7l5.2 3.1"/><circle cx="11" cy="11" r="7"/></svg>
+      统计
+    </div>
+    <div class="tab SET">
+      <svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="11" cy="11" r="2.2"/><path d="M11 4.2v1.6M11 16.2v1.6M4.2 11h1.6M16.2 11h1.6M6.1 6.1l1.1 1.1M14.8 14.8l1.1 1.1M6.1 15.9l1.1-1.1M14.8 7.2l1.1-1.1"/></svg>
+      设置
+    </div>
+  </nav>
+  <div class="gesture"></div>
+</template>
+
+<template id="tpl-s1">
+  <div class="screen" data-shot="01-wake">
+    <div data-status></div>
+    <div class="wake">
+      <div class="wake-top">
+        <div class="brand">时间块</div>
+        <span class="badge-ex">示例</span>
+      </div>
+      <div class="wake-mid">
+        <div class="wake-date">2026年10月21日 · 星期三</div>
+        <div class="wake-title">新的一天还没开始</div>
+        <div class="wake-copy">点一下记录醒来的时刻。<br>今天的 10 分钟格子，从这一刻起算。</div>
+        <div class="wake-btn-wrap">
+          <div class="halo"></div>
+          <div class="wake-btn">
+            <div class="lbl">我醒了</div>
+            <div class="sub">开始今天</div>
+          </div>
+        </div>
+        <div class="ghost-grid" aria-hidden="true">
+          <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+          <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+          <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+        </div>
+      </div>
+      <div class="wake-foot">计划就寝 00:30 · 每块 10 分钟 · 可跨午夜</div>
+    </div>
+    <div data-tabs="today"></div>
+  </div>
+</template>
+
+<template id="tpl-s2">
+  <div class="screen" data-shot="02-today">
+    <div data-status></div>
+    <div class="today">
+      <div class="today-head">
+        <div class="row">
+          <h1>10月21日 周三</h1>
+          <span class="edit">改起床时间</span>
+        </div>
+        <div class="meta">
+          <span>起床 <b class="num">07:12</b></span>
+          <span>就寝 <b class="num">00:30</b></span>
+          <span class="badge-ex">示例数据</span>
+        </div>
+      </div>
+      <div class="stats">
+        <div class="stat"><div class="n num">105</div><div class="l">今日总块</div></div>
+        <div class="stat em"><div class="n num">44</div><div class="l">已过</div></div>
+        <div class="stat"><div class="n num">61</div><div class="l">剩余</div></div>
+      </div>
+      <div class="grid-wrap">
+        <div class="grid-fade-top"></div>
+        <div class="hour">
+          <div class="hour-t num">09:00</div>
+          <div class="cells"><i class="c read"></i><i class="c read"></i><i class="c read"></i><i class="c work"></i><i class="c work"></i><i class="c work"></i></div>
+        </div>
+        <div class="hour">
+          <div class="hour-t num">10:00</div>
+          <div class="cells"><i class="c work"></i><i class="c work"></i><i class="c work"></i><i class="c work"></i><i class="c work"></i><i class="c work"></i></div>
+        </div>
+        <div class="hour">
+          <div class="hour-t num">11:00</div>
+          <div class="cells"><i class="c work"></i><i class="c work"></i><i class="c work"></i><i class="c work"></i><i class="c social"></i><i class="c social"></i></div>
+        </div>
+        <div class="hour">
+          <div class="hour-t num">12:00</div>
+          <div class="cells"><i class="c eat"></i><i class="c eat"></i><i class="c eat"></i><i class="c eat"></i><i class="c nap"></i><i class="c nap"></i></div>
+        </div>
+        <div class="hour">
+          <div class="hour-t num">13:00</div>
+          <div class="cells"><i class="c nap"></i><i class="c study"></i><i class="c study"></i><i class="c study"></i><i class="c study"></i><i class="c study"></i></div>
+        </div>
+        <div class="hour" style="position:relative">
+          <div class="hour-t num">14:00</div>
+          <div class="cells"><i class="c study"></i><i class="c study"></i><i class="c"></i><i class="c"></i><i class="c"></i><i class="c"></i></div>
+          <div class="now-line" style="top:33%"><i></i><span class="num">现在 14:20</span></div>
+        </div>
+        <div class="hour">
+          <div class="hour-t num">15:00</div>
+          <div class="cells"><i class="c f"></i><i class="c f"></i><i class="c f"></i><i class="c f"></i><i class="c sport plan"></i><i class="c sport plan"></i></div>
+        </div>
+        <div class="hour">
+          <div class="hour-t num">16:00</div>
+          <div class="cells"><i class="c f"></i><i class="c f"></i><i class="c f"></i><i class="c f"></i><i class="c f"></i><i class="c f"></i></div>
+        </div>
+        <div class="grid-fade-bot"></div>
+      </div>
+      <div class="legend">
+        <span><b style="background:var(--work)"></b>工作</span>
+        <span><b style="background:var(--read)"></b>阅读</span>
+        <span><b style="background:var(--eat)"></b>吃饭</span>
+        <span><b style="background:var(--nap)"></b>小憩</span>
+        <span><b style="background:var(--study)"></b>学习</span>
+        <span><b style="background:var(--social)"></b>人际</span>
+        <span><b style="background:var(--sport)"></b>运动</span>
+        <span><b style="background:#f7f1e6;box-shadow:inset 0 0 0 1px #d8d0c4"></b>未来</span>
+      </div>
+    </div>
+    <div data-tabs="today"></div>
+  </div>
+</template>
+
+<template id="tpl-s3">
+  <div class="screen" data-shot="03-picker">
+    <div data-status></div>
+    <div class="today">
+      <div class="today-head">
+        <div class="row">
+          <h1>10月21日 周三</h1>
+          <span class="edit">改起床时间</span>
+        </div>
+        <div class="meta">
+          <span>起床 <b class="num">07:12</b></span>
+          <span>就寝 <b class="num">00:30</b></span>
+          <span class="badge-ex">示例数据</span>
+        </div>
+      </div>
+      <div class="stats">
+        <div class="stat"><div class="n num">105</div><div class="l">今日总块</div></div>
+        <div class="stat em"><div class="n num">44</div><div class="l">已过</div></div>
+        <div class="stat"><div class="n num">61</div><div class="l">剩余</div></div>
+      </div>
+      <div class="grid-wrap">
+        <div class="hour">
+          <div class="hour-t num">13:00</div>
+          <div class="cells"><i class="c nap"></i><i class="c study"></i><i class="c study"></i><i class="c study"></i><i class="c study"></i><i class="c study"></i></div>
+        </div>
+        <div class="hour" style="position:relative">
+          <div class="hour-t num">14:00</div>
+          <div class="cells"><i class="c study"></i><i class="c study"></i><i class="c"></i><i class="c"></i><i class="c"></i><i class="c"></i></div>
+          <div class="now-line" style="top:33%"><i></i><span class="num">现在 14:20</span></div>
+        </div>
+        <div class="hour">
+          <div class="hour-t num">15:00</div>
+          <div class="cells"><i class="c f sel"></i><i class="c f sel"></i><i class="c f sel"></i><i class="c f sel"></i><i class="c sport plan"></i><i class="c sport plan"></i></div>
+          <div class="sel-chip num">已选 4 块</div>
+        </div>
+        <div class="hour">
+          <div class="hour-t num">16:00</div>
+          <div class="cells"><i class="c f"></i><i class="c f"></i><i class="c f"></i><i class="c f"></i><i class="c f"></i><i class="c f"></i></div>
+        </div>
+      </div>
+    </div>
+    <div class="dim"></div>
+    <div class="sheet">
+      <div class="sheet-handle"></div>
+      <h2>标记这 4 个时间块</h2>
+      <div class="hint num">15:00 – 15:40 · 按住拖过格子再选类型</div>
+      <div class="types">
+        <div class="type"><i class="dot" style="background:var(--work)"></i>工作</div>
+        <div class="type"><i class="dot" style="background:var(--eat)"></i>吃饭</div>
+        <div class="type"><i class="dot" style="background:var(--nap)"></i>小憩</div>
+        <div class="type"><i class="dot" style="background:var(--study)"></i>学习</div>
+        <div class="type"><i class="dot" style="background:var(--read)"></i>阅读</div>
+        <div class="type"><i class="dot" style="background:var(--play)"></i>玩</div>
+        <div class="type"><i class="dot" style="background:var(--social)"></i>人际</div>
+        <div class="type"><i class="dot" style="background:var(--sport)"></i>运动</div>
+        <div class="type add"><i class="plus">+</i>添加类型</div>
+      </div>
+      <div class="sheet-actions">
+        <div class="ghost-btn">清除选区</div>
+        <div class="pri-btn">取消</div>
+      </div>
+    </div>
+    <div class="gesture"></div>
+  </div>
+</template>
+
+<template id="tpl-s4">
+  <div class="screen" data-shot="04-stats">
+    <div data-status></div>
+    <div class="stats-page">
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <h1>统计</h1>
+        <span class="badge-ex">示例 · 日</span>
+      </div>
+      <div class="seg"><i class="on">日</i><i>周</i><i>月</i><i>年</i></div>
+      <div class="period">
+        <div class="chev">‹</div>
+        <div>10月21日 周三</div>
+        <div class="chev">›</div>
+      </div>
+      <div class="sum3">
+        <div><b class="num">105</b>清醒块</div>
+        <div><b class="num">68</b>已填</div>
+        <div><b class="num">37</b>未填</div>
+      </div>
+      <div class="pie-wrap">
+        <div class="pie">
+          <div class="pie-label"><div class="n num">68</div><div class="l">已填 / 105</div></div>
+        </div>
+      </div>
+      <div class="tlist">
+        <div class="trow"><i class="dot" style="background:var(--work)"></i><div><div class="head"><span class="name">工作</span><span class="meta num">28 块 · 4.7 时 · 27%</span></div><div class="bar"><i style="width:76%;background:var(--work)"></i></div></div></div>
+        <div class="trow"><i class="dot" style="background:var(--study)"></i><div><div class="head"><span class="name">学习</span><span class="meta num">16 块 · 2.7 时 · 15%</span></div><div class="bar"><i style="width:43%;background:var(--study)"></i></div></div></div>
+        <div class="trow"><i class="dot" style="background:var(--eat)"></i><div><div class="head"><span class="name">吃饭</span><span class="meta num">8 块 · 1.3 时 · 8%</span></div><div class="bar"><i style="width:22%;background:var(--eat)"></i></div></div></div>
+        <div class="trow"><i class="dot" style="background:var(--nap)"></i><div><div class="head"><span class="name">小憩</span><span class="meta num">6 块 · 1.0 时 · 6%</span></div><div class="bar"><i style="width:16%;background:var(--nap)"></i></div></div></div>
+        <div class="trow"><i class="dot" style="background:var(--read)"></i><div><div class="head"><span class="name">阅读</span><span class="meta num">4 块 · 0.7 时 · 4%</span></div><div class="bar"><i style="width:11%;background:var(--read)"></i></div></div></div>
+        <div class="trow"><i class="dot" style="background:var(--social)"></i><div><div class="head"><span class="name">人际</span><span class="meta num">4 块 · 0.7 时 · 4%</span></div><div class="bar"><i style="width:11%;background:var(--social)"></i></div></div></div>
+        <div class="trow"><i class="dot" style="background:var(--sport)"></i><div><div class="head"><span class="name">运动</span><span class="meta num">2 块 · 0.3 时 · 2%</span></div><div class="bar"><i style="width:8%;background:var(--sport)"></i></div></div></div>
+        <div class="trow"><i class="dot" style="background:var(--unfilled)"></i><div><div class="head"><span class="name">未填</span><span class="meta num">37 块 · 6.2 时 · 35%</span></div><div class="bar"><i style="width:100%;background:#cfc3b0"></i></div></div></div>
+      </div>
+    </div>
+    <div data-tabs="stats"></div>
+  </div>
+</template>
+
+<template id="tpl-s5">
+  <div class="screen" data-shot="05-settings">
+    <div data-status></div>
+    <div class="set-page">
+      <h1>设置</h1>
+      <div class="group">
+        <div class="cap">一天的边界</div>
+        <div class="srow">
+          <div class="sico" style="background:#f4e4da;color:var(--wake-deep)">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M11.8 10.4A5.1 5.1 0 0 1 6.6 3.4 5.2 5.2 0 1 0 12.4 11c-.2 0-.4-.1-.6-.1z"/></svg>
+          </div>
+          <div class="txt"><div class="ttl">计划就寝</div><div class="sub">可晚于午夜，今天会跨到次日</div></div>
+          <div class="val num">00:30</div>
+          <div class="chev">›</div>
+        </div>
+        <div class="srow">
+          <div class="sico" style="background:#e6e4dc;color:var(--ink-2)">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="8" cy="8" r="5.2"/><path d="M8 5.2V8l1.8 1.2"/></svg>
+          </div>
+          <div class="txt"><div class="ttl">时间块长度</div><div class="sub">固定，暂不开放更改</div></div>
+          <div class="val">10 分钟</div>
+        </div>
+      </div>
+
+      <div class="group">
+        <div class="cap">类型</div>
+        <div class="srow">
+          <div class="sico" style="background:#e8e3ef;color:var(--study)">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><circle cx="4" cy="5" r="2"/><circle cx="8.5" cy="5" r="2"/><circle cx="6.2" cy="10" r="2"/></svg>
+          </div>
+          <div class="txt">
+            <div class="ttl">类型管理</div>
+            <div class="sub">重命名、换色、排序、归档</div>
+          </div>
+          <div class="dots">
+            <i style="background:var(--work)"></i>
+            <i style="background:var(--eat)"></i>
+            <i style="background:var(--nap)"></i>
+            <i style="background:var(--study)"></i>
+            <i style="background:var(--read)"></i>
+          </div>
+          <div class="chev">›</div>
+        </div>
+      </div>
+
+      <div class="group">
+        <div class="cap">数据 · 仅本机</div>
+        <div class="srow">
+          <div class="sico" style="background:#e4ece8;color:var(--social)">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M3 10.5v2.2h10V10.5M8 3.2v7M5.4 7.8 8 10.4l2.6-2.6"/></svg>
+          </div>
+          <div class="txt"><div class="ttl">导出 CSV</div><div class="sub">全部日期、块序号、类型</div></div>
+          <div class="chev">›</div>
+        </div>
+        <div class="srow">
+          <div class="sico" style="background:#eee8dc;color:var(--eat)">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="3.2" y="3.2" width="9.6" height="9.6" rx="2"/><path d="M6 8h4M8 6v4"/></svg>
+          </div>
+          <div class="txt"><div class="ttl">本地备份</div><div class="sub">生成一份可恢复的备份文件</div></div>
+          <div class="chev">›</div>
+        </div>
+        <div class="srow">
+          <div class="sico" style="background:#eee8dc;color:var(--eat)">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M4 8a4 4 0 1 0 1.2-2.8M4 3.5V5.8h2.3"/></svg>
+          </div>
+          <div class="txt"><div class="ttl">从备份恢复</div><div class="sub">覆盖当前本地数据</div></div>
+          <div class="chev">›</div>
+        </div>
+      </div>
+      <div class="fineprint">离线使用 · 无账号 · 无网络<br>一天以起床签到的日期为界</div>
+    </div>
+    <div data-tabs="set"></div>
+  </div>
+</template>
+
+<template id="tpl-s6">
+  <div class="screen" data-shot="06-types">
+    <div data-status></div>
+    <div class="type-page">
+      <div class="type-nav">
+        <div class="back">‹ 设置</div>
+        <h1>类型管理</h1>
+        <div class="done">完成</div>
+      </div>
+      <div class="tmanage">
+        <div class="mrow"><i class="dot" style="background:var(--work)"></i><div class="name">工作</div><span class="tag">预设</span><span class="grip">≡</span></div>
+        <div class="mrow"><i class="dot" style="background:var(--eat)"></i><div class="name">吃饭</div><span class="tag">预设</span><span class="grip">≡</span></div>
+        <div class="mrow"><i class="dot" style="background:var(--nap)"></i><div class="name">小憩</div><span class="tag">预设</span><span class="grip">≡</span></div>
+        <div class="mrow"><i class="dot" style="background:var(--study)"></i><div class="name">学习</div><span class="tag">预设</span><span class="grip">≡</span></div>
+        <div class="mrow"><i class="dot" style="background:var(--read)"></i><div class="name">阅读</div><span class="tag">预设</span><span class="grip">≡</span></div>
+        <div class="mrow"><i class="dot" style="background:var(--play)"></i><div class="name">玩</div><span class="tag">预设</span><span class="grip">≡</span></div>
+        <div class="mrow"><i class="dot" style="background:var(--social)"></i><div class="name">人际</div><span class="tag">预设</span><span class="grip">≡</span></div>
+        <div class="mrow"><i class="dot" style="background:var(--sport)"></i><div class="name">运动</div><span class="tag">预设</span><span class="grip">≡</span></div>
+        <div class="mrow"><i class="dot" style="background:var(--write)"></i><div class="name">写作</div><span class="tag">自定义</span><span class="grip">≡</span></div>
+      </div>
+    </div>
+    <div class="dim"></div>
+    <div class="sheet">
+      <div class="sheet-handle"></div>
+      <h2>添加类型</h2>
+      <div class="hint">归档或删除不会改写已经记下的历史块</div>
+      <div class="field">
+        <label>名称</label>
+        <div class="input">冥想</div>
+      </div>
+      <div class="colors">
+        <i class="sw" style="background:var(--work)"></i>
+        <i class="sw" style="background:var(--eat)"></i>
+        <i class="sw" style="background:var(--nap)"></i>
+        <i class="sw" style="background:var(--study)"></i>
+        <i class="sw" style="background:var(--read)"></i>
+        <i class="sw" style="background:var(--play)"></i>
+        <i class="sw" style="background:var(--social)"></i>
+        <i class="sw on" style="background:#6f8f8a"></i>
+      </div>
+      <div class="preview-chip"><i class="dot" style="background:#6f8f8a"></i>冥想</div>
+      <div class="sheet-actions">
+        <div class="ghost-btn">取消</div>
+        <div class="pri-btn">保存类型</div>
+      </div>
+    </div>
+    <div class="gesture"></div>
+  </div>
+</template>
+
+<script>
+  function stamp(root, tab) {
+    const st = document.getElementById("tpl-status").content.cloneNode(true);
+    root.querySelector("[data-status]").replaceWith(st);
+    const slot = root.querySelector("[data-tabs]");
+    if (!slot) return;
+    const tabs = document.getElementById("tpl-tabs").content.cloneNode(true);
+    const key = slot.getAttribute("data-tabs");
+    tabs.querySelector(".TODAY").classList.toggle("on", key === "today");
+    tabs.querySelector(".STATS").classList.toggle("on", key === "stats");
+    tabs.querySelector(".SET").classList.toggle("on", key === "set");
+    slot.replaceWith(tabs);
+  }
+
+  function mount(id, tplId) {
+    const host = document.getElementById(id);
+    const node = document.getElementById(tplId).content.cloneNode(true);
+    stamp(node);
+    host.appendChild(node);
+  }
+
+  mount("p1", "tpl-s1");
+  mount("p2", "tpl-s2");
+  mount("p3", "tpl-s3");
+  mount("p4", "tpl-s4");
+  mount("p5", "tpl-s5");
+  mount("p6", "tpl-s6");
+
+  const params = new URLSearchParams(location.search);
+  const shot = params.get("shot");
+  if (shot) {
+    document.body.className = "shot";
+    const map = { "1": "p1", "2": "p2", "3": "p3", "4": "p4", "5": "p5", "6": "p6" };
+    const phone = document.getElementById(map[shot]);
+    phone.classList.add("target");
+    document.body.appendChild(phone);
+  }
+
+  if (params.get("overview") === "1") {
+    document.body.className = "overview-page";
+    const board = document.getElementById("overview-board");
+    const row = document.getElementById("overview-row");
+    ["f1","f2","f3","f4","f5","f6"].forEach((id) => row.appendChild(document.getElementById(id)));
+    board.style.display = "block";
+    document.querySelector(".gallery-head").style.display = "none";
+    document.querySelector(".gallery-grid").style.display = "none";
+  }
+</script>
+</body>
+</html>
