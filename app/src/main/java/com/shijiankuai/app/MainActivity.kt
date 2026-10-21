@@ -6,7 +6,9 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -15,6 +17,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.CalendarMonth
@@ -69,6 +72,7 @@ private fun AppRoot(vm: AppViewModel) {
     val anchor by vm.statsAnchor.collectAsStateWithLifecycle()
     val needStart by vm.needSleepStart.collectAsStateWithLifecycle()
     val zone = remember { java.time.ZoneId.systemDefault() }
+    val todayScroll = rememberScrollState()
 
     Column(
         Modifier
@@ -84,40 +88,47 @@ private fun AppRoot(vm: AppViewModel) {
                 onReorder = vm::reorder,
                 onAdd = vm::addType,
             )
-            tab == 0 -> Column(Modifier.weight(1f)) {
-                TodayScreen(
-                    ui = today,
-                    zone = zone,
-                    onSleep = vm::markSleep,
-                    onWake = vm::markWake,
-                    onWakeWithStart = vm::markWakeWithStart,
-                    onSkipSleepStart = vm::skipSleepStart,
-                    onSetRange = vm::setRange,
-                    onShiftDate = vm::shiftDate,
-                    onSetDate = vm::setDate,
-                    onEditLast = vm::editLast,
-                    onAddType = vm::addType,
-                    needSleepStart = needStart,
-                    onDismissToast = vm::dismissToast,
-                )
-            }
-            tab == 1 -> Column(Modifier.weight(1f)) {
-                StatsScreen(
-                    kind = kind,
-                    anchor = anchor,
-                    stats = stats,
-                    onKind = vm::setStatsKind,
-                    onShift = vm::shiftStats,
-                )
-            }
-            else -> Column(Modifier.weight(1f)) {
-                SettingsScreen(
-                    types = types,
-                    onOpenTypes = { typesOpen = true },
-                    exportCsv = { vm.exportCsv() },
-                    exportBackup = { vm.exportBackup() },
-                    restore = { vm.restore(it) },
-                )
+            else -> Box(Modifier.weight(1f)) {
+                Box(
+                    Modifier.then(
+                        if (tab == 0) Modifier.fillMaxSize() else Modifier.size(0.dp),
+                    ),
+                ) {
+                    TodayScreen(
+                        ui = today,
+                        zone = zone,
+                        onSleep = vm::markSleep,
+                        onWake = vm::markWake,
+                        onWakeWithStart = vm::markWakeWithStart,
+                        onSkipSleepStart = vm::skipSleepStart,
+                        onSetRange = vm::setRange,
+                        onShiftDate = vm::shiftDate,
+                        onSetDate = vm::setDate,
+                        onEditLast = vm::editLast,
+                        onAddType = vm::addType,
+                        needSleepStart = needStart,
+                        onDismissToast = vm::dismissToast,
+                        gridScroll = todayScroll,
+                        takeNowSnap = vm::takeNowSnap,
+                    )
+                }
+                if (tab == 1) {
+                    StatsScreen(
+                        kind = kind,
+                        anchor = anchor,
+                        stats = stats,
+                        onKind = vm::setStatsKind,
+                        onShift = vm::shiftStats,
+                    )
+                } else if (tab == 2) {
+                    SettingsScreen(
+                        types = types,
+                        onOpenTypes = { typesOpen = true },
+                        exportCsv = { vm.exportCsv() },
+                        exportBackup = { vm.exportBackup() },
+                        restore = { vm.restore(it) },
+                    )
+                }
             }
         }
         if (!typesOpen) {

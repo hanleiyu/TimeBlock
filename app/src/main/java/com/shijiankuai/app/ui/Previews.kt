@@ -1,5 +1,6 @@
 package com.shijiankuai.app.ui
 
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
 import com.shijiankuai.app.domain.BLOCKS_PER_DAY
@@ -59,6 +60,8 @@ fun PreviewAwake() {
             onAddType = { _, _ -> },
             needSleepStart = false,
             onDismissToast = {},
+            gridScroll = rememberScrollState(),
+            takeNowSnap = { _, _ -> false },
         )
     }
 }

@@ -16,6 +16,7 @@ import com.shijiankuai.app.domain.SleepSession
 import com.shijiankuai.app.domain.SleepSessions
 import com.shijiankuai.app.domain.WakeFill
 import com.shijiankuai.app.domain.WakeFillResult
+import com.shijiankuai.app.ui.today.TodayScroll
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalTime
@@ -127,16 +128,24 @@ class AppViewModel(private val repo: Repository) : ViewModel() {
 
     val statsKind = MutableStateFlow(PeriodKind.DAY)
     val statsAnchor = MutableStateFlow(repo.clock.today())
-    val stats = MutableStateFlow<PeriodStats?>(null)
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val stats: StateFlow<PeriodStats?> = combine(statsKind, statsAnchor) { kind, anchor -> kind to anchor }
+        .flatMapLatest { (kind, anchor) -> repo.statsFlow(kind, anchor, tick) }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    private var snappedNowOn: LocalDate? = null
+
+    fun takeNowSnap(date: LocalDate, isToday: Boolean): Boolean {
+        if (!TodayScroll.shouldSnapToNow(snappedNowOn, date, isToday)) {
+            return false
+        }
+        snappedNowOn = date
+        return true
+    }
 
     init {
         viewModelScope.launch { repo.hydrate() }
-        viewModelScope.launch {
-            combine(statsKind, statsAnchor, tick) { kind, anchor, _ -> kind to anchor }
-                .collect { (kind, anchor) ->
-                    stats.value = repo.stats(kind, anchor)
-                }
-        }
     }
 
     fun shiftDate(days: Int) {

@@ -10,6 +10,7 @@ import com.shijiankuai.app.domain.SLEEP_TYPE_ID
 import com.shijiankuai.app.domain.SleepFill
 import com.shijiankuai.app.domain.SleepSession
 import com.shijiankuai.app.domain.StatsCalc
+import com.shijiankuai.app.domain.StatsObserve
 import com.shijiankuai.app.domain.WakeFill
 import com.shijiankuai.app.domain.WakeFillResult
 import kotlinx.coroutines.flow.Flow
@@ -153,11 +154,13 @@ class Repository(
         }
     }
 
-    suspend fun stats(kind: PeriodKind, anchor: LocalDate): PeriodStats {
+    fun statsFlow(kind: PeriodKind, anchor: LocalDate, ticks: Flow<Long>): Flow<PeriodStats> {
         val (start, end) = StatsCalc.periodBounds(kind, anchor)
-        val rows = db.blocks().range(start.toEpochDay(), end.toEpochDay())
-        val map = rows.associate { BlockId(it.epochDay, it.index) to it.typeId }
-        return StatsCalc.aggregate(kind, anchor, clock.now(), clock.zone(), map, db.types().all().map { it.toDomain() })
+        val blocks = db.blocks().observeRange(start.toEpochDay(), end.toEpochDay()).map { rows ->
+            rows.associate { BlockId(it.epochDay, it.index) to it.typeId }
+        }
+        val typeList = db.types().observe().map { rows -> rows.map { it.toDomain() } }
+        return StatsObserve.flow(kind, anchor, clock::now, clock.zone(), blocks, typeList, ticks)
     }
 
     suspend fun exportCsv(): String = Backup.csv(db.blocks().all(), db.types().all())

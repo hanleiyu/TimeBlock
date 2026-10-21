@@ -39,6 +39,9 @@ interface BlockDao {
     @Query("SELECT * FROM blocks WHERE epochDay BETWEEN :from AND :to")
     suspend fun range(from: Long, to: Long): List<BlockRow>
 
+    @Query("SELECT * FROM blocks WHERE epochDay BETWEEN :from AND :to")
+    fun observeRange(from: Long, to: Long): Flow<List<BlockRow>>
+
     @Query("SELECT * FROM blocks")
     suspend fun all(): List<BlockRow>
 

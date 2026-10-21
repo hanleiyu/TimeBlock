@@ -17,7 +17,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -87,6 +87,8 @@ fun TodayScreen(
     onAddType: (String, Long) -> Unit,
     needSleepStart: Boolean,
     onDismissToast: () -> Unit,
+    gridScroll: ScrollState,
+    takeNowSnap: (LocalDate, Boolean) -> Boolean,
 ) {
     var showDate by remember { mutableStateOf(false) }
 
@@ -216,6 +218,8 @@ fun TodayScreen(
                 sel = range
                 showSheet = true
             },
+            scroll = gridScroll,
+            takeNowSnap = { takeNowSnap(ui.date, ui.isToday) },
             modifier = Modifier.weight(1f),
         )
     }
@@ -283,10 +287,11 @@ fun BlockGrid(
     nowTime: LocalTime?,
     selection: IntRange?,
     onSelect: (IntRange) -> Unit,
+    scroll: ScrollState,
+    takeNowSnap: () -> Boolean,
     modifier: Modifier = Modifier,
 ) {
     val colors = remember(types) { types.associate { it.id to Color(it.color.toInt()) } }
-    val scroll = rememberScrollState()
     val density = LocalDensity.current
     val rowH = 44.dp
     val labelW = 42.dp
@@ -303,11 +308,14 @@ fun BlockGrid(
     val onSelectState = rememberUpdatedState(onSelect)
 
     LaunchedEffect(nowIndex) {
-        if (nowIndex != null) {
-            val hour = nowIndex / 6
-            val y = with(density) { (rowH * hour).roundToPx() - 80 }
-            scroll.animateScrollTo(y.coerceAtLeast(0))
-        }
+        val idx = nowIndex ?: return@LaunchedEffect
+        if (!takeNowSnap()) return@LaunchedEffect
+        val y = TodayScroll.nowOffsetPx(
+            nowIndex = idx,
+            rowHeightPx = with(density) { rowH.toPx() },
+            topPadPx = 80f,
+        )
+        scroll.scrollTo(y)
     }
 
     var dragStart by remember { mutableStateOf<Int?>(null) }
