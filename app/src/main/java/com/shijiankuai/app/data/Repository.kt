@@ -10,6 +10,7 @@ import com.shijiankuai.app.domain.SLEEP_TYPE_ID
 import com.shijiankuai.app.domain.SleepFill
 import com.shijiankuai.app.domain.SleepSession
 import com.shijiankuai.app.domain.StatsCalc
+import com.shijiankuai.app.domain.WakeFill
 import com.shijiankuai.app.domain.WakeFillResult
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -62,7 +63,7 @@ class Repository(
         if (start == null) {
             return WakeOutcome.NoSleepStart
         }
-        val filled = applySleepSpan(start, now, previous = null)
+        val result = applySleepSpan(start, now, previous = null)
         if (open != null) {
             db.sleeps().update(open.copy(endedAtMillis = now.toEpochMilli()))
         } else {
@@ -70,7 +71,7 @@ class Repository(
                 SleepRow(startedAtMillis = start.toEpochMilli(), endedAtMillis = now.toEpochMilli()),
             )
         }
-        return WakeOutcome.Filled(WakeFillResult(start, now, filled))
+        return WakeOutcome.Filled(result)
     }
 
     suspend fun justWake() {
@@ -96,9 +97,10 @@ class Repository(
         start: Instant,
         end: Instant,
         previous: Pair<Instant, Instant>?,
-    ): List<BlockId> {
+    ): WakeFillResult {
         val zone = clock.zone()
-        val next = SleepFill.blocks(start, end, zone).toSet()
+        val result = WakeFill.compute(start, end, zone)
+        val next = result.filled.toSet()
         val old = previous?.let { SleepFill.blocks(it.first, it.second, zone).toSet() } ?: emptySet()
         val toClear = old - next
         toClear.forEach { id ->
@@ -109,7 +111,7 @@ class Repository(
             }
         }
         db.blocks().upsertAll(next.map { BlockRow(it.epochDay, it.index, SLEEP_TYPE_ID) })
-        return next.toList().sortedWith(compareBy({ it.epochDay }, { it.index }))
+        return result
     }
 
     suspend fun setRange(date: LocalDate, from: Int, to: Int, typeId: String?) {

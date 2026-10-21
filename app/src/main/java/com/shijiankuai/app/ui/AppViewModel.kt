@@ -14,6 +14,8 @@ import com.shijiankuai.app.domain.PeriodStats
 import com.shijiankuai.app.domain.SLEEP_TYPE_ID
 import com.shijiankuai.app.domain.SleepSession
 import com.shijiankuai.app.domain.SleepSessions
+import com.shijiankuai.app.domain.WakeFill
+import com.shijiankuai.app.domain.WakeFillResult
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalTime
@@ -153,7 +155,7 @@ class AppViewModel(private val repo: Repository) : ViewModel() {
         viewModelScope.launch {
             when (val out = repo.markWake()) {
                 WakeOutcome.NoSleepStart -> needSleepStart.value = true
-                is WakeOutcome.Filled -> showWakeToast(out.result.sleepStart, out.result.filled.size)
+                is WakeOutcome.Filled -> showWakeToast(out.result)
             }
         }
     }
@@ -167,7 +169,7 @@ class AppViewModel(private val repo: Repository) : ViewModel() {
             if (!start.isBefore(now)) start = start.minusSeconds(24 * 3600)
             when (val out = repo.markWake(start)) {
                 WakeOutcome.NoSleepStart -> {}
-                is WakeOutcome.Filled -> showWakeToast(out.result.sleepStart, out.result.filled.size)
+                is WakeOutcome.Filled -> showWakeToast(out.result)
             }
         }
     }
@@ -228,10 +230,8 @@ class AppViewModel(private val repo: Repository) : ViewModel() {
         toast.value = null
     }
 
-    private fun showWakeToast(start: Instant, n: Int) {
-        val hm = start.atZone(repo.clock.zone()).toLocalTime()
-            .format(DateTimeFormatter.ofPattern("HH:mm"))
-        toast.value = "$hm 入睡 · 已记 $n 块睡觉"
+    private fun showWakeToast(result: WakeFillResult) {
+        toast.value = WakeFill.toast(result, repo.clock.zone())
         viewModelScope.launch {
             delay(4000)
             if (toast.value?.contains("入睡") == true) toast.value = null

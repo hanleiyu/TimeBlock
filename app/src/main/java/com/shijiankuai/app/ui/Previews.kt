@@ -29,7 +29,7 @@ fun PreviewAsleep() {
 @Composable
 fun PreviewAwake() {
     val day = LocalDate.of(2026, 10, 21)
-    val blocks = (0..42).associateWith { SLEEP_TYPE_ID }
+    val blocks = (4..42).associateWith { SLEEP_TYPE_ID }
     TimeBlockTheme {
         TodayScreen(
             ui = TodayUi(
@@ -40,7 +40,7 @@ fun PreviewAwake() {
                 types = Presets.types,
                 elapsed = 43,
                 remaining = 101,
-                slept = 43,
+                slept = 39,
                 nowIndex = 43,
                 nowTime = java.time.LocalTime.of(7, 12),
                 lastSleep = null,
