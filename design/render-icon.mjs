@@ -11,13 +11,19 @@ mkdirSync(resolve(repo, "app/src/main"), { recursive: true });
 mkdirSync(resolve(repo, "artifacts"), { recursive: true });
 mkdirSync("/opt/cursor/artifacts", { recursive: true });
 
-const MIME = { ".html": "text/html; charset=utf-8" };
+const MIME = {
+  ".html": "text/html; charset=utf-8",
+  ".ttf": "font/ttf",
+};
 const server = createServer(async (req, res) => {
-  const file = resolve(root, "." + new URL(req.url, "http://127.0.0.1").pathname);
-  if (!file.startsWith(root)) { res.writeHead(403); res.end(); return; }
+  const urlPath = new URL(req.url, "http://127.0.0.1").pathname;
+  const file = resolve(root, "." + urlPath);
+  const allowed = file.startsWith(root) || file.startsWith(resolve(repo, "mockups/fonts"));
+  if (!allowed) { res.writeHead(403); res.end(); return; }
   try {
+    const ext = file.slice(file.lastIndexOf("."));
     const data = await readFile(file);
-    res.writeHead(200, { "content-type": MIME[".html"] });
+    res.writeHead(200, { "content-type": MIME[ext] ?? "application/octet-stream" });
     res.end(data);
   } catch {
     res.writeHead(404); res.end();
@@ -34,6 +40,7 @@ const browser = await puppeteer.launch({
 
 const page = await browser.newPage();
 await page.goto(`http://127.0.0.1:${port}/icon.html`, { waitUntil: "networkidle0" });
+await page.evaluate(() => document.fonts.ready);
 
 const png512 = resolve(repo, "app/src/main/ic_launcher-playstore.png");
 const el = await page.$("#png512");

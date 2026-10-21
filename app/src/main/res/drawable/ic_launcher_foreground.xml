@@ -81,7 +81,7 @@
         <group android:pivotX="512" android:pivotY="512" android:rotation="330">
             <path
                 android:fillColor="#E3DACB"
-                android:pathData="M477,162 H547 A30,30 0 0 1 577,192 V232 A30,30 0 0 1 447,232 V192 A30,30 0 0 1 477,162 Z" />
+                android:pathData="M477,162 H547 A30,30 0 0 1 577,192 V232 A30,30 0 0 1 547,262 H477 A30,30 0 0 1 447,232 V192 A30,30 0 0 1 477,162 Z" />
         </group>
 
         <!-- Hands + hub in #3E4560. Caps are round via strokeLineCap. -->
