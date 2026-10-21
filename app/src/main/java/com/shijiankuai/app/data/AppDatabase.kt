@@ -37,6 +37,13 @@ abstract class AppDatabase : RoomDatabase() {
                     )
                 },
             )
+            val next = Presets.types.associateBy { it.id }
+            db.types().all().forEach { row ->
+                val preset = next[row.id] ?: return@forEach
+                if (row.isPreset && row.color != preset.color) {
+                    db.types().update(row.copy(color = preset.color))
+                }
+            }
             if (db.kv().get("is_asleep") == null) {
                 db.kv().put(KvRow("is_asleep", "1"))
             }

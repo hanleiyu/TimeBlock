@@ -88,6 +88,17 @@ const overviewPath = resolve(outDir, "00-overview.png");
 await overview.screenshot({ path: overviewPath, type: "png", fullPage: true });
 copyFileSync(overviewPath, resolve(artifactDir, "00-overview.png"));
 console.log("wrote", overviewPath);
+
+const aliases = [
+  ["01-today-wake.png", "app-today-asleep.png"],
+  ["02-today-grid.png", "app-today-awake.png"],
+  ["03-type-picker.png", "app-type-sheet.png"],
+  ["04-stats.png", "app-stats.png"],
+];
+for (const [src, dest] of aliases) {
+  copyFileSync(resolve(outDir, src), resolve(artifactDir, dest));
+  copyFileSync(resolve(outDir, src), resolve(root, "../artifacts", dest));
+}
 await overview.close();
 
 await browser.close();

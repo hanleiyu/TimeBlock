@@ -51,9 +51,12 @@ import com.shijiankuai.app.domain.BLOCKS_PER_DAY
 import com.shijiankuai.app.domain.BlockType
 import com.shijiankuai.app.ui.TodayUi
 import com.shijiankuai.app.ui.hoursLabel
+import com.shijiankuai.app.ui.theme.Accent
 import com.shijiankuai.app.ui.theme.Card
 import com.shijiankuai.app.ui.theme.EmptyFuture
 import com.shijiankuai.app.ui.theme.EmptyPast
+import com.shijiankuai.app.ui.theme.HighlightLine
+import com.shijiankuai.app.ui.theme.HighlightWash
 import com.shijiankuai.app.ui.theme.Ink
 import com.shijiankuai.app.ui.theme.Ink2
 import com.shijiankuai.app.ui.theme.Ink3
@@ -149,7 +152,7 @@ fun TodayScreen(
             if (ui.isToday) {
                 Text(
                     "我睡了",
-                    color = Color(0xFFEEF0F5),
+                    color = Color.White,
                     fontSize = 12.sp,
                     modifier = Modifier
                         .clip(RoundedCornerShape(999.dp))
@@ -180,13 +183,13 @@ fun TodayScreen(
                     .padding(horizontal = 16.dp)
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(12.dp))
-                    .background(Color(0xFF3D4252))
+                    .background(Accent)
                     .clickable(onClick = onDismissToast)
                     .padding(horizontal = 14.dp, vertical = 10.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Box(Modifier.size(8.dp).clip(CircleShape).background(Color(0xFF8B93A8)))
-                Text(ui.toast, color = Color(0xFFEEF0F5), fontSize = 13.sp, modifier = Modifier.padding(start = 8.dp))
+                Box(Modifier.size(8.dp).clip(CircleShape).background(Color(0xFFC5C8DC)))
+                Text(ui.toast, color = Color.White, fontSize = 13.sp, modifier = Modifier.padding(start = 8.dp))
             }
             Spacer(Modifier.height(10.dp))
         }
@@ -262,12 +265,12 @@ private fun StatCard(value: String, label: String, highlight: Boolean = false, m
     Column(
         modifier
             .clip(RoundedCornerShape(14.dp))
-            .background(if (highlight) Color(0xFFF4E4DA) else Card)
-            .border(1.dp, if (highlight) Color(0xFFECD2C4) else Line, RoundedCornerShape(14.dp))
+            .background(if (highlight) HighlightWash else Card)
+            .border(1.dp, if (highlight) HighlightLine else Line, RoundedCornerShape(14.dp))
             .padding(vertical = 10.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Text(value, fontSize = 22.sp, fontWeight = FontWeight.Bold, color = if (highlight) Color(0xFFA8563C) else Ink)
+        Text(value, fontSize = 22.sp, fontWeight = FontWeight.Bold, color = Ink)
         Text(label, fontSize = 11.sp, color = Ink3)
     }
 }
@@ -413,7 +416,7 @@ private fun HourRow(
                             .background(if (typeId != null && future) color.copy(alpha = 0.48f) else color)
                             .then(
                                 if (typeId == null && future) {
-                                    Modifier.border(1.dp, Color(0xFFE3D8C6), RoundedCornerShape(8.dp))
+                                    Modifier.border(1.dp, Line, RoundedCornerShape(8.dp))
                                 } else Modifier
                             )
                             .then(
@@ -440,17 +443,17 @@ private fun HourRow(
                     Modifier
                         .fillMaxWidth()
                         .height(2.dp)
-                        .background(Wake),
+                        .background(Accent),
                 )
                 Text(
                     "现在 ${"%02d:%02d".format(nowTime.hour, nowTime.minute)}",
-                    color = Color(0xFFFFF8F3),
+                    color = Color.White,
                     fontSize = 10.sp,
                     modifier = Modifier
                         .align(Alignment.CenterEnd)
                         .offset(y = (-9).dp)
                         .clip(RoundedCornerShape(999.dp))
-                        .background(Wake)
+                        .background(Accent)
                         .padding(horizontal = 6.dp, vertical = 1.dp),
                 )
             }
@@ -504,7 +507,7 @@ fun AsleepScreen(
                 .clickable(onClick = onWake),
             contentAlignment = Alignment.Center,
         ) {
-            Text("我醒了", color = Color(0xFFFFF8F3), fontSize = 28.sp, fontWeight = FontWeight.SemiBold)
+            Text("我醒了", color = Color.White, fontSize = 28.sp, fontWeight = FontWeight.SemiBold)
         }
         Spacer(Modifier.weight(1.2f))
     }

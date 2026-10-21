@@ -1,7 +1,7 @@
 <resources>
     <style name="Theme.TimeBlock" parent="android:Theme.Material.Light.NoActionBar">
-        <item name="android:statusBarColor">#EFE6D8</item>
-        <item name="android:navigationBarColor">#FAF6EE</item>
+        <item name="android:statusBarColor">#FBF5F1</item>
+        <item name="android:navigationBarColor">#FBF5F1</item>
         <item name="android:windowLightStatusBar">true</item>
     </style>
 </resources>

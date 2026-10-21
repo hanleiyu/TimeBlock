@@ -64,7 +64,7 @@ fun StatsScreen(
             Modifier
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(12.dp))
-                .background(Color(0xFFE8E0D4))
+                .background(PaperDeep)
                 .padding(3.dp),
         ) {
             PeriodKind.entries.forEach { k ->
@@ -143,7 +143,7 @@ private fun Donut(stats: PeriodStats?) {
         Canvas(Modifier.size(148.dp)) {
             val stroke = Stroke(width = 36.dp.toPx(), cap = StrokeCap.Butt)
             if (slices.isEmpty() || filled == 0) {
-                drawArc(Color(0xFFD8D0C4), 0f, 360f, false, style = stroke)
+                drawArc(Unfilled, 0f, 360f, false, style = stroke)
             } else {
                 var start = -90f
                 slices.forEach { sl ->

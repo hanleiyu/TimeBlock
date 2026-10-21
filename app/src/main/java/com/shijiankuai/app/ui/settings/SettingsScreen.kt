@@ -41,6 +41,7 @@ import com.shijiankuai.app.ui.theme.Ink2
 import com.shijiankuai.app.ui.theme.Ink3
 import com.shijiankuai.app.ui.theme.Line
 import com.shijiankuai.app.ui.theme.Paper
+import com.shijiankuai.app.ui.theme.PaperDeep
 import kotlinx.coroutines.launch
 
 @Composable
@@ -83,7 +84,7 @@ fun SettingsScreen(
                 modifier = Modifier
                     .padding(top = 8.dp)
                     .clip(RoundedCornerShape(10.dp))
-                    .background(Color(0xFFE8E0D4))
+                    .background(PaperDeep)
                     .clickable { banner = null }
                     .padding(horizontal = 12.dp, vertical = 8.dp)
                     .fillMaxWidth(),

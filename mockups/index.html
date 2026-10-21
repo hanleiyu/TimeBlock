@@ -25,35 +25,36 @@
     }
 
     :root {
-      --paper: #efe6d8;
-      --paper-deep: #e4d8c6;
-      --card: #fff9f1;
-      --ink: #2c2824;
-      --ink-2: #6a635a;
-      --ink-3: #8f877c;
-      --line: #ddd2c0;
-      --line-2: #cfc3b0;
-      --wake: #c26a4a;
-      --wake-deep: #a8563c;
-      --now: #c26a4a;
-      --empty-past: #e7dfd2;
-      --empty-future: #f6f1e8;
-      --sheet: #fffdf9;
-      --work: #7a8b99;
-      --eat: #c9a07c;
-      --sleep: #545d72;
-      --study: #8e7f9a;
-      --read: #b88888;
-      --play: #d0b07a;
-      --social: #7fa0a0;
-      --sport: #c48a6e;
-      --write: #8a9b7a;
-      --unfilled: #d8d0c4;
-      --sel: #2c2824;
+      --paper: #fbf5f1;
+      --paper-deep: #f3ebe5;
+      --card: #fffcf9;
+      --ink: #5a5f92;
+      --ink-2: #7b80a0;
+      --ink-3: #9a9db5;
+      --line: #e8e0d8;
+      --line-2: #ddd4cc;
+      --accent: #5a5f92;
+      --wake: #d99a76;
+      --wake-deep: #d99a76;
+      --now: #5a5f92;
+      --empty-past: #ede6e0;
+      --empty-future: #f6f1ec;
+      --sheet: #fffcf9;
+      --work: #8ebfd2;
+      --eat: #e5ad8c;
+      --sleep: #808bd0;
+      --study: #a996cf;
+      --read: #de8b9d;
+      --play: #e3c783;
+      --social: #9ccb97;
+      --sport: #74b3ae;
+      --write: #c4b5e3;
+      --unfilled: #ede6e0;
+      --sel: #5a5f92;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    html, body { background: #d8cfc0; }
+    html, body { background: #e8e0d8; }
     body {
       font-family: "Noto Sans SC", "WenQuanYi Micro Hei", sans-serif;
       color: var(--ink);
@@ -65,8 +66,8 @@
       margin: 0;
       min-height: 100vh;
       background:
-        radial-gradient(1200px 600px at 20% -10%, #f7efe3 0%, transparent 50%),
-        #d8cfc0;
+        radial-gradient(1200px 600px at 20% -10%, #fff8f3 0%, transparent 50%),
+        #e8e0d8;
       padding: 48px 40px 80px;
     }
 
@@ -95,9 +96,9 @@
       position: relative;
       background: var(--paper);
       box-shadow:
-        0 0 0 10px #2a2622,
-        0 0 0 12px #1a1816,
-        0 24px 50px rgba(44, 40, 36, 0.28);
+        0 0 0 10px #3d4166,
+        0 0 0 12px #2a2d4a,
+        0 24px 50px rgba(90, 95, 146, 0.22);
     }
     body.shot .phone {
       border-radius: 0;
@@ -113,7 +114,7 @@
     body.shot .phone.target { display: block; }
 
     body.overview-page {
-      background: #cfc6b6;
+      background: #e4dcd4;
       padding: 56px 48px 64px;
       min-width: 2680px;
     }
@@ -189,17 +190,17 @@
     .wake-title { margin-top: 10px; font-size: 30px; font-weight: 620; letter-spacing: 0.04em; }
     .wake.asleep {
       background:
-        radial-gradient(ellipse 90% 50% at 50% 16%, #c8ccd6 0%, transparent 64%),
-        radial-gradient(ellipse 70% 40% at 80% 90%, #d8d3c8 0%, transparent 60%),
+        radial-gradient(ellipse 90% 50% at 50% 16%, #dfe1ee 0%, transparent 64%),
+        radial-gradient(ellipse 70% 40% at 80% 90%, #f3e4d8 0%, transparent 60%),
         var(--paper);
     }
     .sleep-btn {
-      font-size: 12px; color: #eef0f5; background: var(--sleep);
+      font-size: 12px; color: #fff; background: var(--accent);
       padding: 6px 12px; border-radius: 999px; letter-spacing: 0.06em;
     }
     .toast {
       margin: 0 16px 10px;
-      background: #3d4252; color: #eef0f5;
+      background: var(--accent); color: #fff;
       border-radius: 12px; padding: 10px 14px;
       font-size: 13px; display: flex; align-items: center; gap: 8px;
       box-shadow: 0 8px 20px rgba(44,40,36,0.12);
@@ -213,16 +214,16 @@
     .halo {
       position: absolute; inset: -18px;
       border-radius: 50%;
-      background: radial-gradient(circle, rgba(194,106,74,0.20), transparent 68%);
+      background: radial-gradient(circle, rgba(229,173,140,0.28), transparent 68%);
     }
     .wake-btn {
       position: relative;
       width: 188px; height: 188px; border-radius: 50%;
-      background: linear-gradient(180deg, #d27a58 0%, #c26a4a 55%, #b35d40 100%);
-      color: #fff8f3;
+      background: linear-gradient(180deg, #e5ad8c 0%, #d99a76 70%, #d08e6a 100%);
+      color: #fff;
       display: flex; flex-direction: column; align-items: center; justify-content: center;
       box-shadow:
-        0 16px 32px rgba(163, 74, 48, 0.28),
+        0 16px 32px rgba(217, 154, 118, 0.32),
         inset 0 1px 0 rgba(255,255,255,0.28);
     }
     .wake-btn .lbl { font-size: 28px; font-weight: 620; letter-spacing: 0.12em; }
@@ -233,9 +234,9 @@
       margin-top: 40px; opacity: 0.45;
     }
     .ghost-grid i {
-      width: 10px; height: 10px; border-radius: 3px; background: #d7ccbc;
+      width: 10px; height: 10px; border-radius: 3px; background: #ede6e0;
     }
-    .ghost-grid i:nth-child(3n) { background: #c9bba8; }
+    .ghost-grid i:nth-child(3n) { background: #e5ad8c; }
 
     .wake-foot {
       text-align: center; color: var(--ink-3); font-size: 12px;
@@ -251,7 +252,7 @@
     .today-head h1 { font-size: 22px; font-weight: 620; letter-spacing: 0.02em; }
     .edit {
       font-size: 12px; color: var(--wake-deep); padding: 4px 8px;
-      border-radius: 999px; background: #f4e4da;
+      border-radius: 999px; background: #e8e9f4;
     }
     .meta { margin-top: 6px; font-size: 12px; color: var(--ink-2); display: flex; gap: 12px; }
     .meta b { color: var(--ink); font-weight: 560; }
@@ -262,7 +263,7 @@
     }
     .stat {
       background: var(--card);
-      border: 1px solid #d8ccb8;
+      border: 1px solid var(--line);
       border-radius: 14px;
       padding: 10px 8px 9px;
       text-align: center;
@@ -270,8 +271,8 @@
     }
     .stat .n { font-size: 22px; font-weight: 700; letter-spacing: -0.03em; line-height: 1.1; }
     .stat .l { margin-top: 4px; font-size: 11px; color: var(--ink-3); letter-spacing: 0.04em; }
-    .stat.em { background: #f4e4da; border-color: #ecd2c4; }
-    .stat.em .n { color: var(--wake-deep); }
+    .stat.em { background: #e8e9f4; border-color: #d4d6e8; }
+    .stat.em .n { color: var(--accent); }
 
     .grid-wrap {
       padding: 0 14px 0 10px;
@@ -307,7 +308,7 @@
       background: var(--empty-past);
       position: relative;
     }
-    .c.f { background: #f7f1e6; box-shadow: inset 0 0 0 1px #e3d8c6; }
+    .c.f { background: var(--empty-future); box-shadow: inset 0 0 0 1px var(--line); }
     .c.work { background: var(--work); }
     .c.eat { background: var(--eat); }
     .c.sleep { background: var(--sleep); }
@@ -876,14 +877,14 @@
           <div class="chev">›</div>
         </div>
         <div class="srow">
-          <div class="sico" style="background:#eee8dc;color:var(--eat)">
+          <div class="sico" style="background:var(--paper-deep);color:var(--accent)">
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="3.2" y="3.2" width="9.6" height="9.6" rx="2"/><path d="M6 8h4M8 6v4"/></svg>
           </div>
           <div class="txt"><div class="ttl">本地备份</div><div class="sub">生成一份可恢复的备份文件</div></div>
           <div class="chev">›</div>
         </div>
         <div class="srow">
-          <div class="sico" style="background:#eee8dc;color:var(--eat)">
+          <div class="sico" style="background:var(--paper-deep);color:var(--accent)">
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M4 8a4 4 0 1 0 1.2-2.8M4 3.5V5.8h2.3"/></svg>
           </div>
           <div class="txt"><div class="ttl">从备份恢复</div><div class="sub">覆盖当前本地数据</div></div>

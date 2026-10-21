@@ -16,10 +16,10 @@ val NotoSansSc = FontFamily(
 )
 
 private val Scheme = lightColorScheme(
-    primary = Sleep,
-    onPrimary = Color(0xFFEEF0F5),
+    primary = Accent,
+    onPrimary = Color(0xFFFFFFFF),
     secondary = Wake,
-    onSecondary = Color(0xFFFFF8F3),
+    onSecondary = Color(0xFFFFFFFF),
     background = Paper,
     onBackground = Ink,
     surface = Card,

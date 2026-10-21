@@ -134,8 +134,8 @@ private fun TypeChip(type: BlockType, modifier: Modifier, onClick: () -> Unit) {
 @Composable
 fun AddTypeForm(onSave: (String, Long) -> Unit, onCancel: () -> Unit) {
     var name by remember { mutableStateOf("") }
-    val palette = Presets.types.map { it.color } + Presets.extraColors
-    var color by remember { mutableStateOf(palette.last()) }
+    val palette = Presets.swatches
+    var color by remember { mutableStateOf(palette.first()) }
     Column(Modifier.padding(horizontal = 18.dp).padding(bottom = 28.dp)) {
         Text("添加类型", fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = Ink)
         Spacer(Modifier.height(12.dp))
@@ -147,17 +147,22 @@ fun AddTypeForm(onSave: (String, Long) -> Unit, onCancel: () -> Unit) {
             modifier = Modifier.fillMaxWidth(),
         )
         Spacer(Modifier.height(12.dp))
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            palette.take(8).forEach { c ->
-                val on = c == color
-                Box(
-                    Modifier
-                        .size(28.dp)
-                        .clip(CircleShape)
-                        .background(Color(c.toInt()))
-                        .then(if (on) Modifier.border(2.dp, Color.White, CircleShape) else Modifier)
-                        .clickable { color = c },
-                )
+        palette.chunked(8).forEach { row ->
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier.padding(bottom = 8.dp),
+            ) {
+                row.forEach { c ->
+                    val on = c == color
+                    Box(
+                        Modifier
+                            .size(28.dp)
+                            .clip(CircleShape)
+                            .background(Color(c.toInt()))
+                            .then(if (on) Modifier.border(2.dp, Color.White, CircleShape) else Modifier)
+                            .clickable { color = c },
+                    )
+                }
             }
         }
         Spacer(Modifier.height(12.dp))

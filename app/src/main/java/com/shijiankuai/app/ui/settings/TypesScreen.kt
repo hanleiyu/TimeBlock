@@ -42,7 +42,7 @@ import com.shijiankuai.app.ui.theme.Ink3
 import com.shijiankuai.app.ui.theme.Line
 import com.shijiankuai.app.ui.theme.Paper
 import com.shijiankuai.app.ui.theme.PaperDeep
-import com.shijiankuai.app.ui.theme.WakeDeep
+import com.shijiankuai.app.ui.theme.Accent
 import com.shijiankuai.app.ui.today.AddTypeForm
 
 @Composable
@@ -67,7 +67,7 @@ fun TypesScreen(
         ) {
             Text("‹ 设置", color = Ink2, modifier = Modifier.clickable(onClick = onBack))
             Text("类型管理", fontSize = 17.sp, fontWeight = FontWeight.SemiBold, color = Ink, modifier = Modifier.weight(1f).padding(horizontal = 8.dp))
-            Text("完成", color = WakeDeep, modifier = Modifier.clickable(onClick = onBack))
+            Text("完成", color = Accent, modifier = Modifier.clickable(onClick = onBack))
         }
         Column(Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(horizontal = 16.dp)) {
             types.forEachIndexed { i, t ->
@@ -77,7 +77,7 @@ fun TypesScreen(
                         .padding(bottom = 8.dp)
                         .clip(RoundedCornerShape(12.dp))
                         .background(Card)
-                        .border(1.dp, Color(0xFFD8CCB8), RoundedCornerShape(12.dp))
+                        .border(1.dp, Line, RoundedCornerShape(12.dp))
                         .clickable { editing = t }
                         .padding(horizontal = 12.dp, vertical = 10.dp),
                     verticalAlignment = Alignment.CenterVertically,
@@ -146,7 +146,7 @@ private fun EditTypeDialog(type: BlockType, onDismiss: () -> Unit, onSave: (Bloc
     var name by remember { mutableStateOf(type.name) }
     var color by remember { mutableStateOf(type.color) }
     var archived by remember { mutableStateOf(type.archived) }
-    val palette = Presets.types.map { it.color } + Presets.extraColors
+    val palette = Presets.swatches
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("编辑类型") },
@@ -154,16 +154,21 @@ private fun EditTypeDialog(type: BlockType, onDismiss: () -> Unit, onSave: (Bloc
             Column {
                 OutlinedTextField(name, { name = it }, label = { Text("名称") }, singleLine = true)
                 Spacer(Modifier.height(10.dp))
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    palette.take(8).forEach { c ->
-                        Box(
-                            Modifier
-                                .size(26.dp)
-                                .clip(CircleShape)
-                                .background(Color(c.toInt()))
-                                .then(if (c == color) Modifier.border(2.dp, Color.White, CircleShape) else Modifier)
-                                .clickable { color = c },
-                        )
+                palette.chunked(8).forEach { row ->
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        modifier = Modifier.padding(bottom = 8.dp),
+                    ) {
+                        row.forEach { c ->
+                            Box(
+                                Modifier
+                                    .size(26.dp)
+                                    .clip(CircleShape)
+                                    .background(Color(c.toInt()))
+                                    .then(if (c == color) Modifier.border(2.dp, Color.White, CircleShape) else Modifier)
+                                    .clickable { color = c },
+                            )
+                        }
                     }
                 }
                 if (!type.isSleep) {
