@@ -128,6 +128,7 @@ class AppViewModel(private val repo: Repository) : ViewModel() {
 
     val statsKind = MutableStateFlow(PeriodKind.DAY)
     val statsAnchor = MutableStateFlow(repo.clock.today())
+    val showAllTime: StateFlow<Boolean> = repo.showAllTime
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val stats: StateFlow<PeriodStats?> = combine(statsKind, statsAnchor) { kind, anchor -> kind to anchor }
@@ -217,6 +218,10 @@ class AppViewModel(private val repo: Repository) : ViewModel() {
 
     fun setStatsKind(kind: PeriodKind) {
         statsKind.value = kind
+    }
+
+    fun setShowAllTime(on: Boolean) {
+        viewModelScope.launch { repo.setShowAllTime(on) }
     }
 
     suspend fun exportCsv(): String = repo.exportCsv()

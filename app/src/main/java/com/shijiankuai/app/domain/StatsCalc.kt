@@ -36,6 +36,7 @@ object StatsCalc {
         zone: ZoneId,
         blocks: Map<BlockId, String>,
         types: List<BlockType>,
+        fullSpan: Boolean = false,
     ): PeriodStats {
         val (start, end) = periodBounds(kind, anchor)
         val typeById = types.associateBy { it.id }
@@ -45,7 +46,7 @@ object StatsCalc {
 
         var day = start
         while (!day.isAfter(end)) {
-            val n = BlockMath.elapsedCount(day, now, zone)
+            val n = if (fullSpan) BLOCKS_PER_DAY else BlockMath.elapsedCount(day, now, zone)
             elapsed += n
             for (i in 0 until n) {
                 val id = blocks[BlockId(day.toEpochDay(), i)]
@@ -72,6 +73,7 @@ object StatsCalc {
             filled = filled,
             unfilled = elapsed - filled,
             byType = byType,
+            fullSpan = fullSpan,
         )
     }
 }

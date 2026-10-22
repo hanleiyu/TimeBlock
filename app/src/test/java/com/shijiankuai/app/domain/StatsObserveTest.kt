@@ -69,4 +69,34 @@ class StatsObserveTest {
         assertEquals(86, seen.last().totalElapsed)
         job.cancel()
     }
+
+    @Test
+    fun togglingShowAllTimeSwitchesToFullSpan() = runTest {
+        val blocks = MutableStateFlow(mapOf(BlockId(day.toEpochDay(), 10) to "work"))
+        val types = MutableStateFlow(Presets.types)
+        val tick = MutableStateFlow(0L)
+        val showAll = MutableStateFlow(false)
+        val flow = StatsObserve.flow(
+            kind = PeriodKind.DAY,
+            anchor = day,
+            now = { now },
+            zone = zone,
+            blocks = blocks,
+            types = types,
+            tick = tick,
+            showAllTime = showAll,
+        )
+        val seen = mutableListOf<PeriodStats>()
+        val job = launch { flow.collect { seen.add(it) } }
+        advanceUntilIdle()
+        assertEquals(86, seen.last().totalElapsed)
+        assertEquals(false, seen.last().fullSpan)
+
+        showAll.value = true
+        advanceUntilIdle()
+        assertEquals(144, seen.last().totalElapsed)
+        assertEquals(143, seen.last().unfilled)
+        assertEquals(true, seen.last().fullSpan)
+        job.cancel()
+    }
 }

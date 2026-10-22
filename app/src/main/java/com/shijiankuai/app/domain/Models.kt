@@ -50,6 +50,7 @@ data class PeriodStats(
     val filled: Int,
     val unfilled: Int,
     val byType: List<TypeCount>,
+    val fullSpan: Boolean = false,
 ) {
     val unfilledHours: Double get() = unfilled * BLOCK_MINUTES / 60.0
 }

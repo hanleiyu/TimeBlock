@@ -18,6 +18,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -35,6 +37,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.shijiankuai.app.domain.BlockType
+import com.shijiankuai.app.ui.theme.Accent
 import com.shijiankuai.app.ui.theme.Card
 import com.shijiankuai.app.ui.theme.Ink
 import com.shijiankuai.app.ui.theme.Ink2
@@ -51,6 +54,8 @@ fun SettingsScreen(
     exportCsv: suspend () -> String,
     exportBackup: suspend () -> String,
     restore: suspend (String) -> Boolean,
+    showAllTime: Boolean = true,
+    onShowAllTime: (Boolean) -> Unit = {},
 ) {
     val ctx = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -93,6 +98,26 @@ fun SettingsScreen(
         Spacer(Modifier.height(14.dp))
         Group("时间块") {
             RowItem(title = "时间块长度", value = "10 分钟")
+        }
+        Spacer(Modifier.height(12.dp))
+        Group("统计") {
+            Row(
+                Modifier
+                    .fillMaxWidth()
+                    .clickable { onShowAllTime(!showAllTime) }
+                    .padding(horizontal = 14.dp, vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text("显示所有时间", fontSize = 14.sp, color = Ink, modifier = Modifier.weight(1f))
+                Switch(
+                    checked = showAllTime,
+                    onCheckedChange = onShowAllTime,
+                    colors = SwitchDefaults.colors(
+                        checkedThumbColor = Color.White,
+                        checkedTrackColor = Accent,
+                    ),
+                )
+            }
         }
         Spacer(Modifier.height(12.dp))
         Group("类型") {

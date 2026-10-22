@@ -57,8 +57,12 @@ const browser = await puppeteer.launch({
 const shots = [
   { id: "1", name: "01-today-wake.png" },
   { id: "2", name: "02-today-grid.png" },
+  { id: "2a", name: "option-A.png" },
+  { id: "2b", name: "option-B.png" },
+  { id: "2c", name: "option-C.png" },
   { id: "3", name: "03-type-picker.png" },
   { id: "4", name: "04-stats.png" },
+  { id: "4off", name: "app-stats-elapsed.png" },
   { id: "5", name: "05-settings.png" },
   { id: "6", name: "06-type-manage.png" },
 ];
@@ -94,6 +98,7 @@ const aliases = [
   ["02-today-grid.png", "app-today-awake.png"],
   ["03-type-picker.png", "app-type-sheet.png"],
   ["04-stats.png", "app-stats.png"],
+  ["04-stats.png", "app-stats-all.png"],
   ["05-settings.png", "app-settings.png"],
 ];
 for (const [src, dest] of aliases) {

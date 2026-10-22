@@ -142,14 +142,21 @@ private fun Donut(stats: PeriodStats?) {
     Box(Modifier.fillMaxWidth().padding(vertical = 6.dp), contentAlignment = Alignment.Center) {
         Canvas(Modifier.size(148.dp)) {
             val stroke = Stroke(width = 36.dp.toPx(), cap = StrokeCap.Butt)
-            if (slices.isEmpty() || filled == 0) {
+            val full = stats?.fullSpan == true
+            val pieTotal = if (full) total.coerceAtLeast(1) else filled.coerceAtLeast(1)
+            if (!full && (slices.isEmpty() || filled == 0)) {
+                drawArc(Unfilled, 0f, 360f, false, style = stroke)
+            } else if (full && filled == 0) {
                 drawArc(Unfilled, 0f, 360f, false, style = stroke)
             } else {
                 var start = -90f
                 slices.forEach { sl ->
-                    val sweep = 360f * sl.blocks / filled.toFloat()
+                    val sweep = 360f * sl.blocks / pieTotal.toFloat()
                     drawArc(Color(sl.color.toInt()), start, sweep, false, style = stroke)
                     start += sweep
+                }
+                if (full && (stats?.unfilled ?: 0) > 0) {
+                    drawArc(Unfilled, start, 360f * (stats?.unfilled ?: 0) / pieTotal.toFloat(), false, style = stroke)
                 }
             }
         }

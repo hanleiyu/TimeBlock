@@ -261,9 +261,34 @@
     .meta b { color: var(--ink); font-weight: 560; }
 
     .stats {
-      display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px;
+      display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
       padding: 0 16px 12px;
     }
+    .pbar-a {
+      margin: 0 16px 10px; height: 8px; border-radius: 999px; overflow: hidden;
+      display: flex; background: var(--empty-future);
+    }
+    .pbar-a i { height: 100%; display: block; }
+    .pbar-b {
+      margin: 8px 20px 0; display: flex; align-items: center; gap: 10px;
+    }
+    .pbar-b .track {
+      flex: 1; height: 6px; background: var(--paper-deep); border-radius: 999px; overflow: hidden;
+    }
+    .pbar-b .fill { width: 30%; height: 100%; background: var(--accent); border-radius: 999px; }
+    .pbar-b .nums { font-size: 13px; font-weight: 600; color: var(--ink); white-space: nowrap; }
+    .pbar-c {
+      margin: 0 16px 4px; height: 14px; background: var(--paper-deep);
+      border-radius: 8px; position: relative; overflow: hidden;
+    }
+    .pbar-c .fill { width: 30%; height: 100%; background: var(--ink); }
+    .pbar-c .dot {
+      position: absolute; left: 30%; top: 50%; width: 10px; height: 10px;
+      margin: -5px 0 0 -5px; border-radius: 50%; background: var(--ink);
+    }
+    .today:not([data-bar="a"]) .pbar-a { display: none; }
+    .today:not([data-bar="b"]) .pbar-b { display: none; }
+    .today:not([data-bar="c"]) .pbar-c { display: none; }
     .stat {
       background: var(--card);
       border: 1px solid var(--line);
@@ -457,17 +482,15 @@
     }
     .pie {
       width: 148px; height: 148px; border-radius: 50%;
-      background: conic-gradient(
-        var(--sleep) 0 47.9%,
-        var(--work) 47.9% 70.8%,
-        var(--study) 70.8% 83.3%,
-        var(--eat) 83.3% 89.6%,
-        var(--read) 89.6% 93.8%,
-        var(--social) 93.8% 98.0%,
-        var(--sport) 98.0% 100%
-      );
+      background: conic-gradient(var(--sleep) 0 100%);
       position: relative;
       box-shadow: 0 8px 20px rgba(80,60,40,0.08);
+    }
+    .pie.pie-all {
+      background: conic-gradient(var(--sleep) 0 27.1%, var(--unfilled) 27.1% 100%);
+    }
+    .pie.pie-off {
+      background: conic-gradient(var(--sleep) 0 100%);
     }
     .pie::after {
       content: "";
@@ -531,6 +554,17 @@
     .srow .ttl { font-size: 14px; font-weight: 500; }
     .srow .sub { font-size: 11px; color: var(--ink-3); margin-top: 2px; font-weight: 500; }
     .srow .val { font-size: 13px; color: var(--ink-2); }
+    .toggle {
+      width: 46px; height: 28px; border-radius: 999px;
+      background: var(--paper-deep); position: relative; flex: none;
+    }
+    .toggle.on { background: var(--accent); }
+    .toggle::after {
+      content: "";
+      position: absolute; top: 3px; left: 3px;
+      width: 22px; height: 22px; border-radius: 50%; background: #fff;
+    }
+    .toggle.on::after { left: 21px; }
     .srow .chev { border: 0; background: transparent; width: 16px; height: 16px; }
 
     .dots { display: flex; gap: 4px; }
@@ -671,11 +705,15 @@
 <template id="tpl-s2">
   <div class="screen" data-shot="02-today">
     <div data-status="07:12"></div>
-    <div class="today">
+    <div class="today" data-bar="a">
       <div class="today-head">
         <div class="row">
           <h1>10月21日 周三</h1>
           <span class="sleep-btn">我睡了</span>
+        </div>
+        <div class="pbar-b">
+          <div class="track"><div class="fill"></div></div>
+          <div class="nums num">30%  07:12</div>
         </div>
         <div class="meta">
           <span>醒了 <b class="num">07:12</b></span>
@@ -683,11 +721,16 @@
         </div>
       </div>
       <div class="toast"><i></i>00:42 入睡 · 已记 39 块睡觉</div>
+      <div class="pbar-a">
+        <i style="flex:4;background:var(--empty-past)"></i>
+        <i class="sleep" style="flex:39;background:var(--sleep)"></i>
+        <i style="flex:101;background:var(--empty-future)"></i>
+      </div>
       <div class="stats">
         <div class="stat em"><div class="n num">43</div><div class="l">已过</div></div>
         <div class="stat"><div class="n num">101</div><div class="l">剩余</div></div>
-        <div class="stat"><div class="n num">39</div><div class="l">已睡</div></div>
       </div>
+      <div class="pbar-c"><div class="fill"></div><i class="dot"></i></div>
       <div class="grid-wrap">
         <div class="grid-fade-top"></div>
         <div class="hour">
@@ -747,7 +790,6 @@
       <div class="stats">
         <div class="stat em"><div class="n num">86</div><div class="l">已过</div></div>
         <div class="stat"><div class="n num">58</div><div class="l">剩余</div></div>
-        <div class="stat"><div class="n num">46</div><div class="l">已睡</div></div>
       </div>
       <div class="grid-wrap">
         <div class="hour">
@@ -811,23 +853,49 @@
       </div>
       <div class="sum3">
         <div><b class="num">144</b>总块</div>
-        <div><b class="num">96</b>已填</div>
-        <div><b class="num">48</b>未填</div>
+        <div><b class="num">39</b>已填</div>
+        <div><b class="num">105</b>未填</div>
       </div>
       <div class="pie-wrap">
-        <div class="pie">
-          <div class="pie-label"><div class="n num">96</div><div class="l">已填 / 144</div></div>
+        <div class="pie pie-all">
+          <div class="pie-label"><div class="n num">39</div><div class="l">已填 / 144</div></div>
         </div>
       </div>
       <div class="tlist">
-        <div class="trow"><i class="dot" style="background:var(--sleep)"></i><span class="name">睡觉</span><span class="fig">46 块 · 7.7 时 · 32%</span></div>
-        <div class="trow"><i class="dot" style="background:var(--work)"></i><span class="name">工作</span><span class="fig">22 块 · 3.7 时 · 15%</span></div>
-        <div class="trow"><i class="dot" style="background:var(--study)"></i><span class="name">学习</span><span class="fig">12 块 · 2.0 时 · 8%</span></div>
-        <div class="trow"><i class="dot" style="background:var(--eat)"></i><span class="name">吃饭</span><span class="fig">6 块 · 1.0 时 · 4%</span></div>
-        <div class="trow"><i class="dot" style="background:var(--read)"></i><span class="name">阅读</span><span class="fig">4 块 · 0.7 时 · 3%</span></div>
-        <div class="trow"><i class="dot" style="background:var(--social)"></i><span class="name">人际</span><span class="fig">4 块 · 0.7 时 · 3%</span></div>
-        <div class="trow"><i class="dot" style="background:var(--sport)"></i><span class="name">运动</span><span class="fig">2 块 · 0.3 时 · 1%</span></div>
-        <div class="trow"><i class="dot" style="background:var(--unfilled)"></i><span class="name">未填</span><span class="fig">48 块 · 8.0 时 · 33%</span></div>
+        <div class="trow"><i class="dot" style="background:var(--sleep)"></i><span class="name">睡觉</span><span class="fig">39 块 · 6.5 时 · 27%</span></div>
+        <div class="trow"><i class="dot" style="background:var(--unfilled)"></i><span class="name">未填</span><span class="fig">105 块 · 17.5 时 · 73%</span></div>
+      </div>
+    </div>
+    <div data-tabs="stats"></div>
+  </div>
+</template>
+
+<template id="tpl-s4off">
+  <div class="screen" data-shot="04-stats-off">
+    <div data-status></div>
+    <div class="stats-page">
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <h1>统计</h1>
+      </div>
+      <div class="seg"><i class="on">日</i><i>周</i><i>月</i><i>年</i></div>
+      <div class="period">
+        <div class="chev">‹</div>
+        <div>10月21日 周三</div>
+        <div class="chev">›</div>
+      </div>
+      <div class="sum3">
+        <div><b class="num">43</b>总块</div>
+        <div><b class="num">39</b>已填</div>
+        <div><b class="num">4</b>未填</div>
+      </div>
+      <div class="pie-wrap">
+        <div class="pie pie-off">
+          <div class="pie-label"><div class="n num">39</div><div class="l">已填 / 43</div></div>
+        </div>
+      </div>
+      <div class="tlist">
+        <div class="trow"><i class="dot" style="background:var(--sleep)"></i><span class="name">睡觉</span><span class="fig">39 块 · 6.5 时 · 91%</span></div>
+        <div class="trow"><i class="dot" style="background:var(--unfilled)"></i><span class="name">未填</span><span class="fig">4 块 · 0.7 时 · 9%</span></div>
       </div>
     </div>
     <div data-tabs="stats"></div>
@@ -847,6 +915,14 @@
           </div>
           <div class="txt"><div class="ttl">时间块长度</div></div>
           <div class="val">10 分钟</div>
+        </div>
+      </div>
+
+      <div class="group">
+        <div class="cap">统计</div>
+        <div class="srow">
+          <div class="txt"><div class="ttl">显示所有时间</div></div>
+          <div class="toggle on"></div>
         </div>
       </div>
 
@@ -983,11 +1059,25 @@
   mount("p5", "tpl-s5");
   mount("p6", "tpl-s6");
 
+  function extraPhone(id, tplId, tweak) {
+    const phone = document.createElement("div");
+    phone.className = "phone";
+    phone.id = id;
+    const node = document.getElementById(tplId).content.cloneNode(true);
+    tweak?.(node);
+    stamp(node);
+    phone.appendChild(node);
+    document.body.appendChild(phone);
+  }
+  extraPhone("p2b", "tpl-s2", (n) => n.querySelector(".today")?.setAttribute("data-bar", "b"));
+  extraPhone("p2c", "tpl-s2", (n) => n.querySelector(".today")?.setAttribute("data-bar", "c"));
+  extraPhone("p4off", "tpl-s4off");
+
   const params = new URLSearchParams(location.search);
   const shot = params.get("shot");
   if (shot) {
     document.body.className = "shot";
-    const map = { "1": "p1", "2": "p2", "3": "p3", "4": "p4", "5": "p5", "6": "p6" };
+    const map = { "1": "p1", "2": "p2", "2a": "p2", "2b": "p2b", "2c": "p2c", "4": "p4", "4off": "p4off", "5": "p5", "6": "p6" };
     const phone = document.getElementById(map[shot]);
     phone.classList.add("target");
     document.body.appendChild(phone);

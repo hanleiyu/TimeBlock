@@ -74,4 +74,30 @@ class StatsCalcTest {
     fun hoursFromBlocks() {
         assertEquals(46 * 10 / 60.0, TypeCount(SLEEP_TYPE_ID, "睡觉", 0L, 46).hours, 1e-9)
     }
+
+    @Test
+    fun fullSpanDayIsAlways144AndKeepsFutureRecorded() {
+        val blocks = mutableMapOf<BlockId, String>()
+        repeat(10) { blocks[bid(day, it)] = SLEEP_TYPE_ID }
+        blocks[bid(day, 100)] = "work"
+
+        val stats = StatsCalc.aggregate(PeriodKind.DAY, day, now, zone, blocks, types, fullSpan = true)
+        assertEquals(144, stats.totalElapsed)
+        assertEquals(11, stats.filled)
+        assertEquals(133, stats.unfilled)
+        assertEquals(true, stats.fullSpan)
+        assertEquals(listOf(SLEEP_TYPE_ID, "work"), stats.byType.map { it.typeId })
+    }
+
+    @Test
+    fun fullSpanWeekIsSevenDaysAndFutureDayIsEmptySlice() {
+        val empty = StatsCalc.aggregate(PeriodKind.WEEK, day, now, zone, emptyMap(), types, fullSpan = true)
+        assertEquals(7 * 144, empty.totalElapsed)
+        assertEquals(0, empty.filled)
+        assertEquals(7 * 144, empty.unfilled)
+
+        val tomorrow = StatsCalc.aggregate(PeriodKind.DAY, day.plusDays(1), now, zone, emptyMap(), types, fullSpan = true)
+        assertEquals(144, tomorrow.totalElapsed)
+        assertEquals(144, tomorrow.unfilled)
+    }
 }

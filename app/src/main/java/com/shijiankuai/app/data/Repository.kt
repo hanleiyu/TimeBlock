@@ -6,6 +6,7 @@ import com.shijiankuai.app.domain.BlockId
 import com.shijiankuai.app.domain.BlockType
 import com.shijiankuai.app.domain.PeriodKind
 import com.shijiankuai.app.domain.PeriodStats
+import com.shijiankuai.app.domain.Prefs
 import com.shijiankuai.app.domain.SLEEP_TYPE_ID
 import com.shijiankuai.app.domain.SleepFill
 import com.shijiankuai.app.domain.SleepSession
@@ -27,6 +28,8 @@ class Repository(
 ) {
     private val _isAsleep = MutableStateFlow(true)
     val isAsleep: StateFlow<Boolean> = _isAsleep
+    private val _showAllTime = MutableStateFlow(true)
+    val showAllTime: StateFlow<Boolean> = _showAllTime
 
     val types: Flow<List<BlockType>> = db.types().observe().map { rows ->
         rows.map { it.toDomain() }
@@ -42,6 +45,12 @@ class Repository(
     suspend fun hydrate() {
         AppDatabase.seedIfNeeded(db)
         _isAsleep.value = db.kv().get("is_asleep") != "0"
+        _showAllTime.value = Prefs.showAllTimeEnabled(db.kv().get(Prefs.SHOW_ALL_TIME))
+    }
+
+    suspend fun setShowAllTime(on: Boolean) {
+        db.kv().put(KvRow(Prefs.SHOW_ALL_TIME, if (on) "1" else "0"))
+        _showAllTime.value = on
     }
 
     suspend fun markSleep(): Instant {
@@ -160,7 +169,9 @@ class Repository(
             rows.associate { BlockId(it.epochDay, it.index) to it.typeId }
         }
         val typeList = db.types().observe().map { rows -> rows.map { it.toDomain() } }
-        return StatsObserve.flow(kind, anchor, clock::now, clock.zone(), blocks, typeList, ticks)
+        return StatsObserve.flow(
+            kind, anchor, clock::now, clock.zone(), blocks, typeList, ticks, _showAllTime,
+        )
     }
 
     suspend fun exportCsv(): String = Backup.csv(db.blocks().all(), db.types().all())
@@ -181,6 +192,7 @@ class Repository(
             snap.kv.forEach { db.kv().put(it) }
         }
         _isAsleep.value = db.kv().get("is_asleep") != "0"
+        _showAllTime.value = Prefs.showAllTimeEnabled(db.kv().get(Prefs.SHOW_ALL_TIME))
         return true
     }
 

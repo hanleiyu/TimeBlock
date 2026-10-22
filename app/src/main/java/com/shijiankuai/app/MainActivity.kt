@@ -72,6 +72,7 @@ private fun AppRoot(vm: AppViewModel) {
     val kind by vm.statsKind.collectAsStateWithLifecycle()
     val anchor by vm.statsAnchor.collectAsStateWithLifecycle()
     val needStart by vm.needSleepStart.collectAsStateWithLifecycle()
+    val showAllTime by vm.showAllTime.collectAsStateWithLifecycle()
     val zone = remember { java.time.ZoneId.systemDefault() }
     val todayScroll = rememberScrollState()
 
@@ -128,6 +129,8 @@ private fun AppRoot(vm: AppViewModel) {
                         exportCsv = { vm.exportCsv() },
                         exportBackup = { vm.exportBackup() },
                         restore = { vm.restore(it) },
+                        showAllTime = showAllTime,
+                        onShowAllTime = vm::setShowAllTime,
                     )
                 }
             }
