@@ -89,7 +89,6 @@ fun TodayScreen(
     onDismissToast: () -> Unit,
     gridScroll: ScrollState,
     takeNowSnap: (LocalDate, Boolean) -> Boolean,
-    progressStyle: TodayProgressStyle = TodayProgressFlags.style,
 ) {
     var showDate by remember { mutableStateOf(false) }
 
@@ -164,16 +163,6 @@ fun TodayScreen(
                 )
             }
         }
-        if (progressStyle == TodayProgressStyle.B) {
-            TodayProgressBar(
-                style = TodayProgressStyle.B,
-                blocks = ui.blocks,
-                types = ui.types,
-                elapsed = ui.elapsed,
-                nowTime = ui.nowTime,
-                modifier = Modifier.padding(start = 20.dp, end = 16.dp, top = 8.dp),
-            )
-        }
         Row(
             Modifier.padding(start = 20.dp, end = 16.dp, top = 6.dp, bottom = 8.dp),
             horizontalArrangement = Arrangement.spacedBy(12.dp),
@@ -206,16 +195,12 @@ fun TodayScreen(
             Spacer(Modifier.height(10.dp))
         }
 
-        if (progressStyle == TodayProgressStyle.A) {
-            TodayProgressBar(
-                style = TodayProgressStyle.A,
-                blocks = ui.blocks,
-                types = ui.types,
-                elapsed = ui.elapsed,
-                nowTime = ui.nowTime,
-                modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 10.dp),
-            )
-        }
+        TodayProgressBar(
+            blocks = ui.blocks,
+            types = ui.types,
+            elapsed = ui.elapsed,
+            modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 10.dp),
+        )
         Row(
             Modifier
                 .fillMaxWidth()
@@ -224,16 +209,6 @@ fun TodayScreen(
         ) {
             StatCard(ui.elapsed.toString(), "已过", highlight = true, modifier = Modifier.weight(1f))
             StatCard(ui.remaining.toString(), "剩余", modifier = Modifier.weight(1f))
-        }
-        if (progressStyle == TodayProgressStyle.C) {
-            TodayProgressBar(
-                style = TodayProgressStyle.C,
-                blocks = ui.blocks,
-                types = ui.types,
-                elapsed = ui.elapsed,
-                nowTime = ui.nowTime,
-                modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 10.dp),
-            )
         }
         Spacer(Modifier.height(8.dp))
 

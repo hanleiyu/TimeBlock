@@ -19,9 +19,4 @@ class TodayProgressTest {
         )
         assertEquals(144, segs.sumOf { it.length })
     }
-
-    @Test
-    fun percentRoundsElapsedShare() {
-        assertEquals(30, TodayProgress.percent(elapsed = 43, total = 144))
-    }
 }
