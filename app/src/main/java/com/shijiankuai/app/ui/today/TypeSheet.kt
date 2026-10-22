@@ -12,8 +12,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
@@ -33,6 +35,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.shijiankuai.app.domain.BlockType
 import com.shijiankuai.app.domain.Presets
+import com.shijiankuai.app.ui.TypeColorPicker
 import com.shijiankuai.app.ui.theme.Ink
 import com.shijiankuai.app.ui.theme.Ink2
 import com.shijiankuai.app.ui.theme.Line
@@ -134,9 +137,13 @@ private fun TypeChip(type: BlockType, modifier: Modifier, onClick: () -> Unit) {
 @Composable
 fun AddTypeForm(onSave: (String, Long) -> Unit, onCancel: () -> Unit) {
     var name by remember { mutableStateOf("") }
-    val palette = Presets.swatches
-    var color by remember { mutableStateOf(palette.first()) }
-    Column(Modifier.padding(horizontal = 18.dp).padding(bottom = 28.dp)) {
+    var color by remember { mutableStateOf(Presets.swatches.first()) }
+    Column(
+        Modifier
+            .verticalScroll(rememberScrollState())
+            .padding(horizontal = 18.dp)
+            .padding(bottom = 28.dp),
+    ) {
         Text("添加类型", fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = Ink)
         Spacer(Modifier.height(12.dp))
         OutlinedTextField(
@@ -147,24 +154,7 @@ fun AddTypeForm(onSave: (String, Long) -> Unit, onCancel: () -> Unit) {
             modifier = Modifier.fillMaxWidth(),
         )
         Spacer(Modifier.height(12.dp))
-        palette.chunked(8).forEach { row ->
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                modifier = Modifier.padding(bottom = 8.dp),
-            ) {
-                row.forEach { c ->
-                    val on = c == color
-                    Box(
-                        Modifier
-                            .size(28.dp)
-                            .clip(CircleShape)
-                            .background(Color(c.toInt()))
-                            .then(if (on) Modifier.border(2.dp, Color.White, CircleShape) else Modifier)
-                            .clickable { color = c },
-                    )
-                }
-            }
-        }
+        TypeColorPicker(color = color, onColorChange = { color = it })
         Spacer(Modifier.height(12.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             Box(

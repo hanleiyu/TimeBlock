@@ -3,7 +3,6 @@ package com.shijiankuai.app.ui.settings
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -34,7 +33,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.shijiankuai.app.domain.BlockType
-import com.shijiankuai.app.domain.Presets
+import com.shijiankuai.app.ui.TypeColorPicker
 import com.shijiankuai.app.ui.theme.Card
 import com.shijiankuai.app.ui.theme.Ink
 import com.shijiankuai.app.ui.theme.Ink2
@@ -146,31 +145,20 @@ private fun EditTypeDialog(type: BlockType, onDismiss: () -> Unit, onSave: (Bloc
     var name by remember { mutableStateOf(type.name) }
     var color by remember { mutableStateOf(type.color) }
     var archived by remember { mutableStateOf(type.archived) }
-    val palette = Presets.swatches
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("编辑类型") },
         text = {
-            Column {
-                OutlinedTextField(name, { name = it }, label = { Text("名称") }, singleLine = true)
+            Column(Modifier.verticalScroll(rememberScrollState())) {
+                OutlinedTextField(
+                    name,
+                    { name = it },
+                    label = { Text("名称") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth(),
+                )
                 Spacer(Modifier.height(10.dp))
-                palette.chunked(8).forEach { row ->
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        modifier = Modifier.padding(bottom = 8.dp),
-                    ) {
-                        row.forEach { c ->
-                            Box(
-                                Modifier
-                                    .size(26.dp)
-                                    .clip(CircleShape)
-                                    .background(Color(c.toInt()))
-                                    .then(if (c == color) Modifier.border(2.dp, Color.White, CircleShape) else Modifier)
-                                    .clickable { color = c },
-                            )
-                        }
-                    }
-                }
+                TypeColorPicker(color = color, onColorChange = { color = it })
                 if (!type.isSleep) {
                     Spacer(Modifier.height(10.dp))
                     Text(

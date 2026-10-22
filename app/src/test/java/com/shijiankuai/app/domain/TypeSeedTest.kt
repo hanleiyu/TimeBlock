@@ -27,7 +27,7 @@ class TypeSeedTest {
         assertEquals(Presets.types.map { it.id }, plan.insert.map { it.id })
         assertEquals("other", plan.insert.last().id)
         assertEquals("其他", plan.insert.last().name)
-        assertEquals(0xFFA8A6A3, plan.insert.last().color)
+        assertEquals(0xFFA8A6A3L, plan.insert.last().color)
         assertEquals("sport", plan.insert[plan.insert.lastIndex - 1].id)
         assertTrue(plan.insert.none { it.id == "commute" || it.name == "通勤" })
         assertEquals(emptyMap<String, Int>(), plan.sortUpdates)
@@ -75,6 +75,16 @@ class TypeSeedTest {
         assertTrue(plan.retireIds.isEmpty())
         assertEquals(listOf("other"), plan.insert.map { it.id })
         assertEquals("通勤", existing.single { it.id == "commute" }.name)
+    }
+
+    @Test
+    fun doesNotResetCustomizedPresetColor() {
+        val existing = oldInstall().map {
+            if (it.id == "work") it.copy(color = 0xFF336699L) else it
+        }
+        val plan = TypeSeed.plan(existing)
+        assertTrue(plan.recolors.isEmpty())
+        assertEquals(0xFF336699L, existing.single { it.id == "work" }.color)
     }
 
     @Test

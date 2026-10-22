@@ -28,16 +28,7 @@ object TypeSeed {
         }
 
         catalog.forEachIndexed { index, preset ->
-            val matchIdx = working.indexOfFirst { it.id == preset.id }
-            if (matchIdx >= 0) {
-                val row = working[matchIdx]
-                if (row.isPreset && row.color != preset.color) {
-                    val next = row.copy(color = preset.color)
-                    working[matchIdx] = next
-                    recolors += next
-                }
-                return@forEachIndexed
-            }
+            if (working.any { it.id == preset.id }) return@forEachIndexed
             if (working.any { it.name == preset.name }) return@forEachIndexed
 
             val prev = catalog.getOrNull(index - 1)

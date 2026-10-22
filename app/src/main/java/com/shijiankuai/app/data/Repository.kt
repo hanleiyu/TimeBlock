@@ -4,6 +4,7 @@ import androidx.room.withTransaction
 import com.shijiankuai.app.domain.AppClock
 import com.shijiankuai.app.domain.BlockId
 import com.shijiankuai.app.domain.BlockType
+import com.shijiankuai.app.domain.ColorMath
 import com.shijiankuai.app.domain.PeriodKind
 import com.shijiankuai.app.domain.PeriodStats
 import com.shijiankuai.app.domain.Prefs
@@ -138,19 +139,20 @@ class Repository(
         val id = "c_" + UUID.randomUUID().toString().take(8)
         val sort = db.types().maxSort() + 1
         db.types().upsert(
-            TypeRow(id, name, color, sort, archived = false, isPreset = false, isSleep = false),
+            TypeRow(id, name, ColorMath.normalize(color), sort, archived = false, isPreset = false, isSleep = false),
         )
         return id
     }
 
     suspend fun updateType(type: BlockType) {
+        val color = ColorMath.normalize(type.color)
         if (type.isSleep) {
             db.types().update(
-                TypeRow(type.id, type.name, type.color, type.sortOrder, false, type.isPreset, true),
+                TypeRow(type.id, type.name, color, type.sortOrder, false, type.isPreset, true),
             )
         } else {
             db.types().update(
-                TypeRow(type.id, type.name, type.color, type.sortOrder, type.archived, type.isPreset, false),
+                TypeRow(type.id, type.name, color, type.sortOrder, type.archived, type.isPreset, false),
             )
         }
     }

@@ -61,8 +61,8 @@ object StatsCalc {
         val byType = counts.entries
             .sortedByDescending { it.value }
             .mapNotNull { (id, n) ->
-                val t = typeById[id] ?: return@mapNotNull TypeCount(id, id, 0xFF9A9288, n)
-                TypeCount(id, t.name, t.color, n)
+                val t = typeById[id] ?: return@mapNotNull TypeCount(id, id, 0xFF9A9288L, n)
+                TypeCount(id, t.name, ColorMath.normalize(t.color), n)
             }
 
         return PeriodStats(

@@ -16,6 +16,15 @@ class BackupTest {
     private val kv = listOf(KvRow("is_asleep", "0"))
 
     @Test
+    fun jsonRoundtripKeepsCustomTypeColor() {
+        val custom = types.map {
+            if (it.id == "work") it.copy(color = 0xFF336699) else it
+        }
+        val snap = Backup.tryParse(Backup.exportJson(custom, blocks, sleeps, kv))!!
+        assertEquals(0xFF336699, snap.types.single { it.id == "work" }.color)
+    }
+
+    @Test
     fun jsonRoundtripPreservesRows() {
         val json = Backup.exportJson(types, blocks, sleeps, kv)
         val snap = Backup.tryParse(json)!!
