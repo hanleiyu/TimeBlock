@@ -284,7 +284,6 @@ private fun DateBar(
             fontSize = 15.sp,
             fontWeight = FontWeight.SemiBold,
             color = Ink,
-            textDecoration = if (kind == PeriodKind.DAY) TextDecoration.Underline else TextDecoration.None,
             modifier = Modifier.clickable(onClick = onOpenCalendar),
         )
         Text("›", fontSize = 22.sp, color = Ink2, modifier = Modifier.clickable { onShiftDate(1) })
