@@ -18,6 +18,16 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    signingConfigs {
+        getByName("debug") {
+            // Pinned cloud debug key (this VM, 2026-10-26). Android defaults:
+            // alias androiddebugkey / password android. Do not regenerate.
+            storeFile = file("debug.keystore")
+            storePassword = "android"
+            keyAlias = "androiddebugkey"
+            keyPassword = "android"
+        }
+    }
     buildTypes {
         release {
             isMinifyEnabled = false
@@ -28,6 +38,7 @@ android {
         }
         debug {
             applicationIdSuffix = ".debug"
+            signingConfig = signingConfigs.getByName("debug")
         }
     }
 
@@ -77,10 +88,16 @@ tasks.register<Copy>("exportDebugApk") {
     into("/opt/cursor/artifacts")
     rename { "shijiankuai-debug.apk" }
     doLast {
+        val apk = layout.buildDirectory.file("outputs/apk/debug/app-debug.apk")
         copy {
-            from(layout.buildDirectory.file("outputs/apk/debug/app-debug.apk"))
+            from(apk)
             into(rootProject.layout.projectDirectory.dir("artifacts"))
             rename { "shijiankuai-debug.apk" }
+        }
+        copy {
+            from(apk)
+            into("/opt/cursor/artifacts")
+            rename { "shijiankuai-debug-v10.apk" }
         }
     }
 }
