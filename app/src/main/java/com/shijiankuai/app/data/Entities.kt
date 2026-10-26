@@ -33,3 +33,13 @@ data class KvRow(
     @PrimaryKey val key: String,
     val value: String,
 )
+
+@Entity(tableName = "todos")
+data class TodoRow(
+    @PrimaryKey val id: String,
+    val epochDay: Long,
+    val category: String,
+    val title: String,
+    val done: Boolean,
+    val sortOrder: Int,
+)

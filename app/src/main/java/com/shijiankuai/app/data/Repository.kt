@@ -13,6 +13,9 @@ import com.shijiankuai.app.domain.SleepFill
 import com.shijiankuai.app.domain.SleepSession
 import com.shijiankuai.app.domain.StatsCalc
 import com.shijiankuai.app.domain.StatsObserve
+import com.shijiankuai.app.domain.TodoCategory
+import com.shijiankuai.app.domain.TodoItem
+import com.shijiankuai.app.domain.TodoList
 import com.shijiankuai.app.domain.WakeFill
 import com.shijiankuai.app.domain.WakeFillResult
 import kotlinx.coroutines.flow.Flow
@@ -42,6 +45,9 @@ class Repository(
         }
 
     val sessions: Flow<List<SleepRow>> = db.sleeps().observe()
+
+    fun todosOn(date: LocalDate): Flow<List<TodoItem>> =
+        db.todos().observeDay(date.toEpochDay()).map { rows -> rows.map { it.toDomain() } }
 
     suspend fun hydrate() {
         AppDatabase.seedIfNeeded(db)
@@ -200,6 +206,53 @@ class Repository(
 
     fun sleptBlocksToday(date: LocalDate, map: Map<Int, String>): Int =
         map.values.count { it == SLEEP_TYPE_ID }
+
+    suspend fun addTodo(date: LocalDate, category: TodoCategory, title: String): String {
+        val text = title.trim()
+        require(text.isNotEmpty())
+        val day = date.toEpochDay()
+        val id = "t_" + UUID.randomUUID().toString().take(8)
+        val sort = db.todos().maxSort(day, category.id) + 1
+        db.todos().upsert(TodoRow(id, day, category.id, text, done = false, sortOrder = sort))
+        return id
+    }
+
+    suspend fun setTodoDone(id: String, done: Boolean) {
+        val row = db.todos().byId(id) ?: return
+        db.todos().update(row.copy(done = done))
+    }
+
+    suspend fun updateTodoTitle(id: String, title: String) {
+        val text = title.trim()
+        if (text.isEmpty()) return
+        val row = db.todos().byId(id) ?: return
+        db.todos().update(row.copy(title = text))
+    }
+
+    suspend fun deleteTodo(id: String) {
+        db.todos().delete(id)
+    }
+
+    suspend fun reorderTodos(date: LocalDate, category: TodoCategory, orderedIds: List<String>) {
+        val day = date.toEpochDay()
+        val existing = db.todos().day(day).map { it.toDomain() }
+        TodoList.reorderWithin(existing, category, orderedIds).filter { it.category == category }.forEach { item ->
+            val row = db.todos().byId(item.id) ?: return@forEach
+            db.todos().update(row.copy(sortOrder = item.sortOrder))
+        }
+    }
+
+    suspend fun deferTodo(id: String) {
+        val row = db.todos().byId(id) ?: return
+        if (row.done) return
+        val item = row.toDomain()
+        val target = item.epochDay + 1
+        val existing = db.todos().day(target).map { it.toDomain() }
+        val moved = TodoList.deferToNextDay(item, existing)
+        db.todos().update(
+            row.copy(epochDay = moved.epochDay, sortOrder = moved.sortOrder, done = false),
+        )
+    }
 }
 
 data class SleepUiState(
@@ -214,3 +267,12 @@ sealed class WakeOutcome {
 }
 
 private fun TypeRow.toDomain() = BlockType(id, name, color, sortOrder, archived, isPreset, isSleep)
+
+private fun TodoRow.toDomain() = TodoItem(
+    id = id,
+    epochDay = epochDay,
+    category = TodoCategory.fromId(category),
+    title = title,
+    done = done,
+    sortOrder = sortOrder,
+)

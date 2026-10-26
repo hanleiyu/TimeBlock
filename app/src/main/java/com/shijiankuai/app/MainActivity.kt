@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.CalendarMonth
+import androidx.compose.material.icons.outlined.CheckBox
 import androidx.compose.material.icons.outlined.PieChart
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.Icon
@@ -41,6 +42,7 @@ import com.shijiankuai.app.ui.AppViewModel
 import com.shijiankuai.app.ui.settings.SettingsScreen
 import com.shijiankuai.app.ui.settings.TypesScreen
 import com.shijiankuai.app.ui.stats.StatsScreen
+import com.shijiankuai.app.ui.todo.TodoScreen
 import com.shijiankuai.app.ui.theme.Ink
 import com.shijiankuai.app.ui.theme.Ink3
 import com.shijiankuai.app.ui.theme.Paper
@@ -73,6 +75,8 @@ private fun AppRoot(vm: AppViewModel) {
     val anchor by vm.statsAnchor.collectAsStateWithLifecycle()
     val needStart by vm.needSleepStart.collectAsStateWithLifecycle()
     val showAllTime by vm.showAllTime.collectAsStateWithLifecycle()
+    val todoDate by vm.todoDate.collectAsStateWithLifecycle()
+    val todos by vm.todos.collectAsStateWithLifecycle()
     val zone = remember { java.time.ZoneId.systemDefault() }
     val todayScroll = rememberScrollState()
 
@@ -115,6 +119,19 @@ private fun AppRoot(vm: AppViewModel) {
                     )
                 }
                 if (tab == 1) {
+                    TodoScreen(
+                        date = todoDate,
+                        isToday = todoDate == today.date || todoDate == java.time.LocalDate.now(zone),
+                        items = todos,
+                        onShiftDate = vm::shiftTodoDate,
+                        onAdd = vm::addTodo,
+                        onToggle = vm::setTodoDone,
+                        onDefer = vm::deferTodo,
+                        onEdit = vm::updateTodoTitle,
+                        onDelete = vm::deleteTodo,
+                        onReorder = vm::reorderTodos,
+                    )
+                } else if (tab == 2) {
                     StatsScreen(
                         kind = kind,
                         anchor = anchor,
@@ -122,7 +139,7 @@ private fun AppRoot(vm: AppViewModel) {
                         onKind = vm::setStatsKind,
                         onShift = vm::shiftStats,
                     )
-                } else if (tab == 2) {
+                } else if (tab == 3) {
                     SettingsScreen(
                         types = types,
                         onOpenTypes = { typesOpen = true },
@@ -145,8 +162,9 @@ private fun AppRoot(vm: AppViewModel) {
                     .padding(bottom = 10.dp),
             ) {
                 TabItem("今天", tab == 0, Icons.Outlined.CalendarMonth, Modifier.weight(1f)) { tab = 0 }
-                TabItem("统计", tab == 1, Icons.Outlined.PieChart, Modifier.weight(1f)) { tab = 1 }
-                TabItem("设置", tab == 2, Icons.Outlined.Settings, Modifier.weight(1f)) { tab = 2 }
+                TabItem("清单", tab == 1, Icons.Outlined.CheckBox, Modifier.weight(1f)) { tab = 1 }
+                TabItem("统计", tab == 2, Icons.Outlined.PieChart, Modifier.weight(1f)) { tab = 2 }
+                TabItem("设置", tab == 3, Icons.Outlined.Settings, Modifier.weight(1f)) { tab = 3 }
             }
         }
     }

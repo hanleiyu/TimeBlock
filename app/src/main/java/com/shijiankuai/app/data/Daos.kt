@@ -105,3 +105,27 @@ interface KvDao {
     @Query("DELETE FROM kv")
     suspend fun clearAll()
 }
+
+@Dao
+interface TodoDao {
+    @Query("SELECT * FROM todos WHERE epochDay = :day ORDER BY sortOrder")
+    fun observeDay(day: Long): Flow<List<TodoRow>>
+
+    @Query("SELECT * FROM todos WHERE epochDay = :day ORDER BY sortOrder")
+    suspend fun day(day: Long): List<TodoRow>
+
+    @Query("SELECT * FROM todos WHERE id = :id")
+    suspend fun byId(id: String): TodoRow?
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun upsert(row: TodoRow)
+
+    @Update
+    suspend fun update(row: TodoRow)
+
+    @Query("DELETE FROM todos WHERE id = :id")
+    suspend fun delete(id: String)
+
+    @Query("SELECT COALESCE(MAX(sortOrder), -1) FROM todos WHERE epochDay = :day AND category = :category")
+    suspend fun maxSort(day: Long, category: String): Int
+}

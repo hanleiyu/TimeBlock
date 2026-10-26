@@ -4,12 +4,14 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import androidx.room.migration.Migration
+import androidx.sqlite.db.SupportSQLiteDatabase
 import com.shijiankuai.app.domain.BlockType
 import com.shijiankuai.app.domain.TypeSeed
 
 @Database(
-    entities = [TypeRow::class, BlockRow::class, SleepRow::class, KvRow::class],
-    version = 1,
+    entities = [TypeRow::class, BlockRow::class, SleepRow::class, KvRow::class, TodoRow::class],
+    version = 2,
     exportSchema = false,
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -17,11 +19,30 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun blocks(): BlockDao
     abstract fun sleeps(): SleepDao
     abstract fun kv(): KvDao
+    abstract fun todos(): TodoDao
 
     companion object {
+        val MIGRATION_1_2 = object : Migration(1, 2) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    """
+                    CREATE TABLE IF NOT EXISTS todos (
+                        id TEXT NOT NULL PRIMARY KEY,
+                        epochDay INTEGER NOT NULL,
+                        category TEXT NOT NULL,
+                        title TEXT NOT NULL,
+                        done INTEGER NOT NULL,
+                        sortOrder INTEGER NOT NULL
+                    )
+                    """.trimIndent(),
+                )
+                db.execSQL("CREATE INDEX IF NOT EXISTS index_todos_epochDay ON todos(epochDay)")
+            }
+        }
+
         fun create(context: Context): AppDatabase =
             Room.databaseBuilder(context, AppDatabase::class.java, "shijiankuai.db")
-                .fallbackToDestructiveMigration()
+                .addMigrations(MIGRATION_1_2)
                 .build()
 
         suspend fun seedIfNeeded(db: AppDatabase) {

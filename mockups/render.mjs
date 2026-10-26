@@ -66,6 +66,9 @@ const shots = [
   { id: "5", name: "05-settings.png" },
   { id: "6", name: "06-type-manage.png" },
   { id: "7", name: "07-type-editor.png" },
+  { id: "8", name: "08-todo-list.png" },
+  { id: "9", name: "09-todo-add.png" },
+  { id: "10", name: "10-todo-defer.png" },
 ];
 
 async function waitFonts(page) {
@@ -103,6 +106,9 @@ const aliases = [
   ["05-settings.png", "app-settings.png"],
   ["06-type-manage.png", "app-type-manage.png"],
   ["07-type-editor.png", "app-type-editor.png"],
+  ["08-todo-list.png", "app-todo-list.png"],
+  ["09-todo-add.png", "app-todo-add.png"],
+  ["10-todo-defer.png", "app-todo-defer.png"],
 ];
 for (const [src, dest] of aliases) {
   copyFileSync(resolve(outDir, src), resolve(artifactDir, dest));

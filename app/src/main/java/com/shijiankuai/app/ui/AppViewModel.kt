@@ -14,6 +14,8 @@ import com.shijiankuai.app.domain.PeriodStats
 import com.shijiankuai.app.domain.SLEEP_TYPE_ID
 import com.shijiankuai.app.domain.SleepSession
 import com.shijiankuai.app.domain.SleepSessions
+import com.shijiankuai.app.domain.TodoCategory
+import com.shijiankuai.app.domain.TodoItem
 import com.shijiankuai.app.domain.WakeFill
 import com.shijiankuai.app.domain.WakeFillResult
 import com.shijiankuai.app.ui.today.TodayScroll
@@ -51,6 +53,7 @@ data class TodayUi(
 
 class AppViewModel(private val repo: Repository) : ViewModel() {
     val viewedDate = MutableStateFlow(repo.clock.today())
+    val todoDate = MutableStateFlow(repo.clock.today())
     val toast = MutableStateFlow<String?>(null)
     val needSleepStart = MutableStateFlow(false)
 
@@ -131,6 +134,11 @@ class AppViewModel(private val repo: Repository) : ViewModel() {
     val showAllTime: StateFlow<Boolean> = repo.showAllTime
 
     @OptIn(ExperimentalCoroutinesApi::class)
+    val todos: StateFlow<List<TodoItem>> = todoDate
+        .flatMapLatest { repo.todosOn(it) }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+
+    @OptIn(ExperimentalCoroutinesApi::class)
     val stats: StateFlow<PeriodStats?> = combine(statsKind, statsAnchor) { kind, anchor -> kind to anchor }
         .flatMapLatest { (kind, anchor) -> repo.statsFlow(kind, anchor, tick) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
@@ -155,6 +163,34 @@ class AppViewModel(private val repo: Repository) : ViewModel() {
 
     fun setDate(date: LocalDate) {
         viewedDate.value = date
+    }
+
+    fun shiftTodoDate(days: Int) {
+        todoDate.value = todoDate.value.plusDays(days.toLong())
+    }
+
+    fun addTodo(category: TodoCategory, title: String) {
+        viewModelScope.launch { repo.addTodo(todoDate.value, category, title) }
+    }
+
+    fun setTodoDone(id: String, done: Boolean) {
+        viewModelScope.launch { repo.setTodoDone(id, done) }
+    }
+
+    fun updateTodoTitle(id: String, title: String) {
+        viewModelScope.launch { repo.updateTodoTitle(id, title) }
+    }
+
+    fun deleteTodo(id: String) {
+        viewModelScope.launch { repo.deleteTodo(id) }
+    }
+
+    fun reorderTodos(category: TodoCategory, ids: List<String>) {
+        viewModelScope.launch { repo.reorderTodos(todoDate.value, category, ids) }
+    }
+
+    fun deferTodo(id: String) {
+        viewModelScope.launch { repo.deferTodo(id) }
     }
 
     fun markSleep() {
