@@ -94,10 +94,16 @@ tasks.register<Copy>("exportDebugApk") {
             into(rootProject.layout.projectDirectory.dir("artifacts"))
             rename { "shijiankuai-debug.apk" }
         }
-        copy {
-            from(apk)
-            into("/opt/cursor/artifacts")
-            rename { "shijiankuai-debug-v10.apk" }
+        listOf(
+            "shijiankuai-debug-v10.apk",
+            "shijiankuai-debug-v10-pinned.apk",
+            "时间块-v10-清单统计.apk",
+        ).forEach { name ->
+            copy {
+                from(apk)
+                into("/opt/cursor/artifacts")
+                rename { name }
+            }
         }
     }
 }

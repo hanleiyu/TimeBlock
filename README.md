@@ -18,7 +18,7 @@ sdk.dir=/path/to/android-sdk
 ./gradlew assembleDebug
 ```
 
-Debug APK：`app/build/outputs/apk/debug/app-debug.apk`，签名用模块内 `app/debug.keystore`（alias `androiddebugkey`，密码 `android`）。云端默认 `~/.android/debug.keystore` 每台机器不一样，换 VM 会变成另一套证书，覆盖安装会 `INSTALL_FAILED_UPDATE_INCOMPATIBLE`。不要重新生成这份 keystore。
+Debug APK：`app/build/outputs/apk/debug/app-debug.apk`。签名见 [SIGNING.md](SIGNING.md)：只用仓库内 `app/debug.keystore`，不要用 VM 默认 `~/.android/debug.keystore`。
 
 ## 规则
 
