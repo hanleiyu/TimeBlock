@@ -1,14 +1,11 @@
 package com.shijiankuai.app.ui
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.DatePickerState
@@ -20,8 +17,9 @@ import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.shijiankuai.app.domain.TodoCalendar
 import com.shijiankuai.app.ui.theme.Accent
 import java.time.Instant
@@ -80,9 +78,13 @@ fun DatePickCalendar(
 ) {
     Box(modifier) {
         DatePicker(state = state)
+        val selected = state.selectedDateMillis?.let {
+            Instant.ofEpochMilli(it).atZone(ZoneOffset.UTC).toLocalDate()
+        }
         if (markedDays.isNotEmpty() && state.displayMode == DisplayMode.Picker) {
-            CompletionDotsOverlay(
+            CompletionDayTint(
                 markedDays = markedDays,
+                selected = selected,
                 displayedMonthMillis = state.displayedMonthMillis,
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
@@ -98,8 +100,9 @@ private const val Rows = 6
 private const val Cols = 7
 
 @Composable
-private fun CompletionDotsOverlay(
+private fun CompletionDayTint(
     markedDays: Set<LocalDate>,
+    selected: LocalDate?,
     displayedMonthMillis: Long,
     modifier: Modifier = Modifier,
 ) {
@@ -113,6 +116,7 @@ private fun CompletionDotsOverlay(
         val rowH = maxHeight / Rows
         markedDays.forEach { day ->
             if (YearMonth.from(day) != month) return@forEach
+            if (day == selected) return@forEach
             if (!TodoCalendar.hasCompletionDot(day, markedDays)) return@forEach
             val index = TodoCalendar.cellIndex(day, firstDow)
             val col = index % Cols
@@ -121,14 +125,13 @@ private fun CompletionDotsOverlay(
                 Modifier
                     .offset(x = gap + Cell * col + gap * col, y = rowH * row)
                     .size(Cell, rowH),
-                contentAlignment = Alignment.BottomCenter,
+                contentAlignment = Alignment.Center,
             ) {
-                Box(
-                    Modifier
-                        .padding(bottom = 5.dp)
-                        .size(5.dp)
-                        .clip(CircleShape)
-                        .background(Accent),
+                Text(
+                    "${day.dayOfMonth}",
+                    color = Accent,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Medium,
                 )
             }
         }
