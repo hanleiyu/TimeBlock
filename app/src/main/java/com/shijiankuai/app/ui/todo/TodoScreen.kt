@@ -1,5 +1,6 @@
 package com.shijiankuai.app.ui.todo
 
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -9,6 +10,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -41,6 +43,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
@@ -50,10 +54,13 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.shijiankuai.app.domain.PeriodKind
+import com.shijiankuai.app.domain.StatsCalc
 import com.shijiankuai.app.domain.TodoCard
 import com.shijiankuai.app.domain.TodoCategory
 import com.shijiankuai.app.domain.TodoItem
 import com.shijiankuai.app.domain.TodoList
+import com.shijiankuai.app.domain.TodoRange
 import com.shijiankuai.app.ui.theme.Accent
 import com.shijiankuai.app.ui.theme.Card
 import com.shijiankuai.app.ui.theme.Ink
@@ -64,18 +71,19 @@ import com.shijiankuai.app.ui.DatePick
 import com.shijiankuai.app.ui.theme.Paper
 import com.shijiankuai.app.ui.theme.PaperDeep
 import com.shijiankuai.app.ui.theme.Sheet
-import com.shijiankuai.app.ui.toCn
 import java.time.LocalDate
 import kotlin.math.roundToInt
 
 @Composable
 fun TodoScreen(
     date: LocalDate,
+    kind: PeriodKind,
     items: List<TodoItem>,
     completedDays: Set<LocalDate>,
     onShiftDate: (Int) -> Unit,
     onSetDate: (LocalDate) -> Unit,
     onJumpToday: () -> Unit,
+    onKind: (PeriodKind) -> Unit,
     onAdd: (TodoCategory, String) -> Unit,
     onToggle: (String, Boolean) -> Unit,
     onDefer: (String) -> Unit,
@@ -84,6 +92,7 @@ fun TodoScreen(
     onReorder: (TodoCategory, List<String>) -> Unit,
 ) {
     val cards = remember(items) { TodoList.cards(items) }
+    val (start, end) = remember(kind, date) { StatsCalc.periodBounds(kind, date) }
     var adding by remember { mutableStateOf(false) }
     var acting by remember { mutableStateOf<TodoItem?>(null) }
     var editing by remember { mutableStateOf<TodoItem?>(null) }
@@ -95,51 +104,77 @@ fun TodoScreen(
             .background(Paper),
     ) {
         Column(Modifier.fillMaxSize()) {
-            Text(
-                "清单",
-                fontSize = 22.sp,
-                fontWeight = FontWeight.SemiBold,
-                color = Ink,
-                modifier = Modifier.padding(start = 20.dp, top = 8.dp, bottom = 4.dp),
-            )
+            Row(
+                Modifier
+                    .fillMaxWidth()
+                    .padding(start = 20.dp, end = 16.dp, top = 8.dp, bottom = 4.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    "清单",
+                    fontSize = 22.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = Ink,
+                    modifier = Modifier.weight(1f),
+                )
+                Text(
+                    "今天",
+                    color = Ink2,
+                    fontSize = 12.sp,
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(999.dp))
+                        .background(Card)
+                        .clickable {
+                            onJumpToday()
+                            showDate = false
+                        }
+                        .padding(horizontal = 10.dp, vertical = 6.dp),
+                )
+            }
+            PeriodTabs(kind = kind, onKind = onKind)
             DateBar(
-                date = date,
+                kind = kind,
+                start = start,
+                end = end,
                 onShiftDate = onShiftDate,
                 onOpenCalendar = { showDate = true },
-                onJumpToday = {
-                    onJumpToday()
-                    showDate = false
-                },
             )
             Column(
                 Modifier
                     .weight(1f)
                     .verticalScroll(rememberScrollState())
                     .padding(horizontal = 16.dp)
-                    .padding(top = 12.dp, bottom = 88.dp),
+                    .padding(top = 12.dp, bottom = if (kind == PeriodKind.DAY) 88.dp else 24.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
-                cards.forEach { card ->
-                    CategoryCard(
-                        card = card,
-                        onToggle = onToggle,
-                        onOpen = { item -> if (!item.done) acting = item },
-                        onReorder = { onReorder(card.category, it) },
-                    )
+                when (kind) {
+                    PeriodKind.DAY -> cards.forEach { card ->
+                        CategoryCard(
+                            card = card,
+                            onToggle = onToggle,
+                            onOpen = { item -> if (!item.done) acting = item },
+                            onReorder = { onReorder(card.category, it) },
+                        )
+                    }
+                    PeriodKind.WEEK -> WeekDoneList(items)
+                    PeriodKind.MONTH -> MonthCounts(items)
+                    PeriodKind.YEAR -> YearSummary(items, start.year)
                 }
             }
         }
-        Box(
-            Modifier
-                .align(Alignment.BottomEnd)
-                .padding(end = 20.dp, bottom = 20.dp)
-                .size(56.dp)
-                .clip(CircleShape)
-                .background(Accent)
-                .clickable { adding = true },
-            contentAlignment = Alignment.Center,
-        ) {
-            Text("+", color = Color.White, fontSize = 28.sp, fontWeight = FontWeight.Medium)
+        if (kind == PeriodKind.DAY) {
+            Box(
+                Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(end = 20.dp, bottom = 20.dp)
+                    .size(56.dp)
+                    .clip(CircleShape)
+                    .background(Accent)
+                    .clickable { adding = true },
+                contentAlignment = Alignment.Center,
+            ) {
+                Text("+", color = Color.White, fontSize = 28.sp, fontWeight = FontWeight.Medium)
+            }
         }
     }
 
@@ -191,45 +226,250 @@ fun TodoScreen(
 }
 
 @Composable
+private fun PeriodTabs(kind: PeriodKind, onKind: (PeriodKind) -> Unit) {
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp)
+            .clip(RoundedCornerShape(12.dp))
+            .background(PaperDeep)
+            .padding(3.dp),
+    ) {
+        PeriodKind.entries.forEach { k ->
+            val label = when (k) {
+                PeriodKind.DAY -> "日"
+                PeriodKind.WEEK -> "周"
+                PeriodKind.MONTH -> "月"
+                PeriodKind.YEAR -> "年"
+            }
+            val on = k == kind
+            Box(
+                Modifier
+                    .weight(1f)
+                    .clip(RoundedCornerShape(10.dp))
+                    .background(if (on) Card else Color.Transparent)
+                    .clickable { onKind(k) }
+                    .padding(vertical = 7.dp),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(
+                    label,
+                    fontSize = 13.sp,
+                    color = if (on) Ink else Ink2,
+                    fontWeight = if (on) FontWeight.SemiBold else FontWeight.Medium,
+                )
+            }
+        }
+    }
+}
+
+@Composable
 private fun DateBar(
-    date: LocalDate,
+    kind: PeriodKind,
+    start: LocalDate,
+    end: LocalDate,
     onShiftDate: (Int) -> Unit,
     onOpenCalendar: () -> Unit,
-    onJumpToday: () -> Unit,
 ) {
     Row(
         Modifier
             .fillMaxWidth()
-            .padding(start = 28.dp, end = 16.dp, top = 8.dp, bottom = 8.dp),
+            .padding(horizontal = 28.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween,
     ) {
-        Row(
-            Modifier.weight(1f),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Center,
+        Text("‹", fontSize = 22.sp, color = Ink2, modifier = Modifier.clickable { onShiftDate(-1) })
+        Text(
+            TodoRange.periodLabel(kind, start, end),
+            fontSize = 15.sp,
+            fontWeight = FontWeight.SemiBold,
+            color = Ink,
+            textDecoration = if (kind == PeriodKind.DAY) TextDecoration.Underline else TextDecoration.None,
+            modifier = Modifier.clickable(onClick = onOpenCalendar),
+        )
+        Text("›", fontSize = 22.sp, color = Ink2, modifier = Modifier.clickable { onShiftDate(1) })
+    }
+}
+
+@Composable
+private fun WeekDoneList(items: List<TodoItem>) {
+    val cards = remember(items) { TodoRange.weekCards(items) }
+    if (cards.isEmpty()) {
+        Text("本周还没有完成的任务", fontSize = 14.sp, color = Ink2, modifier = Modifier.padding(top = 24.dp))
+        return
+    }
+    cards.forEach { card ->
+        Column(
+            Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(16.dp))
+                .background(Card)
+                .border(1.dp, Line, RoundedCornerShape(16.dp))
+                .padding(horizontal = 14.dp, vertical = 12.dp),
         ) {
-            Text("‹", fontSize = 22.sp, color = Ink2, modifier = Modifier.clickable { onShiftDate(-1) })
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    categoryIcon(card.category),
+                    contentDescription = card.category.label,
+                    tint = categoryTint(card.category),
+                    modifier = Modifier.size(18.dp),
+                )
+                Text(
+                    card.category.label,
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = Ink,
+                    modifier = Modifier.padding(start = 8.dp),
+                )
+            }
+            Spacer(Modifier.height(8.dp))
+            card.items.forEach { item ->
+                Row(
+                    Modifier
+                        .fillMaxWidth()
+                        .height(40.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text("✓", color = DoneGreen, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+                    Text(
+                        item.title,
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = Ink,
+                        modifier = Modifier.padding(start = 10.dp),
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun MonthCounts(items: List<TodoItem>) {
+    val counts = remember(items) { TodoRange.completedCounts(items) }
+    val total = remember(items) { TodoRange.completedTotal(items) }
+    TodoRange.SUMMARY_ORDER.forEach { cat ->
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(16.dp))
+                .background(Card)
+                .border(1.dp, Line, RoundedCornerShape(16.dp))
+                .padding(horizontal = 16.dp, vertical = 16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Icon(categoryIcon(cat), contentDescription = cat.label, tint = categoryTint(cat), modifier = Modifier.size(20.dp))
             Text(
-                date.toCn(),
+                cat.label,
                 fontSize = 15.sp,
                 fontWeight = FontWeight.SemiBold,
                 color = Ink,
                 modifier = Modifier
-                    .padding(horizontal = 16.dp)
-                    .clickable(onClick = onOpenCalendar),
+                    .padding(start = 8.dp)
+                    .weight(1f),
             )
-            Text("›", fontSize = 22.sp, color = Ink2, modifier = Modifier.clickable { onShiftDate(1) })
+            Text(
+                "${counts[cat] ?: 0}",
+                fontSize = 28.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = Ink,
+            )
         }
-        Text(
-            "今天",
-            color = Ink2,
-            fontSize = 12.sp,
-            modifier = Modifier
-                .clip(RoundedCornerShape(999.dp))
-                .background(Card)
-                .clickable(onClick = onJumpToday)
-                .padding(horizontal = 10.dp, vertical = 6.dp),
-        )
+    }
+    Column(
+        Modifier
+            .fillMaxWidth()
+            .padding(top = 8.dp, bottom = 12.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Text("本月完成", fontSize = 13.sp, color = Ink2)
+        Text("$total", fontSize = 36.sp, fontWeight = FontWeight.SemiBold, color = Ink)
+    }
+}
+
+@Composable
+private fun YearSummary(items: List<TodoItem>, year: Int) {
+    val counts = remember(items) { TodoRange.completedCounts(items) }
+    val stacks = remember(items, year) { TodoRange.yearStacks(items, year) }
+    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        TodoRange.SUMMARY_ORDER.forEach { cat ->
+            Column(
+                Modifier
+                    .weight(1f)
+                    .clip(RoundedCornerShape(14.dp))
+                    .background(categoryWash(cat))
+                    .padding(vertical = 12.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                Icon(categoryIcon(cat), contentDescription = cat.label, tint = categoryTint(cat), modifier = Modifier.size(18.dp))
+                Text(cat.label, fontSize = 11.sp, color = Ink2, modifier = Modifier.padding(top = 6.dp))
+                Text(
+                    "${counts[cat] ?: 0}",
+                    fontSize = 22.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = categoryTint(cat),
+                    modifier = Modifier.padding(top = 2.dp),
+                )
+            }
+        }
+    }
+    YearStackChart(stacks)
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .padding(top = 8.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterHorizontally),
+    ) {
+        TodoRange.SUMMARY_ORDER.forEach { cat ->
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Box(Modifier.size(8.dp).clip(CircleShape).background(categoryTint(cat)))
+                Text(cat.label, fontSize = 11.sp, color = Ink2, modifier = Modifier.padding(start = 4.dp))
+            }
+        }
+    }
+}
+
+@Composable
+private fun YearStackChart(stacks: List<TodoRange.MonthStack>) {
+    val max = stacks.maxOfOrNull { it.total }?.coerceAtLeast(1) ?: 1
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .padding(top = 8.dp)
+            .height(168.dp),
+        verticalAlignment = Alignment.Bottom,
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
+        stacks.forEach { stack ->
+            Column(
+                Modifier
+                    .weight(1f)
+                    .fillMaxHeight(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                Canvas(
+                    Modifier
+                        .fillMaxWidth()
+                        .weight(1f),
+                ) {
+                    val inset = 3.dp.toPx()
+                    val barW = (size.width - inset * 2).coerceAtLeast(2f)
+                    var top = size.height
+                    TodoRange.SUMMARY_ORDER.forEach { cat ->
+                        val n = stack.counts[cat] ?: 0
+                        if (n <= 0) return@forEach
+                        val h = size.height * n / max.toFloat()
+                        top -= h
+                        drawRect(
+                            color = categoryTint(cat),
+                            topLeft = Offset(inset, top),
+                            size = Size(barW, h),
+                        )
+                    }
+                }
+                Text("${stack.month}", fontSize = 10.sp, color = Ink2, modifier = Modifier.padding(top = 4.dp))
+            }
+        }
     }
 }
 
@@ -524,9 +764,18 @@ private fun categoryIcon(category: TodoCategory): ImageVector = when (category) 
     TodoCategory.LIFE -> Icons.Outlined.Home
 }
 
+private val DoneGreen = Color(0xFF5B9A72)
+
 private fun categoryTint(category: TodoCategory): Color = when (category) {
     TodoCategory.WORK -> Ink
     TodoCategory.STUDY -> Color(0xFF808BD0)
     TodoCategory.HEALTH -> Color(0xFF74B3AE)
     TodoCategory.LIFE -> Color(0xFFD99A76)
+}
+
+private fun categoryWash(category: TodoCategory): Color = when (category) {
+    TodoCategory.WORK -> Color(0xFFE8E9F4)
+    TodoCategory.HEALTH -> Color(0xFFE4F2F0)
+    TodoCategory.LIFE -> Color(0xFFF8EEE7)
+    TodoCategory.STUDY -> Color(0xFFECEEF8)
 }

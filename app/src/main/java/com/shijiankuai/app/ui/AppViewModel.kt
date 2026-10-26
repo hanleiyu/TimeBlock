@@ -14,6 +14,7 @@ import com.shijiankuai.app.domain.PeriodStats
 import com.shijiankuai.app.domain.SLEEP_TYPE_ID
 import com.shijiankuai.app.domain.SleepSession
 import com.shijiankuai.app.domain.SleepSessions
+import com.shijiankuai.app.domain.StatsCalc
 import com.shijiankuai.app.domain.StatsNav
 import com.shijiankuai.app.domain.TodoCategory
 import com.shijiankuai.app.domain.TodoItem
@@ -134,9 +135,14 @@ class AppViewModel(private val repo: Repository) : ViewModel() {
     val statsAnchor = MutableStateFlow(repo.clock.today())
     val showAllTime: StateFlow<Boolean> = repo.showAllTime
 
+    val todoKind = MutableStateFlow(PeriodKind.DAY)
+
     @OptIn(ExperimentalCoroutinesApi::class)
-    val todos: StateFlow<List<TodoItem>> = todoDate
-        .flatMapLatest { repo.todosOn(it) }
+    val todos: StateFlow<List<TodoItem>> = combine(todoDate, todoKind) { date, kind -> date to kind }
+        .flatMapLatest { (date, kind) ->
+            val (start, end) = StatsCalc.periodBounds(kind, date)
+            repo.todosBetween(start, end)
+        }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     val todoCompletedDays: StateFlow<Set<LocalDate>> = repo.todoCompletedDays()
@@ -169,8 +175,8 @@ class AppViewModel(private val repo: Repository) : ViewModel() {
         viewedDate.value = date
     }
 
-    fun shiftTodoDate(days: Int) {
-        todoDate.value = todoDate.value.plusDays(days.toLong())
+    fun shiftTodoDate(delta: Int) {
+        todoDate.value = StatsNav.shift(todoKind.value, todoDate.value, delta)
     }
 
     fun setTodoDate(date: LocalDate) {
@@ -179,6 +185,10 @@ class AppViewModel(private val repo: Repository) : ViewModel() {
 
     fun jumpTodoToday() {
         todoDate.value = repo.clock.today()
+    }
+
+    fun setTodoKind(kind: PeriodKind) {
+        todoKind.value = kind
     }
 
     fun addTodo(category: TodoCategory, title: String) {

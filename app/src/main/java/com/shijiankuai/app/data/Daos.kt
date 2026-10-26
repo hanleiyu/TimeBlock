@@ -131,4 +131,7 @@ interface TodoDao {
 
     @Query("SELECT DISTINCT epochDay FROM todos WHERE done = 1")
     fun observeDoneDays(): Flow<List<Long>>
+
+    @Query("SELECT * FROM todos WHERE epochDay BETWEEN :from AND :to ORDER BY epochDay, sortOrder")
+    fun observeRange(from: Long, to: Long): Flow<List<TodoRow>>
 }

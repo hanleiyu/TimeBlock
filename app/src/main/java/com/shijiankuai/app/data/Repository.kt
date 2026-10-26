@@ -50,6 +50,9 @@ class Repository(
     fun todosOn(date: LocalDate): Flow<List<TodoItem>> =
         db.todos().observeDay(date.toEpochDay()).map { rows -> rows.map { it.toDomain() } }
 
+    fun todosBetween(start: LocalDate, end: LocalDate): Flow<List<TodoItem>> =
+        db.todos().observeRange(start.toEpochDay(), end.toEpochDay()).map { rows -> rows.map { it.toDomain() } }
+
     fun todoCompletedDays(): Flow<Set<LocalDate>> =
         db.todos().observeDoneDays().map(TodoCalendar::datesFromEpochDays)
 
