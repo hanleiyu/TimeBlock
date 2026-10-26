@@ -61,4 +61,14 @@ class TodoCalendarTest {
         assertEquals(listOf("一", "二", "三", "四", "五", "六", "日"), TodoCalendar.WEEKDAY_LABELS)
         assertEquals("2026年10月", TodoCalendar.monthLabel(YearMonth.of(2026, 10)))
     }
+
+    @Test
+    fun cellIndexFollowsLocaleFirstDayOfWeek() {
+        val oct1 = LocalDate.of(2026, 10, 1)
+        val oct26 = LocalDate.of(2026, 10, 26)
+        assertEquals(3, TodoCalendar.cellIndex(oct1, java.time.DayOfWeek.MONDAY))
+        assertEquals(4, TodoCalendar.cellIndex(oct1, java.time.DayOfWeek.SUNDAY))
+        assertEquals(28, TodoCalendar.cellIndex(oct26, java.time.DayOfWeek.MONDAY))
+        assertEquals(29, TodoCalendar.cellIndex(oct26, java.time.DayOfWeek.SUNDAY))
+    }
 }

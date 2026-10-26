@@ -1,5 +1,6 @@
 package com.shijiankuai.app.domain
 
+import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.YearMonth
 
@@ -30,4 +31,9 @@ object TodoCalendar {
     }
 
     fun monthLabel(month: YearMonth): String = "${month.year}年${month.monthValue}月"
+
+    fun cellIndex(date: LocalDate, firstDayOfWeek: DayOfWeek): Int {
+        val lead = (YearMonth.from(date).atDay(1).dayOfWeek.value - firstDayOfWeek.value + 7) % 7
+        return lead + date.dayOfMonth - 1
+    }
 }

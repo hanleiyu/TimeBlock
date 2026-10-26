@@ -224,7 +224,6 @@ fun TodoScreen(
             date = date,
             onSetDate = onSetDate,
             markedDays = completedDays,
-            applyOnSelect = true,
         ) { showDate = false }
     }
 }
