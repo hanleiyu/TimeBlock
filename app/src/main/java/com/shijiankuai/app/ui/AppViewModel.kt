@@ -139,6 +139,9 @@ class AppViewModel(private val repo: Repository) : ViewModel() {
         .flatMapLatest { repo.todosOn(it) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
+    val todoCompletedDays: StateFlow<Set<LocalDate>> = repo.todoCompletedDays()
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptySet())
+
     @OptIn(ExperimentalCoroutinesApi::class)
     val stats: StateFlow<PeriodStats?> = combine(statsKind, statsAnchor) { kind, anchor -> kind to anchor }
         .flatMapLatest { (kind, anchor) -> repo.statsFlow(kind, anchor, tick) }
@@ -168,6 +171,14 @@ class AppViewModel(private val repo: Repository) : ViewModel() {
 
     fun shiftTodoDate(days: Int) {
         todoDate.value = todoDate.value.plusDays(days.toLong())
+    }
+
+    fun setTodoDate(date: LocalDate) {
+        todoDate.value = date
+    }
+
+    fun jumpTodoToday() {
+        todoDate.value = repo.clock.today()
     }
 
     fun addTodo(category: TodoCategory, title: String) {

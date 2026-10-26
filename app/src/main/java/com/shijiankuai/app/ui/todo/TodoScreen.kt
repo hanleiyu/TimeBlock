@@ -60,6 +60,7 @@ import com.shijiankuai.app.ui.theme.Ink
 import com.shijiankuai.app.ui.theme.Ink2
 import com.shijiankuai.app.ui.theme.Ink3
 import com.shijiankuai.app.ui.theme.Line
+import com.shijiankuai.app.ui.DatePick
 import com.shijiankuai.app.ui.theme.Paper
 import com.shijiankuai.app.ui.theme.PaperDeep
 import com.shijiankuai.app.ui.theme.Sheet
@@ -70,9 +71,11 @@ import kotlin.math.roundToInt
 @Composable
 fun TodoScreen(
     date: LocalDate,
-    @Suppress("UNUSED_PARAMETER") isToday: Boolean,
     items: List<TodoItem>,
+    completedDays: Set<LocalDate>,
     onShiftDate: (Int) -> Unit,
+    onSetDate: (LocalDate) -> Unit,
+    onJumpToday: () -> Unit,
     onAdd: (TodoCategory, String) -> Unit,
     onToggle: (String, Boolean) -> Unit,
     onDefer: (String) -> Unit,
@@ -84,6 +87,7 @@ fun TodoScreen(
     var adding by remember { mutableStateOf(false) }
     var acting by remember { mutableStateOf<TodoItem?>(null) }
     var editing by remember { mutableStateOf<TodoItem?>(null) }
+    var showDate by remember { mutableStateOf(false) }
 
     Box(
         Modifier
@@ -98,7 +102,15 @@ fun TodoScreen(
                 color = Ink,
                 modifier = Modifier.padding(start = 20.dp, top = 8.dp, bottom = 4.dp),
             )
-            DateBar(date = date, onShiftDate = onShiftDate)
+            DateBar(
+                date = date,
+                onShiftDate = onShiftDate,
+                onOpenCalendar = { showDate = true },
+                onJumpToday = {
+                    onJumpToday()
+                    showDate = false
+                },
+            )
             Column(
                 Modifier
                     .weight(1f)
@@ -168,20 +180,56 @@ fun TodoScreen(
             onCancel = { editing = null },
         )
     }
+    if (showDate) {
+        DatePick(
+            date = date,
+            onSetDate = onSetDate,
+            markedDays = completedDays,
+            applyOnSelect = true,
+        ) { showDate = false }
+    }
 }
 
 @Composable
-private fun DateBar(date: LocalDate, onShiftDate: (Int) -> Unit) {
+private fun DateBar(
+    date: LocalDate,
+    onShiftDate: (Int) -> Unit,
+    onOpenCalendar: () -> Unit,
+    onJumpToday: () -> Unit,
+) {
     Row(
         Modifier
             .fillMaxWidth()
-            .padding(horizontal = 28.dp, vertical = 8.dp),
+            .padding(start = 28.dp, end = 16.dp, top = 8.dp, bottom = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween,
     ) {
-        Text("‹", fontSize = 22.sp, color = Ink2, modifier = Modifier.clickable { onShiftDate(-1) })
-        Text(date.toCn(), fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = Ink)
-        Text("›", fontSize = 22.sp, color = Ink2, modifier = Modifier.clickable { onShiftDate(1) })
+        Row(
+            Modifier.weight(1f),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center,
+        ) {
+            Text("‹", fontSize = 22.sp, color = Ink2, modifier = Modifier.clickable { onShiftDate(-1) })
+            Text(
+                date.toCn(),
+                fontSize = 15.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = Ink,
+                modifier = Modifier
+                    .padding(horizontal = 16.dp)
+                    .clickable(onClick = onOpenCalendar),
+            )
+            Text("›", fontSize = 22.sp, color = Ink2, modifier = Modifier.clickable { onShiftDate(1) })
+        }
+        Text(
+            "今天",
+            color = Ink2,
+            fontSize = 12.sp,
+            modifier = Modifier
+                .clip(RoundedCornerShape(999.dp))
+                .background(Card)
+                .clickable(onClick = onJumpToday)
+                .padding(horizontal = 10.dp, vertical = 6.dp),
+        )
     }
 }
 

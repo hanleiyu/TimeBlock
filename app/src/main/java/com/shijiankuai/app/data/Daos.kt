@@ -128,4 +128,7 @@ interface TodoDao {
 
     @Query("SELECT COALESCE(MAX(sortOrder), -1) FROM todos WHERE epochDay = :day AND category = :category")
     suspend fun maxSort(day: Long, category: String): Int
+
+    @Query("SELECT DISTINCT epochDay FROM todos WHERE done = 1")
+    fun observeDoneDays(): Flow<List<Long>>
 }

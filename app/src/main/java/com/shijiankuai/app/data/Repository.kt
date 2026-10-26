@@ -13,6 +13,7 @@ import com.shijiankuai.app.domain.SleepFill
 import com.shijiankuai.app.domain.SleepSession
 import com.shijiankuai.app.domain.StatsCalc
 import com.shijiankuai.app.domain.StatsObserve
+import com.shijiankuai.app.domain.TodoCalendar
 import com.shijiankuai.app.domain.TodoCategory
 import com.shijiankuai.app.domain.TodoItem
 import com.shijiankuai.app.domain.TodoList
@@ -48,6 +49,9 @@ class Repository(
 
     fun todosOn(date: LocalDate): Flow<List<TodoItem>> =
         db.todos().observeDay(date.toEpochDay()).map { rows -> rows.map { it.toDomain() } }
+
+    fun todoCompletedDays(): Flow<Set<LocalDate>> =
+        db.todos().observeDoneDays().map(TodoCalendar::datesFromEpochDays)
 
     suspend fun hydrate() {
         AppDatabase.seedIfNeeded(db)
