@@ -123,6 +123,7 @@ private fun AppRoot(vm: AppViewModel) {
                 if (tab == 1) {
                     TodoScreen(
                         date = todoDate,
+                        today = java.time.LocalDate.now(zone),
                         kind = todoKind,
                         items = todos,
                         completedDays = todoCompletedDays,

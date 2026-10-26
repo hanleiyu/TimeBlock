@@ -56,6 +56,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.shijiankuai.app.domain.PeriodKind
 import com.shijiankuai.app.domain.StatsCalc
+import com.shijiankuai.app.domain.StatsNav
 import com.shijiankuai.app.domain.TodoCard
 import com.shijiankuai.app.domain.TodoCategory
 import com.shijiankuai.app.domain.TodoItem
@@ -77,6 +78,7 @@ import kotlin.math.roundToInt
 @Composable
 fun TodoScreen(
     date: LocalDate,
+    today: LocalDate,
     kind: PeriodKind,
     items: List<TodoItem>,
     completedDays: Set<LocalDate>,
@@ -117,19 +119,21 @@ fun TodoScreen(
                     color = Ink,
                     modifier = Modifier.weight(1f),
                 )
-                Text(
-                    "今天",
-                    color = Ink2,
-                    fontSize = 12.sp,
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(999.dp))
-                        .background(Card)
-                        .clickable {
-                            onJumpToday()
-                            showDate = false
-                        }
-                        .padding(horizontal = 10.dp, vertical = 6.dp),
-                )
+                if (!StatsNav.contains(kind, date, today)) {
+                    Text(
+                        "今天",
+                        color = Ink2,
+                        fontSize = 12.sp,
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(999.dp))
+                            .background(Card)
+                            .clickable {
+                                onJumpToday()
+                                showDate = false
+                            }
+                            .padding(horizontal = 10.dp, vertical = 6.dp),
+                    )
+                }
             }
             PeriodTabs(kind = kind, onKind = onKind)
             DateBar(
