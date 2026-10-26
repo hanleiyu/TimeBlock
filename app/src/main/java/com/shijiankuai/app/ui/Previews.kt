@@ -79,9 +79,11 @@ fun PreviewStats() {
         StatsScreen(
             kind = PeriodKind.DAY,
             anchor = day,
+            today = day,
             stats = stats,
             onKind = {},
             onShift = {},
+            onSetAnchor = {},
         )
     }
 }

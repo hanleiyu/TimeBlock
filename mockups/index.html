@@ -448,6 +448,47 @@
     /* ===== 统计 ===== */
     .stats-page { flex: 1; display: flex; flex-direction: column; min-height: 0; padding: 4px 16px 0; }
     .stats-page h1 { font-size: 22px; font-weight: 620; }
+    .jump-pill {
+      font-size: 12px; color: var(--ink-2);
+      background: var(--card);
+      border-radius: 999px;
+      padding: 6px 10px;
+      font-weight: 500;
+    }
+    .cal-dialog {
+      position: absolute; left: 18px; right: 18px; top: 96px;
+      background: var(--sheet);
+      border-radius: 28px;
+      padding: 8px 8px 4px;
+      z-index: 8;
+      box-shadow: 0 16px 40px rgba(44,40,36,0.22);
+    }
+    .cal-dialog .cal-month {
+      text-align: center; font-size: 15px; font-weight: 620;
+      padding: 12px 8px 8px;
+    }
+    .cal-dialog .cal-grid {
+      display: grid; grid-template-columns: repeat(7, 1fr);
+      text-align: center; font-size: 12px; color: var(--ink-2);
+      padding: 0 6px 8px;
+    }
+    .cal-dialog .cal-grid b { font-weight: 500; padding: 8px 0; }
+    .cal-dialog .cal-grid span {
+      height: 36px; display: flex; align-items: center; justify-content: center;
+      color: var(--ink); font-size: 13px; font-weight: 500;
+    }
+    .cal-dialog .cal-grid span.on {
+      background: var(--accent); color: #fff; border-radius: 50%;
+      width: 36px; height: 36px; margin: 0 auto;
+    }
+    .cal-dialog .cal-actions {
+      display: flex; justify-content: flex-end; gap: 8px;
+      padding: 4px 12px 10px;
+    }
+    .cal-dialog .cal-actions i {
+      font-style: normal; color: var(--accent); font-size: 14px;
+      font-weight: 600; padding: 8px 10px;
+    }
     .seg {
       margin-top: 12px; display: grid; grid-template-columns: repeat(4, 1fr);
       background: #e8e0d4; border-radius: 12px; padding: 3px;
@@ -998,6 +1039,7 @@
     <div class="stats-page">
       <div style="display:flex;align-items:center;justify-content:space-between">
         <h1>统计</h1>
+        <div class="jump-pill">今天</div>
       </div>
       <div class="seg"><i class="on">日</i><i>周</i><i>月</i><i>年</i></div>
       <div class="period">
@@ -1024,12 +1066,55 @@
   </div>
 </template>
 
+<template id="tpl-s4cal">
+  <div class="screen" data-shot="04-stats-cal">
+    <div data-status></div>
+    <div class="stats-page">
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <h1>统计</h1>
+        <div class="jump-pill">今天</div>
+      </div>
+      <div class="seg"><i class="on">日</i><i>周</i><i>月</i><i>年</i></div>
+      <div class="period">
+        <div class="chev">‹</div>
+        <div>10月21日 周三</div>
+        <div class="chev">›</div>
+      </div>
+      <div class="sum3">
+        <div><b class="num">144</b>总块</div>
+        <div><b class="num">39</b>已填</div>
+        <div><b class="num">105</b>未填</div>
+      </div>
+      <div class="pie-wrap">
+        <div class="pie pie-all">
+          <div class="pie-label"><div class="n num">39</div><div class="l">已填 / 144</div></div>
+        </div>
+      </div>
+    </div>
+    <div data-tabs="stats"></div>
+    <div class="dim"></div>
+    <div class="cal-dialog">
+      <div class="cal-month">2026年10月</div>
+      <div class="cal-grid">
+        <b>一</b><b>二</b><b>三</b><b>四</b><b>五</b><b>六</b><b>日</b>
+        <span></span><span></span><span></span><span>1</span><span>2</span><span>3</span><span>4</span>
+        <span>5</span><span>6</span><span>7</span><span>8</span><span>9</span><span>10</span><span>11</span>
+        <span>12</span><span>13</span><span>14</span><span>15</span><span>16</span><span>17</span><span>18</span>
+        <span>19</span><span>20</span><span class="on">21</span><span>22</span><span>23</span><span>24</span><span>25</span>
+        <span>26</span><span>27</span><span>28</span><span>29</span><span>30</span><span>31</span><span></span>
+      </div>
+      <div class="cal-actions"><i>取消</i><i>确定</i></div>
+    </div>
+  </div>
+</template>
+
 <template id="tpl-s4off">
   <div class="screen" data-shot="04-stats-off">
     <div data-status></div>
     <div class="stats-page">
       <div style="display:flex;align-items:center;justify-content:space-between">
         <h1>统计</h1>
+        <div class="jump-pill">今天</div>
       </div>
       <div class="seg"><i class="on">日</i><i>周</i><i>月</i><i>年</i></div>
       <div class="period">
@@ -1372,7 +1457,7 @@
     const slot = root.querySelector("[data-tabs]");
     if (!slot) return;
     const key = slot.getAttribute("data-tabs");
-    const four = key === "todo";
+    const four = key === "todo" || key === "stats";
     const tabs = document.getElementById(four ? "tpl-tabs4" : "tpl-tabs").content.cloneNode(true);
     tabs.querySelector(".TODAY").classList.toggle("on", key === "today");
     tabs.querySelector(".TODO")?.classList.toggle("on", key === "todo");
@@ -1412,12 +1497,13 @@
   extraPhone("p2b", "tpl-s2", (n) => n.querySelector(".today")?.setAttribute("data-bar", "b"));
   extraPhone("p2c", "tpl-s2", (n) => n.querySelector(".today")?.setAttribute("data-bar", "c"));
   extraPhone("p4off", "tpl-s4off");
+  extraPhone("p4cal", "tpl-s4cal");
 
   const params = new URLSearchParams(location.search);
   const shot = params.get("shot");
   if (shot) {
     document.body.className = "shot";
-    const map = { "1": "p1", "2": "p2", "2a": "p2", "2b": "p2b", "2c": "p2c", "3": "p3", "4": "p4", "4off": "p4off", "5": "p5", "6": "p6", "7": "p7", "8": "p8", "9": "p9", "10": "p10" };
+    const map = { "1": "p1", "2": "p2", "2a": "p2", "2b": "p2b", "2c": "p2c", "3": "p3", "4": "p4", "4off": "p4off", "4cal": "p4cal", "5": "p5", "6": "p6", "7": "p7", "8": "p8", "9": "p9", "10": "p10" };
     const phone = document.getElementById(map[shot]);
     phone.classList.add("target");
     document.body.appendChild(phone);

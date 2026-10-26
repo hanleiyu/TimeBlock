@@ -135,9 +135,11 @@ private fun AppRoot(vm: AppViewModel) {
                     StatsScreen(
                         kind = kind,
                         anchor = anchor,
+                        today = java.time.LocalDate.now(zone),
                         stats = stats,
                         onKind = vm::setStatsKind,
                         onShift = vm::shiftStats,
+                        onSetAnchor = vm::setStatsAnchor,
                     )
                 } else if (tab == 3) {
                     SettingsScreen(

@@ -14,6 +14,7 @@ import com.shijiankuai.app.domain.PeriodStats
 import com.shijiankuai.app.domain.SLEEP_TYPE_ID
 import com.shijiankuai.app.domain.SleepSession
 import com.shijiankuai.app.domain.SleepSessions
+import com.shijiankuai.app.domain.StatsNav
 import com.shijiankuai.app.domain.TodoCategory
 import com.shijiankuai.app.domain.TodoItem
 import com.shijiankuai.app.domain.WakeFill
@@ -243,13 +244,15 @@ class AppViewModel(private val repo: Repository) : ViewModel() {
     }
 
     fun shiftStats(delta: Int) {
-        val kind = statsKind.value
-        statsAnchor.value = when (kind) {
-            PeriodKind.DAY -> statsAnchor.value.plusDays(delta.toLong())
-            PeriodKind.WEEK -> statsAnchor.value.plusWeeks(delta.toLong())
-            PeriodKind.MONTH -> statsAnchor.value.plusMonths(delta.toLong())
-            PeriodKind.YEAR -> statsAnchor.value.plusYears(delta.toLong())
-        }
+        statsAnchor.value = StatsNav.shift(statsKind.value, statsAnchor.value, delta)
+    }
+
+    fun setStatsAnchor(date: LocalDate) {
+        statsAnchor.value = StatsNav.pick(date)
+    }
+
+    fun jumpStatsToday() {
+        statsAnchor.value = StatsNav.jumpToday(repo.clock.today())
     }
 
     fun setStatsKind(kind: PeriodKind) {

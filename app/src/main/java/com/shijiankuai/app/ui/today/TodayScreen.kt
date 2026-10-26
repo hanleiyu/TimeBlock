@@ -21,13 +21,10 @@ import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.DatePicker
-import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TimePicker
-import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -48,6 +45,7 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.shijiankuai.app.domain.BlockType
+import com.shijiankuai.app.ui.DatePick
 import com.shijiankuai.app.ui.TodayUi
 import com.shijiankuai.app.ui.hoursLabel
 import com.shijiankuai.app.ui.theme.Accent
@@ -68,7 +66,6 @@ import com.shijiankuai.app.ui.toHm
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalTime
-import java.time.ZoneOffset
 import kotlin.math.roundToInt
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -532,26 +529,6 @@ fun AsleepScreen(
         }
         Spacer(Modifier.weight(1.2f))
     }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun DatePick(date: LocalDate, onSetDate: (LocalDate) -> Unit, onDismiss: () -> Unit) {
-    val state = rememberDatePickerState(
-        initialSelectedDateMillis = date.atStartOfDay().toInstant(ZoneOffset.UTC).toEpochMilli(),
-    )
-    DatePickerDialog(
-        onDismissRequest = onDismiss,
-        confirmButton = {
-            TextButton(onClick = {
-                state.selectedDateMillis?.let {
-                    onSetDate(Instant.ofEpochMilli(it).atZone(ZoneOffset.UTC).toLocalDate())
-                }
-                onDismiss()
-            }) { Text("确定") }
-        },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("取消") } },
-    ) { DatePicker(state = state) }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

@@ -19,6 +19,10 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -30,27 +34,30 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.shijiankuai.app.domain.PeriodKind
 import com.shijiankuai.app.domain.PeriodStats
+import com.shijiankuai.app.domain.StatsNav
+import com.shijiankuai.app.ui.DatePick
 import com.shijiankuai.app.ui.hoursLabel
 import com.shijiankuai.app.ui.theme.Card
 import com.shijiankuai.app.ui.theme.Ink
 import com.shijiankuai.app.ui.theme.Ink2
 import com.shijiankuai.app.ui.theme.Ink3
-import com.shijiankuai.app.ui.theme.Line
 import com.shijiankuai.app.ui.theme.Paper
 import com.shijiankuai.app.ui.theme.PaperDeep
 import com.shijiankuai.app.ui.theme.Unfilled
 import com.shijiankuai.app.ui.toCn
 import java.time.LocalDate
-import java.time.format.DateTimeFormatter
 
 @Composable
 fun StatsScreen(
     kind: PeriodKind,
     anchor: LocalDate,
+    today: LocalDate,
     stats: PeriodStats?,
     onKind: (PeriodKind) -> Unit,
     onShift: (Int) -> Unit,
+    onSetAnchor: (LocalDate) -> Unit,
 ) {
+    var showDate by remember { mutableStateOf(false) }
     Column(
         Modifier
             .fillMaxSize()
@@ -58,7 +65,24 @@ fun StatsScreen(
             .verticalScroll(rememberScrollState())
             .padding(horizontal = 16.dp, vertical = 4.dp),
     ) {
-        Text("统计", fontSize = 22.sp, fontWeight = FontWeight.SemiBold, color = Ink)
+        Row(
+            Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text("统计", fontSize = 22.sp, fontWeight = FontWeight.SemiBold, color = Ink, modifier = Modifier.weight(1f))
+            if (!StatsNav.contains(kind, anchor, today)) {
+                Text(
+                    "今天",
+                    color = Ink2,
+                    fontSize = 12.sp,
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(999.dp))
+                        .background(Card)
+                        .clickable { onSetAnchor(today) }
+                        .padding(horizontal = 10.dp, vertical = 6.dp),
+                )
+            }
+        }
         Spacer(Modifier.height(12.dp))
         Row(
             Modifier
@@ -97,7 +121,12 @@ fun StatsScreen(
                 Modifier.size(28.dp).clip(CircleShape).background(Card).clickable { onShift(-1) },
                 contentAlignment = Alignment.Center,
             ) { Text("‹", color = Ink2) }
-            Text(periodLabel(kind, stats?.start ?: anchor, stats?.endInclusive ?: anchor), fontSize = 14.sp, color = Ink)
+            Text(
+                periodLabel(kind, stats?.start ?: anchor, stats?.endInclusive ?: anchor),
+                fontSize = 14.sp,
+                color = Ink,
+                modifier = Modifier.clickable { showDate = true },
+            )
             Box(
                 Modifier.size(28.dp).clip(CircleShape).background(Card).clickable { onShift(1) },
                 contentAlignment = Alignment.Center,
@@ -124,6 +153,7 @@ fun StatsScreen(
         }
         Spacer(Modifier.height(16.dp))
     }
+    if (showDate) DatePick(anchor, onSetAnchor) { showDate = false }
 }
 
 @Composable
