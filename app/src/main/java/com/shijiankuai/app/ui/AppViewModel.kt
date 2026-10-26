@@ -18,6 +18,7 @@ import com.shijiankuai.app.domain.StatsCalc
 import com.shijiankuai.app.domain.StatsNav
 import com.shijiankuai.app.domain.TodoCategory
 import com.shijiankuai.app.domain.TodoItem
+import com.shijiankuai.app.domain.TodoMonth
 import com.shijiankuai.app.domain.WakeFill
 import com.shijiankuai.app.domain.WakeFillResult
 import com.shijiankuai.app.ui.today.TodayScroll
@@ -140,7 +141,11 @@ class AppViewModel(private val repo: Repository) : ViewModel() {
     @OptIn(ExperimentalCoroutinesApi::class)
     val todos: StateFlow<List<TodoItem>> = combine(todoDate, todoKind) { date, kind -> date to kind }
         .flatMapLatest { (date, kind) ->
-            val (start, end) = StatsCalc.periodBounds(kind, date)
+            val (start, end) = if (kind == PeriodKind.MONTH) {
+                TodoMonth.queryBounds(date)
+            } else {
+                StatsCalc.periodBounds(kind, date)
+            }
             repo.todosBetween(start, end)
         }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
@@ -188,7 +193,7 @@ class AppViewModel(private val repo: Repository) : ViewModel() {
     }
 
     fun setTodoKind(kind: PeriodKind) {
-        todoKind.value = kind
+        todoKind.value = TodoMonth.coerceKind(kind)
     }
 
     fun addTodo(category: TodoCategory, title: String) {

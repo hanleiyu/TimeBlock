@@ -24,10 +24,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.outlined.DragHandle
-import androidx.compose.material.icons.outlined.Eco
-import androidx.compose.material.icons.outlined.Home
-import androidx.compose.material.icons.automirrored.outlined.MenuBook
-import androidx.compose.material.icons.outlined.WorkOutline
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ModalBottomSheet
@@ -46,7 +42,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
@@ -61,6 +56,7 @@ import com.shijiankuai.app.domain.TodoCard
 import com.shijiankuai.app.domain.TodoCategory
 import com.shijiankuai.app.domain.TodoItem
 import com.shijiankuai.app.domain.TodoList
+import com.shijiankuai.app.domain.TodoMonth
 import com.shijiankuai.app.domain.TodoRange
 import com.shijiankuai.app.ui.theme.Accent
 import com.shijiankuai.app.ui.theme.Card
@@ -92,8 +88,9 @@ fun TodoScreen(
     onDelete: (String) -> Unit,
     onReorder: (TodoCategory, List<String>) -> Unit,
 ) {
+    val viewKind = TodoMonth.coerceKind(kind)
     val cards = remember(items) { TodoList.cards(items) }
-    val (start, end) = remember(kind, date) { StatsCalc.periodBounds(kind, date) }
+    val (start, end) = remember(viewKind, date) { StatsCalc.periodBounds(viewKind, date) }
     var adding by remember { mutableStateOf(false) }
     var acting by remember { mutableStateOf<TodoItem?>(null) }
     var editing by remember { mutableStateOf<TodoItem?>(null) }
@@ -118,7 +115,7 @@ fun TodoScreen(
                     color = Ink,
                     modifier = Modifier.weight(1f),
                 )
-                if (!StatsNav.contains(kind, date, today)) {
+                if (!StatsNav.contains(viewKind, date, today)) {
                     Text(
                         "今天",
                         color = Ink2,
@@ -134,23 +131,25 @@ fun TodoScreen(
                     )
                 }
             }
-            PeriodTabs(kind = kind, onKind = onKind)
-            DateBar(
-                kind = kind,
-                start = start,
-                end = end,
-                onShiftDate = onShiftDate,
-                onOpenCalendar = { showDate = true },
-            )
+            PeriodTabs(kind = viewKind, onKind = onKind)
+            if (viewKind != PeriodKind.MONTH) {
+                DateBar(
+                    kind = viewKind,
+                    start = start,
+                    end = end,
+                    onShiftDate = onShiftDate,
+                    onOpenCalendar = { showDate = true },
+                )
+            }
             Column(
                 Modifier
                     .weight(1f)
                     .verticalScroll(rememberScrollState())
                     .padding(horizontal = 16.dp)
-                    .padding(top = 12.dp, bottom = if (kind == PeriodKind.DAY) 88.dp else 24.dp),
+                    .padding(top = 12.dp, bottom = if (viewKind == PeriodKind.DAY) 88.dp else 24.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
-                when (kind) {
+                when (viewKind) {
                     PeriodKind.DAY -> cards.forEach { card ->
                         CategoryCard(
                             card = card,
@@ -159,13 +158,17 @@ fun TodoScreen(
                             onReorder = { onReorder(card.category, it) },
                         )
                     }
-                    PeriodKind.WEEK -> WeekDoneList(items)
-                    PeriodKind.MONTH -> MonthCounts(items)
+                    PeriodKind.WEEK, PeriodKind.MONTH -> TodoMonthPanel(
+                        date = date,
+                        today = today,
+                        items = items,
+                        onSetDate = onSetDate,
+                    )
                     PeriodKind.YEAR -> YearSummary(items, start.year)
                 }
             }
         }
-        if (kind == PeriodKind.DAY) {
+        if (viewKind == PeriodKind.DAY) {
             Box(
                 Modifier
                     .align(Alignment.BottomEnd)
@@ -218,7 +221,7 @@ fun TodoScreen(
             onCancel = { editing = null },
         )
     }
-    if (showDate) {
+    if (showDate && viewKind != PeriodKind.MONTH) {
         DatePick(date, onSetDate) { showDate = false }
     }
 }
@@ -233,7 +236,7 @@ private fun PeriodTabs(kind: PeriodKind, onKind: (PeriodKind) -> Unit) {
             .background(PaperDeep)
             .padding(3.dp),
     ) {
-        PeriodKind.entries.forEach { k ->
+        TodoMonth.CHECKLIST_KINDS.forEach { k ->
             val label = when (k) {
                 PeriodKind.DAY -> "日"
                 PeriodKind.WEEK -> "周"
@@ -285,102 +288,6 @@ private fun DateBar(
             modifier = Modifier.clickable(onClick = onOpenCalendar),
         )
         Text("›", fontSize = 22.sp, color = Ink2, modifier = Modifier.clickable { onShiftDate(1) })
-    }
-}
-
-@Composable
-private fun WeekDoneList(items: List<TodoItem>) {
-    val cards = remember(items) { TodoRange.weekCards(items) }
-    if (cards.isEmpty()) {
-        Text("本周还没有完成的任务", fontSize = 14.sp, color = Ink2, modifier = Modifier.padding(top = 24.dp))
-        return
-    }
-    cards.forEach { card ->
-        Column(
-            Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(16.dp))
-                .background(Card)
-                .border(1.dp, Line, RoundedCornerShape(16.dp))
-                .padding(horizontal = 14.dp, vertical = 12.dp),
-        ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(
-                    categoryIcon(card.category),
-                    contentDescription = card.category.label,
-                    tint = categoryTint(card.category),
-                    modifier = Modifier.size(18.dp),
-                )
-                Text(
-                    card.category.label,
-                    fontSize = 15.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    color = Ink,
-                    modifier = Modifier.padding(start = 8.dp),
-                )
-            }
-            Spacer(Modifier.height(8.dp))
-            card.items.forEach { item ->
-                Row(
-                    Modifier
-                        .fillMaxWidth()
-                        .height(40.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Text("✓", color = DoneGreen, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
-                    Text(
-                        item.title,
-                        fontSize = 15.sp,
-                        fontWeight = FontWeight.Medium,
-                        color = Ink,
-                        modifier = Modifier.padding(start = 10.dp),
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun MonthCounts(items: List<TodoItem>) {
-    val counts = remember(items) { TodoRange.completedCounts(items) }
-    val total = remember(items) { TodoRange.completedTotal(items) }
-    TodoRange.SUMMARY_ORDER.forEach { cat ->
-        Row(
-            Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(16.dp))
-                .background(Card)
-                .border(1.dp, Line, RoundedCornerShape(16.dp))
-                .padding(horizontal = 16.dp, vertical = 16.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Icon(categoryIcon(cat), contentDescription = cat.label, tint = categoryTint(cat), modifier = Modifier.size(20.dp))
-            Text(
-                cat.label,
-                fontSize = 15.sp,
-                fontWeight = FontWeight.SemiBold,
-                color = Ink,
-                modifier = Modifier
-                    .padding(start = 8.dp)
-                    .weight(1f),
-            )
-            Text(
-                "${counts[cat] ?: 0}",
-                fontSize = 28.sp,
-                fontWeight = FontWeight.SemiBold,
-                color = Ink,
-            )
-        }
-    }
-    Column(
-        Modifier
-            .fillMaxWidth()
-            .padding(top = 8.dp, bottom = 12.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        Text("本月完成", fontSize = 13.sp, color = Ink2)
-        Text("$total", fontSize = 36.sp, fontWeight = FontWeight.SemiBold, color = Ink)
     }
 }
 
@@ -754,25 +661,3 @@ private fun SheetBtn(label: String, primary: Boolean, modifier: Modifier, enable
     }
 }
 
-private fun categoryIcon(category: TodoCategory): ImageVector = when (category) {
-    TodoCategory.WORK -> Icons.Outlined.WorkOutline
-    TodoCategory.STUDY -> Icons.AutoMirrored.Outlined.MenuBook
-    TodoCategory.HEALTH -> Icons.Outlined.Eco
-    TodoCategory.LIFE -> Icons.Outlined.Home
-}
-
-private val DoneGreen = Color(0xFF5B9A72)
-
-private fun categoryTint(category: TodoCategory): Color = when (category) {
-    TodoCategory.WORK -> Ink
-    TodoCategory.STUDY -> Color(0xFF808BD0)
-    TodoCategory.HEALTH -> Color(0xFF74B3AE)
-    TodoCategory.LIFE -> Color(0xFFD99A76)
-}
-
-private fun categoryWash(category: TodoCategory): Color = when (category) {
-    TodoCategory.WORK -> Color(0xFFE8E9F4)
-    TodoCategory.HEALTH -> Color(0xFFE4F2F0)
-    TodoCategory.LIFE -> Color(0xFFF8EEE7)
-    TodoCategory.STUDY -> Color(0xFFECEEF8)
-}
