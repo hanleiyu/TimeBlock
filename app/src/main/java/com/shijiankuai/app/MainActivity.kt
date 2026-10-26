@@ -78,7 +78,6 @@ private fun AppRoot(vm: AppViewModel) {
     val todoDate by vm.todoDate.collectAsStateWithLifecycle()
     val todoKind by vm.todoKind.collectAsStateWithLifecycle()
     val todos by vm.todos.collectAsStateWithLifecycle()
-    val todoCompletedDays by vm.todoCompletedDays.collectAsStateWithLifecycle()
     val zone = remember { java.time.ZoneId.systemDefault() }
     val todayScroll = rememberScrollState()
 
@@ -126,7 +125,6 @@ private fun AppRoot(vm: AppViewModel) {
                         today = java.time.LocalDate.now(zone),
                         kind = todoKind,
                         items = todos,
-                        completedDays = todoCompletedDays,
                         onShiftDate = vm::shiftTodoDate,
                         onSetDate = vm::setTodoDate,
                         onJumpToday = vm::jumpTodoToday,

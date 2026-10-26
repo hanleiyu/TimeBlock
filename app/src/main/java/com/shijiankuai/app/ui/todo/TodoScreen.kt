@@ -81,7 +81,6 @@ fun TodoScreen(
     today: LocalDate,
     kind: PeriodKind,
     items: List<TodoItem>,
-    completedDays: Set<LocalDate>,
     onShiftDate: (Int) -> Unit,
     onSetDate: (LocalDate) -> Unit,
     onJumpToday: () -> Unit,
@@ -220,11 +219,7 @@ fun TodoScreen(
         )
     }
     if (showDate) {
-        DatePick(
-            date = date,
-            onSetDate = onSetDate,
-            markedDays = completedDays,
-        ) { showDate = false }
+        DatePick(date, onSetDate) { showDate = false }
     }
 }
 
