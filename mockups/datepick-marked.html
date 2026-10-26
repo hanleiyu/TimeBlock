@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <style>
+    @font-face {
+      font-family: "Noto Sans SC";
+      src: url("fonts/NotoSansSC-Variable.ttf") format("truetype");
+      font-weight: 100 900;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { width: 390px; height: 844px; overflow: hidden; background: #111; }
+    body { font-family: "Noto Sans SC", sans-serif; color: #2b2e45; }
+    .phone { width: 390px; height: 844px; background: #fbf5f1; position: relative; }
+    .status { height: 44px; display: flex; justify-content: space-between; padding: 14px 20px 0; font-size: 13px; font-weight: 620; }
+    .page { padding: 4px 16px 0; }
+    h1 { font-size: 22px; font-weight: 620; }
+    .seg { margin-top: 12px; display: grid; grid-template-columns: repeat(4, 1fr); background: #f3ebe5; border-radius: 12px; padding: 3px; }
+    .seg i { text-align: center; font-style: normal; font-size: 13px; padding: 7px 0; border-radius: 10px; color: #5c5f75; }
+    .seg i.on { background: #fffcf9; color: #2b2e45; font-weight: 600; }
+    .period { display: flex; justify-content: space-between; align-items: center; margin: 12px 12px 8px; font-size: 15px; font-weight: 620; }
+    .card { background: #fffcf9; border: 1px solid #e8e0d8; border-radius: 16px; padding: 12px 14px; margin-top: 12px; }
+    .ch { font-weight: 620; font-size: 15px; margin-bottom: 8px; }
+    .row { display: flex; align-items: center; height: 40px; font-size: 15px; }
+    .box { width: 22px; height: 22px; border-radius: 50%; border: 1.5px solid #5e6178; margin-right: 12px; }
+    .box.on { background: #5a5f92; border: 0; }
+    .tabs { position: absolute; left: 0; right: 0; bottom: 0; height: 64px; display: grid; grid-template-columns: repeat(4, 1fr); align-items: end; padding-bottom: 10px; background: #fbf5f1; font-size: 11px; color: #5e6178; text-align: center; }
+    .tabs b { color: #2b2e45; font-weight: 600; display: block; }
+    .dim { position: absolute; inset: 0; background: rgba(0,0,0,.4); }
+    .m3 {
+      position: absolute; left: 16px; right: 16px; top: 88px;
+      background: #fffbfe; border-radius: 28px;
+      box-shadow: 0 16px 40px rgba(44,40,36,.28);
+      overflow: hidden;
+    }
+    .m3-title { padding: 16px 24px 0; font-size: 12px; color: #5c5f75; }
+    .m3-head { padding: 4px 24px 12px; font-size: 32px; font-weight: 500; letter-spacing: -0.02em; }
+    .m3-month {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 4px 12px 0 20px; font-size: 14px; font-weight: 620;
+    }
+    .m3-nav { display: flex; gap: 4px; color: #5c5f75; font-size: 18px; padding-right: 8px; }
+    .grid { display: grid; grid-template-columns: repeat(7, 1fr); padding: 4px 8px 8px; }
+    .grid b {
+      height: 48px; display: flex; align-items: center; justify-content: center;
+      font-size: 11px; color: #5c5f75; font-weight: 500;
+    }
+    .cell {
+      height: 48px; position: relative;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px;
+    }
+    .num {
+      width: 40px; height: 40px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .num.on { background: #5a5f92; color: #fff; }
+    .dot {
+      position: absolute; left: 50%; bottom: 5px; transform: translateX(-50%);
+      width: 5px; height: 5px; border-radius: 50%; background: #5a5f92;
+    }
+    .num.on + .dot { background: #fff; }
+    .actions { display: flex; justify-content: flex-end; gap: 8px; padding: 4px 12px 12px; }
+    .actions i { font-style: normal; color: #5a5f92; font-size: 14px; font-weight: 600; padding: 10px 12px; }
+  </style>
+</head>
+<body>
+  <div class="phone">
+    <div class="status"><span>10:30</span><span>● ● ●</span></div>
+    <div class="page">
+      <h1>清单</h1>
+      <div class="seg"><i class="on">日</i><i>周</i><i>月</i><i>年</i></div>
+      <div class="period"><span>‹</span><span>10月26日周一</span><span>›</span></div>
+      <div class="card">
+        <div class="ch">工作</div>
+        <div class="row"><i class="box"></i>写周报</div>
+        <div class="row"><i class="box on"></i>回邮件</div>
+      </div>
+    </div>
+    <div class="tabs"><span>今天</span><b>清单</b><span>统计</span><span>设置</span></div>
+    <div class="dim"></div>
+    <div class="m3">
+      <div class="m3-title">选择日期</div>
+      <div class="m3-head">10月26日</div>
+      <div class="m3-month">
+        <span>2026年10月 ▾</span>
+        <div class="m3-nav"><span>‹</span><span>›</span></div>
+      </div>
+      <div class="grid" id="grid"></div>
+      <div class="actions"><i>取消</i><i>确定</i></div>
+    </div>
+  </div>
+  <script>
+    // Same math as TodoCalendar.cellIndex + Material zh Sunday-first week.
+    const firstDow = 7; // Sunday
+    const marked = new Set([3, 10, 12, 15, 18, 21, 26]);
+    const selected = 26;
+    const lead = ((4 - firstDow + 7) % 7); // Oct 1 2026 = Thursday = 4
+    const labels = ["日", "一", "二", "三", "四", "五", "六"];
+    const grid = document.getElementById("grid");
+    labels.forEach((w) => {
+      const b = document.createElement("b");
+      b.textContent = w;
+      grid.appendChild(b);
+    });
+    for (let i = 0; i < 42; i++) {
+      const cell = document.createElement("div");
+      cell.className = "cell";
+      const day = i - lead + 1;
+      if (day >= 1 && day <= 31) {
+        const num = document.createElement("div");
+        num.className = "num" + (day === selected ? " on" : "");
+        num.textContent = String(day);
+        cell.appendChild(num);
+        if (marked.has(day)) {
+          const dot = document.createElement("div");
+          dot.className = "dot";
+          cell.appendChild(dot);
+        }
+      }
+      grid.appendChild(cell);
+    }
+  </script>
+</body>
+</html>

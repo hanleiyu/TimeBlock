@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.DatePickerState
 import androidx.compose.material3.DisplayMode
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
@@ -53,18 +54,41 @@ fun DatePick(
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text("取消") } },
     ) {
-        Box {
-            DatePicker(state = state)
-            if (markedDays.isNotEmpty() && state.displayMode == DisplayMode.Picker) {
-                CompletionDotsOverlay(
-                    markedDays = markedDays,
-                    displayedMonthMillis = state.displayedMonthMillis,
-                    modifier = Modifier
-                        .align(Alignment.BottomCenter)
-                        .fillMaxWidth()
-                        .height(Cell * Rows),
-                )
-            }
+        DatePickCalendar(state = state, markedDays = markedDays)
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun DatePickCalendar(
+    date: LocalDate,
+    markedDays: Set<LocalDate> = emptySet(),
+    modifier: Modifier = Modifier,
+) {
+    val state = rememberDatePickerState(
+        initialSelectedDateMillis = date.atStartOfDay().toInstant(ZoneOffset.UTC).toEpochMilli(),
+    )
+    DatePickCalendar(state = state, markedDays = markedDays, modifier = modifier)
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun DatePickCalendar(
+    state: DatePickerState,
+    markedDays: Set<LocalDate> = emptySet(),
+    modifier: Modifier = Modifier,
+) {
+    Box(modifier) {
+        DatePicker(state = state)
+        if (markedDays.isNotEmpty() && state.displayMode == DisplayMode.Picker) {
+            CompletionDotsOverlay(
+                markedDays = markedDays,
+                displayedMonthMillis = state.displayedMonthMillis,
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .fillMaxWidth()
+                    .height(Cell * Rows),
+            )
         }
     }
 }

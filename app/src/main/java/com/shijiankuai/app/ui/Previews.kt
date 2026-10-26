@@ -1,8 +1,24 @@
 package com.shijiankuai.app.ui
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import com.shijiankuai.app.domain.BLOCKS_PER_DAY
 import com.shijiankuai.app.domain.Presets
 import com.shijiankuai.app.domain.SLEEP_TYPE_ID
@@ -99,5 +115,42 @@ fun PreviewSettings() {
             exportBackup = { "" },
             restore = { false },
         )
+    }
+}
+
+@Preview(showBackground = true, widthDp = 390, heightDp = 844, locale = "zh-rCN")
+@Composable
+fun PreviewDatePickMarked() {
+    val day = LocalDate.of(2026, 10, 26)
+    val marked = setOf(3, 10, 12, 15, 18, 21, 26).map { LocalDate.of(2026, 10, it) }.toSet()
+    TimeBlockTheme {
+        Box(
+            Modifier
+                .fillMaxSize()
+                .background(Color(0x66000000)),
+            contentAlignment = Alignment.Center,
+        ) {
+            Surface(
+                modifier = Modifier
+                    .padding(horizontal = 16.dp)
+                    .fillMaxWidth(),
+                shape = RoundedCornerShape(28.dp),
+                color = com.shijiankuai.app.ui.theme.Card,
+                shadowElevation = 8.dp,
+            ) {
+                Column {
+                    DatePickCalendar(date = day, markedDays = marked)
+                    Row(
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(end = 8.dp, bottom = 8.dp),
+                        horizontalArrangement = Arrangement.End,
+                    ) {
+                        TextButton(onClick = {}) { Text("取消") }
+                        TextButton(onClick = {}) { Text("确定") }
+                    }
+                }
+            }
+        }
     }
 }
