@@ -302,17 +302,17 @@ private fun YearSummary(items: List<TodoItem>, year: Int) {
                     .weight(1f)
                     .clip(RoundedCornerShape(14.dp))
                     .background(categoryWash(cat))
-                    .padding(vertical = 12.dp),
+                    .padding(vertical = 8.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 Icon(categoryIcon(cat), contentDescription = cat.label, tint = categoryTint(cat), modifier = Modifier.size(18.dp))
-                Text(cat.label, fontSize = 11.sp, color = Ink2, modifier = Modifier.padding(top = 6.dp))
+                Text(cat.label, fontSize = 11.sp, color = Ink2, modifier = Modifier.padding(top = 4.dp))
                 Text(
                     "${counts[cat] ?: 0}",
                     fontSize = 22.sp,
                     fontWeight = FontWeight.SemiBold,
                     color = categoryTint(cat),
-                    modifier = Modifier.padding(top = 2.dp),
+                    modifier = Modifier.padding(top = 1.dp),
                 )
             }
         }

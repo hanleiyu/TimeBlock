@@ -79,7 +79,7 @@ private fun MonthCountRow(counts: Map<TodoCategory, Int>) {
                     .clip(RoundedCornerShape(14.dp))
                     .background(Card)
                     .border(1.dp, Line, RoundedCornerShape(14.dp))
-                    .padding(vertical = 12.dp),
+                    .padding(vertical = 8.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 Icon(
@@ -88,13 +88,13 @@ private fun MonthCountRow(counts: Map<TodoCategory, Int>) {
                     tint = categoryTint(cat),
                     modifier = Modifier.size(18.dp),
                 )
-                Text(cat.label, fontSize = 11.sp, color = Ink2, modifier = Modifier.padding(top = 6.dp))
+                Text(cat.label, fontSize = 11.sp, color = Ink2, modifier = Modifier.padding(top = 4.dp))
                 Text(
                     "${counts[cat] ?: 0}",
                     fontSize = 22.sp,
                     fontWeight = FontWeight.SemiBold,
                     color = categoryTint(cat),
-                    modifier = Modifier.padding(top = 2.dp),
+                    modifier = Modifier.padding(top = 1.dp),
                 )
             }
         }
@@ -268,12 +268,6 @@ private fun DayDoneSummary(date: LocalDate, done: List<TodoItem>) {
                         modifier = Modifier
                             .weight(1f)
                             .padding(start = 10.dp),
-                    )
-                    Box(
-                        Modifier
-                            .size(8.dp)
-                            .clip(CircleShape)
-                            .background(categoryTint(item.category)),
                     )
                 }
             }
