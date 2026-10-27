@@ -5,6 +5,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -32,6 +33,7 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -45,6 +47,7 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
@@ -60,6 +63,7 @@ import com.shijiankuai.app.domain.TodoItem
 import com.shijiankuai.app.domain.TodoList
 import com.shijiankuai.app.domain.TodoMonth
 import com.shijiankuai.app.domain.TodoRange
+import com.shijiankuai.app.domain.YearChart
 import com.shijiankuai.app.ui.theme.Accent
 import com.shijiankuai.app.ui.theme.Card
 import com.shijiankuai.app.ui.theme.Ink
@@ -340,43 +344,103 @@ private fun YearStackChart(stacks: List<TodoRange.MonthStack>) {
     val max = stacks.maxOfOrNull { stack ->
         stack.counts.values.maxOrNull() ?: 0
     }?.coerceAtLeast(1) ?: 1
+    val density = LocalDensity.current
+    val padY = with(density) { 6.dp.toPx() }
+    val hitR = with(density) { 18.dp.toPx() }
+    var plotW by remember { mutableFloatStateOf(0f) }
+    var plotH by remember { mutableFloatStateOf(0f) }
+    var pick by remember(stacks) { mutableStateOf<YearChart.Point?>(null) }
+    var tipW by remember { mutableIntStateOf(0) }
+    var tipH by remember { mutableIntStateOf(0) }
+    val pts = remember(stacks, plotW, plotH, max, padY) {
+        YearChart.points(stacks, plotW, plotH, max, padY)
+    }
+    val selected = pick?.let { cur ->
+        pts.firstOrNull { it.month == cur.month && it.category == cur.category }
+    }
     Column(
         Modifier
             .fillMaxWidth()
             .padding(top = 8.dp)
             .height(168.dp),
     ) {
-        Canvas(
+        Box(
             Modifier
                 .fillMaxWidth()
-                .weight(1f),
-        ) {
-            if (stacks.isEmpty()) return@Canvas
-            val padY = 6.dp.toPx()
-            val plotH = (size.height - padY * 2).coerceAtLeast(1f)
-            val slot = size.width / stacks.size
-            val stroke = Stroke(
-                width = 2.dp.toPx(),
-                cap = StrokeCap.Round,
-                join = StrokeJoin.Round,
-            )
-            fun xOf(i: Int) = slot * (i + 0.5f)
-            fun yOf(n: Int) = padY + plotH * (1f - n / max.toFloat())
-            TodoRange.SUMMARY_ORDER.forEach { cat ->
-                val color = categoryTint(cat)
-                val path = Path()
-                stacks.forEachIndexed { i, stack ->
-                    val pt = Offset(xOf(i), yOf(stack.counts[cat] ?: 0))
-                    if (i == 0) path.moveTo(pt.x, pt.y) else path.lineTo(pt.x, pt.y)
+                .weight(1f)
+                .onSizeChanged {
+                    plotW = it.width.toFloat()
+                    plotH = it.height.toFloat()
                 }
-                drawPath(path, color = color, style = stroke)
-                stacks.forEachIndexed { i, stack ->
+                .pointerInput(stacks, max, padY, hitR, pick) {
+                    detectTapGestures { tap ->
+                        val hit = YearChart.hit(
+                            YearChart.points(stacks, size.width.toFloat(), size.height.toFloat(), max, padY),
+                            tap.x,
+                            tap.y,
+                            hitR,
+                        )
+                        pick = if (hit != null && hit.month == pick?.month && hit.category == pick?.category) {
+                            null
+                        } else {
+                            hit
+                        }
+                    }
+                },
+        ) {
+            Canvas(Modifier.fillMaxSize()) {
+                if (pts.isEmpty()) return@Canvas
+                val stroke = Stroke(
+                    width = 2.dp.toPx(),
+                    cap = StrokeCap.Round,
+                    join = StrokeJoin.Round,
+                )
+                TodoRange.SUMMARY_ORDER.forEach { cat ->
+                    val color = categoryTint(cat)
+                    val path = Path()
+                    val line = pts.filter { it.category == cat }
+                    line.forEachIndexed { i, pt ->
+                        if (i == 0) path.moveTo(pt.x, pt.y) else path.lineTo(pt.x, pt.y)
+                    }
+                    drawPath(path, color = color, style = stroke)
+                    line.forEach { pt ->
+                        drawCircle(color = color, radius = 3.dp.toPx(), center = Offset(pt.x, pt.y))
+                    }
+                }
+                selected?.let { sel ->
+                    val color = categoryTint(sel.category)
+                    drawCircle(color = color, radius = 6.dp.toPx(), center = Offset(sel.x, sel.y))
                     drawCircle(
-                        color = color,
-                        radius = 3.dp.toPx(),
-                        center = Offset(xOf(i), yOf(stack.counts[cat] ?: 0)),
+                        color = Paper,
+                        radius = 6.dp.toPx(),
+                        center = Offset(sel.x, sel.y),
+                        style = Stroke(width = 1.5.dp.toPx()),
                     )
                 }
+            }
+            selected?.let { sel ->
+                Text(
+                    YearChart.tooltip(sel),
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = Ink,
+                    modifier = Modifier
+                        .onSizeChanged {
+                            tipW = it.width
+                            tipH = it.height
+                        }
+                        .offset {
+                            val gap = with(density) { 8.dp.roundToPx() }
+                            val maxX = (plotW - tipW).coerceAtLeast(0f)
+                            val x = (sel.x - tipW / 2f).coerceIn(0f, maxX).roundToInt()
+                            val y = (sel.y - tipH - gap).toInt().coerceAtLeast(0)
+                            IntOffset(x, y)
+                        }
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(Card)
+                        .border(1.dp, Line, RoundedCornerShape(8.dp))
+                        .padding(horizontal = 8.dp, vertical = 4.dp),
+                )
             }
         }
         Row(Modifier.fillMaxWidth().padding(top = 4.dp)) {
