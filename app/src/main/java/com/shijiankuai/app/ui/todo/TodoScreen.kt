@@ -5,12 +5,12 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGestures
-import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -33,7 +33,6 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -41,13 +40,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.StrokeJoin
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
@@ -63,7 +58,6 @@ import com.shijiankuai.app.domain.TodoItem
 import com.shijiankuai.app.domain.TodoList
 import com.shijiankuai.app.domain.TodoMonth
 import com.shijiankuai.app.domain.TodoRange
-import com.shijiankuai.app.domain.YearChart
 import com.shijiankuai.app.ui.theme.Accent
 import com.shijiankuai.app.ui.theme.Card
 import com.shijiankuai.app.ui.theme.Ink
@@ -339,113 +333,43 @@ private fun YearSummary(items: List<TodoItem>, year: Int) {
 
 @Composable
 private fun YearStackChart(stacks: List<TodoRange.MonthStack>) {
-    val max = stacks.maxOfOrNull { stack ->
-        stack.counts.values.maxOrNull() ?: 0
-    }?.coerceAtLeast(1) ?: 1
-    val density = LocalDensity.current
-    val padY = with(density) { 6.dp.toPx() }
-    val hitR = with(density) { 18.dp.toPx() }
-    var plotW by remember { mutableFloatStateOf(0f) }
-    var plotH by remember { mutableFloatStateOf(0f) }
-    var pick by remember(stacks) { mutableStateOf<YearChart.Point?>(null) }
-    var tipW by remember { mutableIntStateOf(0) }
-    var tipH by remember { mutableIntStateOf(0) }
-    val pts = remember(stacks, plotW, plotH, max, padY) {
-        YearChart.points(stacks, plotW, plotH, max, padY)
-    }
-    val selected = pick?.let { cur ->
-        pts.firstOrNull { it.month == cur.month && it.category == cur.category }
-    }
-    Column(
+    val max = stacks.maxOfOrNull { it.total }?.coerceAtLeast(1) ?: 1
+    Row(
         Modifier
             .fillMaxWidth()
             .padding(top = 8.dp)
             .height(168.dp),
+        verticalAlignment = Alignment.Bottom,
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
     ) {
-        Box(
-            Modifier
-                .fillMaxWidth()
-                .weight(1f)
-                .onSizeChanged {
-                    plotW = it.width.toFloat()
-                    plotH = it.height.toFloat()
-                }
-                .pointerInput(stacks, max, padY, hitR, pick) {
-                    detectTapGestures { tap ->
-                        val hit = YearChart.hit(
-                            YearChart.points(stacks, size.width.toFloat(), size.height.toFloat(), max, padY),
-                            tap.x,
-                            tap.y,
-                            hitR,
+        stacks.forEach { stack ->
+            Column(
+                Modifier
+                    .weight(1f)
+                    .fillMaxHeight(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                Canvas(
+                    Modifier
+                        .fillMaxWidth()
+                        .weight(1f),
+                ) {
+                    val inset = 3.dp.toPx()
+                    val barW = (size.width - inset * 2).coerceAtLeast(2f)
+                    var top = size.height
+                    TodoRange.SUMMARY_ORDER.forEach { cat ->
+                        val n = stack.counts[cat] ?: 0
+                        if (n <= 0) return@forEach
+                        val h = size.height * n / max.toFloat()
+                        top -= h
+                        drawRect(
+                            color = categoryTint(cat),
+                            topLeft = Offset(inset, top),
+                            size = Size(barW, h),
                         )
-                        pick = if (hit != null && hit.month == pick?.month && hit.category == pick?.category) {
-                            null
-                        } else {
-                            hit
-                        }
-                    }
-                },
-        ) {
-            Canvas(Modifier.fillMaxSize()) {
-                if (pts.isEmpty()) return@Canvas
-                val stroke = Stroke(
-                    width = 2.dp.toPx(),
-                    cap = StrokeCap.Round,
-                    join = StrokeJoin.Round,
-                )
-                TodoRange.SUMMARY_ORDER.forEach { cat ->
-                    val color = categoryTint(cat)
-                    val path = Path()
-                    val line = pts.filter { it.category == cat }
-                    line.forEachIndexed { i, pt ->
-                        if (i == 0) path.moveTo(pt.x, pt.y) else path.lineTo(pt.x, pt.y)
-                    }
-                    drawPath(path, color = color, style = stroke)
-                    line.forEach { pt ->
-                        drawCircle(color = color, radius = 3.dp.toPx(), center = Offset(pt.x, pt.y))
                     }
                 }
-                selected?.let { sel ->
-                    val color = categoryTint(sel.category)
-                    drawCircle(color = color, radius = 6.dp.toPx(), center = Offset(sel.x, sel.y))
-                    drawCircle(
-                        color = Paper,
-                        radius = 6.dp.toPx(),
-                        center = Offset(sel.x, sel.y),
-                        style = Stroke(width = 1.5.dp.toPx()),
-                    )
-                }
-            }
-            selected?.let { sel ->
-                Text(
-                    YearChart.tooltip(sel),
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Medium,
-                    color = Ink,
-                    modifier = Modifier
-                        .onSizeChanged {
-                            tipW = it.width
-                            tipH = it.height
-                        }
-                        .offset {
-                            val gap = with(density) { 8.dp.roundToPx() }
-                            val maxX = (plotW - tipW).coerceAtLeast(0f)
-                            val x = (sel.x - tipW / 2f).coerceIn(0f, maxX).roundToInt()
-                            val y = (sel.y - tipH - gap).toInt().coerceAtLeast(0)
-                            IntOffset(x, y)
-                        }
-                        .clip(RoundedCornerShape(8.dp))
-                        .background(Card)
-                        .border(1.dp, Line, RoundedCornerShape(8.dp))
-                        .padding(horizontal = 8.dp, vertical = 4.dp),
-                )
-            }
-        }
-        Row(Modifier.fillMaxWidth().padding(top = 4.dp)) {
-            stacks.forEach { stack ->
-                Box(Modifier.weight(1f), contentAlignment = Alignment.Center) {
-                    Text("${stack.month}", fontSize = 10.sp, color = Ink2)
-                }
+                Text("${stack.month}", fontSize = 10.sp, color = Ink2, modifier = Modifier.padding(top = 4.dp))
             }
         }
     }

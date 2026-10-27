@@ -8,7 +8,6 @@ import androidx.compose.material.icons.outlined.WorkOutline
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.shijiankuai.app.domain.TodoCategory
-import com.shijiankuai.app.ui.theme.Ink
 
 val DoneGreen = Color(0xFF5B9A72)
 
@@ -20,10 +19,10 @@ fun categoryIcon(category: TodoCategory): ImageVector = when (category) {
 }
 
 fun categoryTint(category: TodoCategory): Color = when (category) {
-    TodoCategory.WORK -> Ink
-    TodoCategory.STUDY -> Color(0xFF808BD0)
+    TodoCategory.WORK -> Color(0xFF8EBFD2)
     TodoCategory.HEALTH -> Color(0xFF74B3AE)
-    TodoCategory.LIFE -> Color(0xFFD99A76)
+    TodoCategory.LIFE -> Color(0xFFE5AD8C)
+    TodoCategory.STUDY -> Color(0xFFA996CF)
 }
 
 fun categoryWash(category: TodoCategory): Color = when (category) {
