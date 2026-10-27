@@ -135,6 +135,8 @@ class AppViewModel(private val repo: Repository) : ViewModel() {
     val statsKind = MutableStateFlow(PeriodKind.DAY)
     val statsAnchor = MutableStateFlow(repo.clock.today())
     val showAllTime: StateFlow<Boolean> = repo.showAllTime
+    val autoBackup: StateFlow<Boolean> = repo.autoBackup
+    val lastAutoBackupAt: StateFlow<Instant?> = repo.lastAutoBackupAt
 
     val todoKind = MutableStateFlow(PeriodKind.DAY)
 
@@ -287,6 +289,10 @@ class AppViewModel(private val repo: Repository) : ViewModel() {
 
     fun setShowAllTime(on: Boolean) {
         viewModelScope.launch { repo.setShowAllTime(on) }
+    }
+
+    fun setAutoBackup(on: Boolean) {
+        viewModelScope.launch { repo.setAutoBackup(on) }
     }
 
     suspend fun exportCsv(): String = repo.exportCsv()

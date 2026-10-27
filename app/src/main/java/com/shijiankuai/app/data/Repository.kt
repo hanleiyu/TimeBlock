@@ -35,6 +35,10 @@ class Repository(
     val isAsleep: StateFlow<Boolean> = _isAsleep
     private val _showAllTime = MutableStateFlow(true)
     val showAllTime: StateFlow<Boolean> = _showAllTime
+    private val _autoBackup = MutableStateFlow(true)
+    val autoBackup: StateFlow<Boolean> = _autoBackup
+    private val _lastAutoBackupAt = MutableStateFlow<Instant?>(null)
+    val lastAutoBackupAt: StateFlow<Instant?> = _lastAutoBackupAt
 
     val types: Flow<List<BlockType>> = db.types().observe().map { rows ->
         rows.map { it.toDomain() }
@@ -60,11 +64,23 @@ class Repository(
         AppDatabase.seedIfNeeded(db)
         _isAsleep.value = db.kv().get("is_asleep") != "0"
         _showAllTime.value = Prefs.showAllTimeEnabled(db.kv().get(Prefs.SHOW_ALL_TIME))
+        _autoBackup.value = Prefs.autoBackupEnabled(db.kv().get(Prefs.AUTO_BACKUP))
+        _lastAutoBackupAt.value = Prefs.lastAutoBackupAt(db.kv().get(Prefs.LAST_AUTO_BACKUP_AT))
     }
 
     suspend fun setShowAllTime(on: Boolean) {
         db.kv().put(KvRow(Prefs.SHOW_ALL_TIME, if (on) "1" else "0"))
         _showAllTime.value = on
+    }
+
+    suspend fun setAutoBackup(on: Boolean) {
+        db.kv().put(KvRow(Prefs.AUTO_BACKUP, if (on) "1" else "0"))
+        _autoBackup.value = on
+    }
+
+    suspend fun markAutoBackupDone(at: Instant) {
+        db.kv().put(KvRow(Prefs.LAST_AUTO_BACKUP_AT, at.toEpochMilli().toString()))
+        _lastAutoBackupAt.value = at
     }
 
     suspend fun markSleep(): Instant {
@@ -208,6 +224,8 @@ class Repository(
         }
         _isAsleep.value = db.kv().get("is_asleep") != "0"
         _showAllTime.value = Prefs.showAllTimeEnabled(db.kv().get(Prefs.SHOW_ALL_TIME))
+        _autoBackup.value = Prefs.autoBackupEnabled(db.kv().get(Prefs.AUTO_BACKUP))
+        _lastAutoBackupAt.value = Prefs.lastAutoBackupAt(db.kv().get(Prefs.LAST_AUTO_BACKUP_AT))
         return true
     }
 
