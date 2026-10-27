@@ -53,7 +53,6 @@ fun TodoMonthPanel(
     val grid = remember(month) { TodoMonth.monthGrid(month) }
 
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        MonthCountRow(counts)
         MonthKalendarCard(
             month = month,
             selected = date,
@@ -66,6 +65,7 @@ fun TodoMonthPanel(
             },
         )
         DayDoneSummary(date = date, done = done)
+        MonthCountRow(counts)
     }
 }
 
@@ -79,7 +79,7 @@ private fun MonthCountRow(counts: Map<TodoCategory, Int>) {
                     .clip(RoundedCornerShape(14.dp))
                     .background(Card)
                     .border(1.dp, Line, RoundedCornerShape(14.dp))
-                    .padding(vertical = 8.dp),
+                    .padding(vertical = 6.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 Icon(

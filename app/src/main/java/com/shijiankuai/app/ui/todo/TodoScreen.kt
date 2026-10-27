@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -40,8 +39,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.StrokeJoin
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
@@ -302,7 +304,7 @@ private fun YearSummary(items: List<TodoItem>, year: Int) {
                     .weight(1f)
                     .clip(RoundedCornerShape(14.dp))
                     .background(categoryWash(cat))
-                    .padding(vertical = 8.dp),
+                    .padding(vertical = 6.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 Icon(categoryIcon(cat), contentDescription = cat.label, tint = categoryTint(cat), modifier = Modifier.size(18.dp))
@@ -335,43 +337,53 @@ private fun YearSummary(items: List<TodoItem>, year: Int) {
 
 @Composable
 private fun YearStackChart(stacks: List<TodoRange.MonthStack>) {
-    val max = stacks.maxOfOrNull { it.total }?.coerceAtLeast(1) ?: 1
-    Row(
+    val max = stacks.maxOfOrNull { stack ->
+        stack.counts.values.maxOrNull() ?: 0
+    }?.coerceAtLeast(1) ?: 1
+    Column(
         Modifier
             .fillMaxWidth()
             .padding(top = 8.dp)
             .height(168.dp),
-        verticalAlignment = Alignment.Bottom,
-        horizontalArrangement = Arrangement.spacedBy(4.dp),
     ) {
-        stacks.forEach { stack ->
-            Column(
-                Modifier
-                    .weight(1f)
-                    .fillMaxHeight(),
-                horizontalAlignment = Alignment.CenterHorizontally,
-            ) {
-                Canvas(
-                    Modifier
-                        .fillMaxWidth()
-                        .weight(1f),
-                ) {
-                    val inset = 3.dp.toPx()
-                    val barW = (size.width - inset * 2).coerceAtLeast(2f)
-                    var top = size.height
-                    TodoRange.SUMMARY_ORDER.forEach { cat ->
-                        val n = stack.counts[cat] ?: 0
-                        if (n <= 0) return@forEach
-                        val h = size.height * n / max.toFloat()
-                        top -= h
-                        drawRect(
-                            color = categoryTint(cat),
-                            topLeft = Offset(inset, top),
-                            size = Size(barW, h),
-                        )
-                    }
+        Canvas(
+            Modifier
+                .fillMaxWidth()
+                .weight(1f),
+        ) {
+            if (stacks.isEmpty()) return@Canvas
+            val padY = 6.dp.toPx()
+            val plotH = (size.height - padY * 2).coerceAtLeast(1f)
+            val slot = size.width / stacks.size
+            val stroke = Stroke(
+                width = 2.dp.toPx(),
+                cap = StrokeCap.Round,
+                join = StrokeJoin.Round,
+            )
+            fun xOf(i: Int) = slot * (i + 0.5f)
+            fun yOf(n: Int) = padY + plotH * (1f - n / max.toFloat())
+            TodoRange.SUMMARY_ORDER.forEach { cat ->
+                val color = categoryTint(cat)
+                val path = Path()
+                stacks.forEachIndexed { i, stack ->
+                    val pt = Offset(xOf(i), yOf(stack.counts[cat] ?: 0))
+                    if (i == 0) path.moveTo(pt.x, pt.y) else path.lineTo(pt.x, pt.y)
                 }
-                Text("${stack.month}", fontSize = 10.sp, color = Ink2, modifier = Modifier.padding(top = 4.dp))
+                drawPath(path, color = color, style = stroke)
+                stacks.forEachIndexed { i, stack ->
+                    drawCircle(
+                        color = color,
+                        radius = 3.dp.toPx(),
+                        center = Offset(xOf(i), yOf(stack.counts[cat] ?: 0)),
+                    )
+                }
+            }
+        }
+        Row(Modifier.fillMaxWidth().padding(top = 4.dp)) {
+            stacks.forEach { stack ->
+                Box(Modifier.weight(1f), contentAlignment = Alignment.Center) {
+                    Text("${stack.month}", fontSize = 10.sp, color = Ink2)
+                }
             }
         }
     }
