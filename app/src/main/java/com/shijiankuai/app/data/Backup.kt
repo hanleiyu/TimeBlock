@@ -9,6 +9,7 @@ object Backup {
         blocks: List<BlockRow>,
         sleeps: List<SleepRow>,
         kv: List<KvRow>,
+        todos: List<TodoRow>,
     ): String {
         val root = JSONObject()
         root.put("version", 1)
@@ -49,6 +50,19 @@ object Backup {
         root.put("kv", JSONArray().also { arr ->
             kv.forEach { k ->
                 arr.put(JSONObject().put("key", k.key).put("value", k.value))
+            }
+        })
+        root.put("todos", JSONArray().also { arr ->
+            todos.forEach { t ->
+                arr.put(
+                    JSONObject()
+                        .put("id", t.id)
+                        .put("epochDay", t.epochDay)
+                        .put("category", t.category)
+                        .put("title", t.title)
+                        .put("done", t.done)
+                        .put("sortOrder", t.sortOrder),
+                )
             }
         })
         return root.toString()
@@ -98,7 +112,20 @@ object Backup {
                 KvRow(o.getString("key"), o.getString("value"))
             }
         } ?: emptyList()
-        return Snapshot(types, blocks, sleeps, kv)
+        val todos = root.optJSONArray("todos")?.let { arr ->
+            (0 until arr.length()).map { i ->
+                val o = arr.getJSONObject(i)
+                TodoRow(
+                    id = o.getString("id"),
+                    epochDay = o.getLong("epochDay"),
+                    category = o.getString("category"),
+                    title = o.getString("title"),
+                    done = o.getBoolean("done"),
+                    sortOrder = o.getInt("sortOrder"),
+                )
+            }
+        } ?: emptyList()
+        return Snapshot(types, blocks, sleeps, kv, todos)
     }
 
     fun csv(blocks: List<BlockRow>, types: List<TypeRow>): String {
@@ -119,5 +146,6 @@ object Backup {
         val blocks: List<BlockRow>,
         val sleeps: List<SleepRow>,
         val kv: List<KvRow>,
+        val todos: List<TodoRow>,
     )
 }

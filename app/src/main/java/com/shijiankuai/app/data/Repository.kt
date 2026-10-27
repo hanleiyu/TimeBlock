@@ -208,7 +208,13 @@ class Repository(
     suspend fun exportCsv(): String = Backup.csv(db.blocks().all(), db.types().all())
 
     suspend fun exportBackup(): String =
-        Backup.exportJson(db.types().all(), db.blocks().all(), db.sleeps().all(), db.kv().all())
+        Backup.exportJson(
+            db.types().all(),
+            db.blocks().all(),
+            db.sleeps().all(),
+            db.kv().all(),
+            db.todos().all(),
+        )
 
     suspend fun restoreBackup(json: String): Boolean {
         val snap = Backup.tryParse(json) ?: return false
@@ -217,10 +223,12 @@ class Repository(
             db.blocks().clearAll()
             db.sleeps().clearAll()
             db.kv().clearAll()
+            db.todos().clearAll()
             snap.types.forEach { db.types().upsert(it) }
             db.blocks().upsertAll(snap.blocks)
             snap.sleeps.forEach { db.sleeps().insert(it.copy(id = 0)) }
             snap.kv.forEach { db.kv().put(it) }
+            snap.todos.forEach { db.todos().upsert(it) }
         }
         _isAsleep.value = db.kv().get("is_asleep") != "0"
         _showAllTime.value = Prefs.showAllTimeEnabled(db.kv().get(Prefs.SHOW_ALL_TIME))
