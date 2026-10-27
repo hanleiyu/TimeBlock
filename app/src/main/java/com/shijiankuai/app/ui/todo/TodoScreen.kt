@@ -138,15 +138,13 @@ fun TodoScreen(
                 }
             }
             PeriodTabs(kind = viewKind, onKind = onKind)
-            if (viewKind != PeriodKind.MONTH) {
-                DateBar(
-                    kind = viewKind,
-                    start = start,
-                    end = end,
-                    onShiftDate = onShiftDate,
-                    onOpenCalendar = { showDate = true },
-                )
-            }
+            DateBar(
+                kind = viewKind,
+                start = start,
+                end = end,
+                onShiftDate = onShiftDate,
+                onOpenCalendar = { showDate = true },
+            )
             Column(
                 Modifier
                     .weight(1f)
@@ -227,7 +225,7 @@ fun TodoScreen(
             onCancel = { editing = null },
         )
     }
-    if (showDate && viewKind != PeriodKind.MONTH) {
+    if (showDate) {
         DatePick(date, onSetDate) { showDate = false }
     }
 }

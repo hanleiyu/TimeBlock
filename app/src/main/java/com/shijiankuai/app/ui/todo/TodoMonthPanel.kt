@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -60,9 +59,6 @@ fun TodoMonthPanel(
             grid = grid,
             dots = dots,
             onSelect = onSetDate,
-            onShiftMonth = { delta ->
-                onSetDate(TodoMonth.selectedDayInMonth(today, month.plusMonths(delta.toLong())))
-            },
         )
         DayDoneSummary(date = date, done = done)
         MonthCountRow(counts)
@@ -109,7 +105,6 @@ private fun MonthKalendarCard(
     grid: List<LocalDate>,
     dots: Map<LocalDate, List<TodoCategory>>,
     onSelect: (LocalDate) -> Unit,
-    onShiftMonth: (Int) -> Unit,
 ) {
     Column(
         Modifier
@@ -119,23 +114,7 @@ private fun MonthKalendarCard(
             .border(1.dp, Line, RoundedCornerShape(16.dp))
             .padding(horizontal = 10.dp, vertical = 12.dp),
     ) {
-        Row(
-            Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 8.dp, vertical = 4.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween,
-        ) {
-            Text("‹", fontSize = 22.sp, color = Ink2, modifier = Modifier.clickable { onShiftMonth(-1) })
-            Text(
-                TodoCalendar.monthLabel(month),
-                fontSize = 15.sp,
-                fontWeight = FontWeight.SemiBold,
-                color = Ink,
-            )
-            Text("›", fontSize = 22.sp, color = Ink2, modifier = Modifier.clickable { onShiftMonth(1) })
-        }
-        Row(Modifier.fillMaxWidth().padding(top = 8.dp)) {
+        Row(Modifier.fillMaxWidth()) {
             TodoCalendar.WEEKDAY_LABELS.forEach { label ->
                 Box(Modifier.weight(1f), contentAlignment = Alignment.Center) {
                     Text(label, fontSize = 12.sp, color = Ink3)
