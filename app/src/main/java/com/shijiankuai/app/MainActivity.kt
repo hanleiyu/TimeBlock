@@ -176,7 +176,6 @@ private fun AppRoot(vm: AppViewModel) {
                     SettingsScreen(
                         types = types,
                         onOpenTypes = { typesOpen = true },
-                        exportCsv = { vm.exportCsv() },
                         exportBackup = { vm.exportBackup() },
                         restore = { vm.restore(it) },
                         showAllTime = showAllTime,

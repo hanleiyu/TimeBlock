@@ -15,7 +15,8 @@ class DailyBackupTest {
 
     @Test
     fun fileNameIsFixedChineseBackup() {
-        assertEquals("时间块-备份.json", DailyBackup.FILE_NAME)
+        assertEquals("时间块-自动备份.txt", DailyBackup.FILE_NAME)
+        assertEquals("text/plain", DailyBackup.MIME)
     }
 
     @Test
