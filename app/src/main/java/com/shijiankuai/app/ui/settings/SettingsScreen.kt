@@ -36,13 +36,13 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.shijiankuai.app.BuildConfig
 import com.shijiankuai.app.domain.BlockType
 import com.shijiankuai.app.ui.theme.Accent
 import com.shijiankuai.app.ui.theme.Card
 import com.shijiankuai.app.ui.theme.Ink
 import com.shijiankuai.app.ui.theme.Ink2
 import com.shijiankuai.app.ui.theme.Ink3
-import com.shijiankuai.app.ui.theme.Line
 import com.shijiankuai.app.ui.theme.Paper
 import com.shijiankuai.app.ui.theme.PaperDeep
 import kotlinx.coroutines.launch
@@ -51,7 +51,6 @@ import kotlinx.coroutines.launch
 fun SettingsScreen(
     types: List<BlockType>,
     onOpenTypes: () -> Unit,
-    exportCsv: suspend () -> String,
     exportBackup: suspend () -> String,
     restore: suspend (String) -> Boolean,
     showAllTime: Boolean = true,
@@ -165,19 +164,13 @@ fun SettingsScreen(
                     ),
                 )
             }
-            RowItem("导出 CSV", sub = "全部日期、块序号、类型") {
-                scope.launch {
-                    pending.value = exportCsv()
-                    create.launch("时间块.csv")
-                }
-            }
-            RowItem("本地备份", sub = "生成一份可恢复的备份文件") {
+            RowItem("本地备份") {
                 scope.launch {
                     pending.value = exportBackup()
-                    create.launch("时间块-备份.json")
+                    create.launch("时间块-备份.txt")
                 }
             }
-            RowItem("从备份恢复", sub = "覆盖当前本地数据") {
+            RowItem("从备份恢复") {
                 open.launch(arrayOf("application/json", "text/plain", "*/*"))
             }
         }
@@ -187,6 +180,14 @@ fun SettingsScreen(
             fontSize = 11.sp,
             color = Ink3,
             modifier = Modifier.fillMaxWidth(),
+        )
+        Text(
+            "版本 ${BuildConfig.VERSION_NAME}",
+            fontSize = 11.sp,
+            color = Ink3,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 6.dp),
         )
     }
 

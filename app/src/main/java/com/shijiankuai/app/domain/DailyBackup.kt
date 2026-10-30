@@ -8,9 +8,9 @@ import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 
 object DailyBackup {
-    const val FILE_NAME = "时间块-备份.json"
+    const val FILE_NAME = "时间块-自动备份.txt"
     const val WORK_NAME = "daily_auto_backup"
-    const val MIME = "application/json"
+    const val MIME = "text/plain"
 
     private val hm = DateTimeFormatter.ofPattern("HH:mm")
 

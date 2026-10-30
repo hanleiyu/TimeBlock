@@ -100,7 +100,6 @@ fun PreviewSettings() {
         SettingsScreen(
             types = Presets.types,
             onOpenTypes = {},
-            exportCsv = { "" },
             exportBackup = { "" },
             restore = { false },
         )
