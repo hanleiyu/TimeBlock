@@ -56,6 +56,9 @@ fun SettingsScreen(
     restore: suspend (String) -> Boolean,
     showAllTime: Boolean = true,
     onShowAllTime: (Boolean) -> Unit = {},
+    autoBackup: Boolean = true,
+    lastBackupLabel: String = "尚未备份",
+    onAutoBackup: (Boolean) -> Unit = {},
 ) {
     val ctx = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -142,6 +145,26 @@ fun SettingsScreen(
         }
         Spacer(Modifier.height(12.dp))
         Group("数据 · 仅本机") {
+            Row(
+                Modifier
+                    .fillMaxWidth()
+                    .clickable { onAutoBackup(!autoBackup) }
+                    .padding(horizontal = 14.dp, vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Column(Modifier.weight(1f)) {
+                    Text("每晚 0 点自动备份到下载目录", fontSize = 14.sp, color = Ink)
+                    Text(lastBackupLabel, fontSize = 11.sp, color = Ink3)
+                }
+                Switch(
+                    checked = autoBackup,
+                    onCheckedChange = onAutoBackup,
+                    colors = SwitchDefaults.colors(
+                        checkedThumbColor = Color.White,
+                        checkedTrackColor = Accent,
+                    ),
+                )
+            }
             RowItem("导出 CSV", sub = "全部日期、块序号、类型") {
                 scope.launch {
                     pending.value = exportCsv()

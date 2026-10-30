@@ -14,19 +14,23 @@ class BackupTest {
     private val blocks = listOf(BlockRow(20_000L, 4, "sleep"), BlockRow(20_000L, 42, "work"))
     private val sleeps = listOf(SleepRow(1, 1_000L, 2_000L))
     private val kv = listOf(KvRow("is_asleep", "0"))
+    private val todos = listOf(
+        TodoRow("t_1", 20_000L, "work", "回邮件", done = true, sortOrder = 0),
+        TodoRow("t_2", 20_001L, "life", "倒垃圾", done = false, sortOrder = 1),
+    )
 
     @Test
     fun jsonRoundtripKeepsCustomTypeColor() {
         val custom = types.map {
             if (it.id == "work") it.copy(color = 0xFF336699) else it
         }
-        val snap = Backup.tryParse(Backup.exportJson(custom, blocks, sleeps, kv))!!
+        val snap = Backup.tryParse(Backup.exportJson(custom, blocks, sleeps, kv, todos))!!
         assertEquals(0xFF336699, snap.types.single { it.id == "work" }.color)
     }
 
     @Test
     fun jsonRoundtripPreservesRows() {
-        val json = Backup.exportJson(types, blocks, sleeps, kv)
+        val json = Backup.exportJson(types, blocks, sleeps, kv, todos)
         val snap = Backup.tryParse(json)!!
         assertEquals(types, snap.types)
         assertEquals(blocks, snap.blocks)
@@ -34,19 +38,35 @@ class BackupTest {
         assertEquals(1_000L, snap.sleeps[0].startedAtMillis)
         assertEquals(2_000L, snap.sleeps[0].endedAtMillis)
         assertEquals(kv, snap.kv)
+        assertEquals(todos, snap.todos)
     }
 
     @Test
-    fun parseAcceptsMissingSleepsAndKv() {
-        val json = Backup.exportJson(types, blocks, sleeps, kv)
+    fun parseAcceptsMissingSleepsKvAndTodos() {
+        val json = Backup.exportJson(types, blocks, sleeps, kv, todos)
         val slim = org.json.JSONObject(json).apply {
             remove("sleeps")
             remove("kv")
+            remove("todos")
         }.toString()
         val snap = Backup.tryParse(slim)!!
         assertTrue(snap.sleeps.isEmpty())
         assertTrue(snap.kv.isEmpty())
+        assertTrue(snap.todos.isEmpty())
         assertEquals(2, snap.types.size)
+    }
+
+    @Test
+    fun parseAcceptsLegacyBackupWithoutTodosKey() {
+        val legacy = org.json.JSONObject()
+            .put("version", 1)
+            .put("types", org.json.JSONArray())
+            .put("blocks", org.json.JSONArray())
+            .put("sleeps", org.json.JSONArray())
+            .put("kv", org.json.JSONArray())
+            .toString()
+        val snap = Backup.tryParse(legacy)!!
+        assertTrue(snap.todos.isEmpty())
     }
 
     @Test

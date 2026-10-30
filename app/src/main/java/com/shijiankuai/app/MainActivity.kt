@@ -33,6 +33,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -48,12 +49,20 @@ import com.shijiankuai.app.ui.theme.Ink3
 import com.shijiankuai.app.ui.theme.Paper
 import com.shijiankuai.app.ui.theme.TabBar
 import com.shijiankuai.app.ui.theme.TimeBlockTheme
+import com.shijiankuai.app.data.DailyBackupScheduler
+import com.shijiankuai.app.domain.DailyBackup
 import com.shijiankuai.app.ui.today.TodayScreen
+import android.Manifest
+import android.content.pm.PackageManager
+import android.os.Build
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        requestLegacyStorageIfNeeded()
         val repo = (application as TimeBlockApp).container.repo
         setContent {
             TimeBlockTheme {
@@ -61,6 +70,20 @@ class MainActivity : ComponentActivity() {
                 AppRoot(vm)
             }
         }
+    }
+
+    private fun requestLegacyStorageIfNeeded() {
+        if (Build.VERSION.SDK_INT >= 29) return
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+            == PackageManager.PERMISSION_GRANTED
+        ) {
+            return
+        }
+        ActivityCompat.requestPermissions(
+            this,
+            arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE),
+            17,
+        )
     }
 }
 
@@ -75,6 +98,9 @@ private fun AppRoot(vm: AppViewModel) {
     val anchor by vm.statsAnchor.collectAsStateWithLifecycle()
     val needStart by vm.needSleepStart.collectAsStateWithLifecycle()
     val showAllTime by vm.showAllTime.collectAsStateWithLifecycle()
+    val autoBackup by vm.autoBackup.collectAsStateWithLifecycle()
+    val lastAutoBackupAt by vm.lastAutoBackupAt.collectAsStateWithLifecycle()
+    val ctx = LocalContext.current
     val todoDate by vm.todoDate.collectAsStateWithLifecycle()
     val todoKind by vm.todoKind.collectAsStateWithLifecycle()
     val todos by vm.todos.collectAsStateWithLifecycle()
@@ -155,6 +181,12 @@ private fun AppRoot(vm: AppViewModel) {
                         restore = { vm.restore(it) },
                         showAllTime = showAllTime,
                         onShowAllTime = vm::setShowAllTime,
+                        autoBackup = autoBackup,
+                        lastBackupLabel = DailyBackup.lastBackupLabel(lastAutoBackupAt, zone),
+                        onAutoBackup = { on ->
+                            vm.setAutoBackup(on)
+                            DailyBackupScheduler.setEnabled(ctx, on)
+                        },
                     )
                 }
             }

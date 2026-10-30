@@ -134,4 +134,10 @@ interface TodoDao {
 
     @Query("SELECT * FROM todos WHERE epochDay BETWEEN :from AND :to ORDER BY epochDay, sortOrder")
     fun observeRange(from: Long, to: Long): Flow<List<TodoRow>>
+
+    @Query("SELECT * FROM todos ORDER BY epochDay, sortOrder")
+    suspend fun all(): List<TodoRow>
+
+    @Query("DELETE FROM todos")
+    suspend fun clearAll()
 }

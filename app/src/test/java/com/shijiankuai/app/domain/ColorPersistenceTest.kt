@@ -40,6 +40,7 @@ class ColorPersistenceTest {
                 listOf(BlockRow(20_000L, 4, "work")),
                 listOf(SleepRow(1, 1_000L, 2_000L)),
                 listOf(KvRow("is_asleep", "0")),
+                emptyList(),
             ),
         )!!
         assertEquals(custom, snap.types.single { it.id == "work" }.color)
