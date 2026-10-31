@@ -69,8 +69,10 @@ import com.shijiankuai.app.ui.theme.Ink2
 import com.shijiankuai.app.ui.theme.Ink3
 import com.shijiankuai.app.ui.theme.Line
 import com.shijiankuai.app.ui.theme.OnAccent
+import com.shijiankuai.app.ui.theme.OnSelected
 import com.shijiankuai.app.ui.theme.Paper
 import com.shijiankuai.app.ui.theme.PaperDeep
+import com.shijiankuai.app.ui.theme.SelectedFill
 import com.shijiankuai.app.ui.theme.Sheet
 import java.time.LocalDate
 import kotlin.math.roundToInt
@@ -178,7 +180,7 @@ fun TodoScreen(
                     .clickable { adding = true },
                 contentAlignment = Alignment.Center,
             ) {
-                Text("+", color = OnAccent, fontSize = 28.sp, fontWeight = FontWeight.Medium)
+                Text("+", color = OnAccent, fontSize = 28.sp, fontWeight = FontWeight.SemiBold)
             }
         }
     }
@@ -244,7 +246,7 @@ private fun DateBar(
         Text(
             TodoRange.periodLabel(kind, start, end),
             fontSize = 15.sp,
-            fontWeight = FontWeight.SemiBold,
+            fontWeight = FontWeight.Bold,
             color = Ink,
             modifier = Modifier.clickable(onClick = onOpenCalendar),
         )
@@ -271,7 +273,7 @@ private fun YearSummary(items: List<TodoItem>, year: Int) {
                 Text(
                     "${counts[cat] ?: 0}",
                     fontSize = 22.sp,
-                    fontWeight = FontWeight.SemiBold,
+                    fontWeight = FontWeight.Bold,
                     color = categoryTint(cat),
                     modifier = Modifier.padding(top = 1.dp),
                 )
@@ -364,7 +366,7 @@ private fun CategoryCard(
             Text(
                 card.category.label,
                 fontSize = 15.sp,
-                fontWeight = FontWeight.SemiBold,
+                fontWeight = FontWeight.Bold,
                 color = Ink,
                 modifier = Modifier.padding(start = 8.dp),
             )
@@ -456,7 +458,7 @@ private fun TodoRow(
         Text(
             item.title,
             fontSize = 15.sp,
-            fontWeight = FontWeight.Medium,
+            fontWeight = FontWeight.SemiBold,
             color = if (look.faded) Ink2.copy(alpha = 0.62f) else Ink,
             textDecoration = if (look.strike) TextDecoration.LineThrough else TextDecoration.None,
             modifier = Modifier
@@ -496,7 +498,7 @@ fun AddTodoSheet(onAdd: (TodoCategory, String) -> Unit, onCancel: () -> Unit) {
         containerColor = Sheet,
     ) {
         Column(Modifier.padding(horizontal = 18.dp).padding(bottom = 28.dp)) {
-            Text("新任务", fontSize = 17.sp, fontWeight = FontWeight.SemiBold, color = Ink, modifier = Modifier.align(Alignment.CenterHorizontally))
+            Text("新任务", fontSize = 17.sp, fontWeight = FontWeight.Bold, color = Ink, modifier = Modifier.align(Alignment.CenterHorizontally))
             Spacer(Modifier.height(16.dp))
             OutlinedTextField(
                 value = title,
@@ -529,7 +531,7 @@ private fun EditTodoSheet(initial: String, onSave: (String) -> Unit, onCancel: (
         containerColor = Sheet,
     ) {
         Column(Modifier.padding(horizontal = 18.dp).padding(bottom = 28.dp)) {
-            Text("编辑", fontSize = 17.sp, fontWeight = FontWeight.SemiBold, color = Ink, modifier = Modifier.align(Alignment.CenterHorizontally))
+            Text("编辑", fontSize = 17.sp, fontWeight = FontWeight.Bold, color = Ink, modifier = Modifier.align(Alignment.CenterHorizontally))
             Spacer(Modifier.height(16.dp))
             OutlinedTextField(
                 value = title,
@@ -564,7 +566,7 @@ fun TodoActionSheet(
         containerColor = Sheet,
     ) {
         Column(Modifier.padding(horizontal = 18.dp).padding(bottom = 28.dp)) {
-            Text(title, fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = Ink)
+            Text(title, fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Ink)
             Spacer(Modifier.height(14.dp))
             ActionRow("延到明天", Ink, onDefer)
             ActionRow("编辑", Ink, onEdit)
@@ -585,7 +587,7 @@ private fun ActionRow(label: String, color: Color, onClick: () -> Unit) {
             .padding(vertical = 14.dp),
         contentAlignment = Alignment.CenterStart,
     ) {
-        Text(label, fontSize = 15.sp, fontWeight = FontWeight.Medium, color = color)
+        Text(label, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = color)
     }
 }
 
@@ -597,12 +599,12 @@ private fun CategoryChips(selected: TodoCategory, onSelect: (TodoCategory) -> Un
             Box(
                 Modifier
                     .clip(RoundedCornerShape(999.dp))
-                    .background(if (on) Accent else Color.Transparent)
+                    .background(if (on) SelectedFill else Color.Transparent)
                     .then(if (on) Modifier else Modifier.border(1.dp, Line, RoundedCornerShape(999.dp)))
                     .clickable { onSelect(cat) }
                     .padding(horizontal = 12.dp, vertical = 8.dp),
             ) {
-                Text(cat.label, fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = if (on) OnAccent else Ink2)
+                Text(cat.label, fontSize = 13.sp, fontWeight = FontWeight.Bold, color = if (on) OnSelected else Ink2)
             }
         }
     }
@@ -618,7 +620,7 @@ private fun SheetBtn(label: String, primary: Boolean, modifier: Modifier, enable
             .clickable(enabled = enabled, onClick = onClick),
         contentAlignment = Alignment.Center,
     ) {
-        Text(label, color = if (primary) OnAccent else Ink2, fontWeight = FontWeight.SemiBold)
+        Text(label, color = if (primary) OnAccent else Ink2, fontWeight = FontWeight.Bold)
     }
 }
 

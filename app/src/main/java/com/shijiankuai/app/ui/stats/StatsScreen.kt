@@ -135,7 +135,7 @@ fun StatsScreen(
 @Composable
 private fun Sum(label: String, n: Int) {
     Column {
-        Text("$n", fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = Ink)
+        Text("$n", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Ink)
         Text(label, fontSize = 12.sp, color = Ink2)
     }
 }
@@ -184,7 +184,7 @@ private fun StatRow(color: Color, name: String, blocks: Int, total: Int) {
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Box(Modifier.size(10.dp).clip(CircleShape).background(color))
-        Text(name, fontSize = 13.sp, color = Ink, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(start = 8.dp).weight(1f))
+        Text(name, fontSize = 13.sp, color = Ink, fontWeight = FontWeight.Bold, modifier = Modifier.padding(start = 8.dp).weight(1f))
         Text(
             "$blocks 块 · ${hoursLabel(blocks)} · $pct%",
             fontSize = 12.sp,

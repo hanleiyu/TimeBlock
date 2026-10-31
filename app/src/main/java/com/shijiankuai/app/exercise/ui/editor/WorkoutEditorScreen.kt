@@ -52,12 +52,13 @@ import com.shijiankuai.app.exercise.ui.components.PrimaryButton
 import com.shijiankuai.app.exercise.ui.components.ScreenHeader
 import com.shijiankuai.app.exercise.ui.components.Segmented
 import com.shijiankuai.app.ui.theme.Accent
-import com.shijiankuai.app.ui.theme.HighlightWash
 import com.shijiankuai.app.ui.theme.Ink
 import com.shijiankuai.app.ui.theme.Ink2
 import com.shijiankuai.app.ui.theme.Line
+import com.shijiankuai.app.ui.theme.OnSelected
 import com.shijiankuai.app.ui.theme.Paper
 import com.shijiankuai.app.ui.theme.PaperDeep
+import com.shijiankuai.app.ui.theme.SelectedFill
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneOffset
@@ -223,16 +224,16 @@ fun WorkoutEditorScreen(
                             modifier = Modifier
                                 .weight(1f)
                                 .clip(shape)
-                                .border(1.dp, if (on) Accent else Line, shape)
-                                .background(if (on) HighlightWash else PaperDeep)
+                                .border(1.dp, if (on) SelectedFill else Line, shape)
+                                .background(if (on) SelectedFill else PaperDeep)
                                 .clickable { intensity = item }
                                 .padding(vertical = 10.dp, horizontal = 4.dp),
                             horizontalAlignment = Alignment.CenterHorizontally,
                         ) {
                             Text(
                                 item.label,
-                                color = if (on) Accent else Ink,
-                                fontWeight = FontWeight.SemiBold,
+                                color = if (on) OnSelected else Ink,
+                                fontWeight = FontWeight.Bold,
                                 fontSize = 14.sp,
                             )
                             Spacer(Modifier.height(2.dp))

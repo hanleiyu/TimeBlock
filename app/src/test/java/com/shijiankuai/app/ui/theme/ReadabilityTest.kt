@@ -24,11 +24,9 @@ class ReadabilityTest {
     }
 
     @Test
-    fun darkSelectedGreenBeatsCardOnChip() {
+    fun darkSelectedGrayFillReadableOnChip() {
         val chip = 0x1C1C1FL
-        val card = 0x141414L
-        val selected = 0x00E676L
-        assertTrue(Contrast.ratio(selected, chip) > Contrast.ratio(card, chip))
+        val selected = 0xE8E8EDL
         assertTrue(Contrast.ratio(selected, chip) >= 3.0)
         assertTrue(Contrast.ratio(0x000000, selected) >= 4.5)
     }

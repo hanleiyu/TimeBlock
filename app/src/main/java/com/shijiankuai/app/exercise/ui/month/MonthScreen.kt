@@ -100,7 +100,7 @@ fun MonthScreen(
         }
         item {
             AppCard {
-                Text("本月", color = Ink, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
+                Text("本月", color = Ink, fontSize = 14.sp, fontWeight = FontWeight.Bold)
                 Spacer(Modifier.height(12.dp))
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                     MonthStat("有氧", "${monthStats.rawAerobic}分钟")
@@ -118,7 +118,7 @@ fun MonthScreen(
                             formatYuan(monthEarn),
                             color = Aero,
                             fontSize = 24.sp,
-                            fontWeight = FontWeight.SemiBold,
+                            fontWeight = FontWeight.Bold,
                         )
                     }
                     Column(horizontalAlignment = Alignment.End) {
@@ -128,7 +128,7 @@ fun MonthScreen(
                             formatYuan(totalEarn),
                             color = Ink,
                             fontSize = 16.sp,
-                            fontWeight = FontWeight.SemiBold,
+                            fontWeight = FontWeight.Bold,
                         )
                     }
                 }
@@ -140,7 +140,7 @@ fun MonthScreen(
                     selected.toZhDateWeek(),
                     color = Ink,
                     fontSize = 14.sp,
-                    fontWeight = FontWeight.SemiBold,
+                    fontWeight = FontWeight.Bold,
                     modifier = Modifier.weight(1f),
                 )
                 Text("共${dayTotal}分钟", color = Ink2, fontSize = 13.sp, modifier = Modifier.padding(end = 10.dp))
@@ -148,7 +148,7 @@ fun MonthScreen(
                     "＋ 记录",
                     color = Accent,
                     fontSize = 13.sp,
-                    fontWeight = FontWeight.SemiBold,
+                    fontWeight = FontWeight.Bold,
                     modifier = Modifier
                         .clip(RoundedCornerShape(999.dp))
                         .background(Card)
@@ -177,7 +177,7 @@ private fun MonthHeader(month: YearMonth, onPrev: () -> Unit, onNext: () -> Unit
             "${month.year}年${month.monthValue}月",
             color = Ink,
             fontSize = 16.sp,
-            fontWeight = FontWeight.SemiBold,
+            fontWeight = FontWeight.Bold,
             textAlign = TextAlign.Center,
             modifier = Modifier.weight(1f),
         )
@@ -261,7 +261,7 @@ private fun DayCell(
                 date.dayOfMonth.toString(),
                 color = dayNumberColor,
                 fontSize = 14.sp,
-                fontWeight = if (selectedDay) FontWeight.SemiBold else FontWeight.Normal,
+                fontWeight = if (selectedDay) FontWeight.Bold else FontWeight.Medium,
             )
         }
         Spacer(Modifier.height(4.dp))
@@ -311,7 +311,7 @@ private fun MonthStat(label: String, value: String) {
     Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(horizontal = 4.dp)) {
         Text(label, color = Ink, fontSize = 13.sp)
         Spacer(Modifier.height(6.dp))
-        Text(value, color = Ink, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+        Text(value, color = Ink, fontSize = 16.sp, fontWeight = FontWeight.Bold)
     }
 }
 
@@ -336,7 +336,7 @@ private fun DayWorkoutRow(w: Workout, onClick: () -> Unit) {
         )
         Spacer(Modifier.width(12.dp))
         Column(Modifier.weight(1f)) {
-            Text(w.activityName, color = Ink, fontSize = 14.sp, fontWeight = FontWeight.Medium)
+            Text(w.activityName, color = Ink, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
             Spacer(Modifier.height(3.dp))
             Text(w.category.label, color = Ink2, fontSize = 12.sp)
         }

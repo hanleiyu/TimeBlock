@@ -88,7 +88,7 @@ private fun MonthCountRow(counts: Map<TodoCategory, Int>) {
                 Text(
                     "${counts[cat] ?: 0}",
                     fontSize = 22.sp,
-                    fontWeight = FontWeight.SemiBold,
+                    fontWeight = FontWeight.Bold,
                     color = categoryTint(cat),
                     modifier = Modifier.padding(top = 1.dp),
                 )
@@ -178,7 +178,7 @@ private fun MonthDayCell(
             Text(
                 "${day.dayOfMonth}",
                 fontSize = 14.sp,
-                fontWeight = if (selected || isToday) FontWeight.SemiBold else FontWeight.Medium,
+                fontWeight = if (selected || isToday) FontWeight.Bold else FontWeight.SemiBold,
                 color = numberColor,
             )
         }
@@ -212,7 +212,7 @@ private fun DayDoneSummary(date: LocalDate, done: List<TodoItem>) {
         Text(
             TodoMonth.summaryTitle(date),
             fontSize = 15.sp,
-            fontWeight = FontWeight.SemiBold,
+            fontWeight = FontWeight.Bold,
             color = Ink,
         )
         if (done.isEmpty()) {
@@ -238,11 +238,11 @@ private fun DayDoneSummary(date: LocalDate, done: List<TodoItem>) {
                         .height(40.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Text("✓", color = DoneGreen, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+                    Text("✓", color = DoneGreen, fontSize = 16.sp, fontWeight = FontWeight.Bold)
                     Text(
                         item.title,
                         fontSize = 15.sp,
-                        fontWeight = FontWeight.Medium,
+                        fontWeight = FontWeight.SemiBold,
                         color = Ink,
                         modifier = Modifier
                             .weight(1f)

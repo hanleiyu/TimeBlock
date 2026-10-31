@@ -74,7 +74,7 @@ fun WeekScreen(
                     if (ui.balanceGoal > 0) "${ui.balance}/${ui.balanceGoal}次" else "${ui.balance}次",
                     color = Ink,
                     fontSize = 14.sp,
-                    fontWeight = FontWeight.Medium,
+                    fontWeight = FontWeight.SemiBold,
                 )
             }
         }
@@ -83,7 +83,7 @@ fun WeekScreen(
         AppCard {
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 Text("本周总运动时长", color = Ink, fontSize = 14.sp, modifier = Modifier.weight(1f))
-                Text("${ui.rawTotal}分钟", color = Ink, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+                Text("${ui.rawTotal}分钟", color = Ink, fontSize = 16.sp, fontWeight = FontWeight.Bold)
             }
             Spacer(Modifier.height(8.dp))
             Text(
@@ -138,7 +138,7 @@ private fun ProgressBlock(
     Column {
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             Text(title, color = Ink, fontSize = 14.sp, modifier = Modifier.weight(1f))
-            Text("$current/$target$unit", color = Ink, fontSize = 14.sp, fontWeight = FontWeight.Medium)
+            Text("$current/$target$unit", color = Ink, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
         }
         Spacer(Modifier.height(10.dp))
         ProgressBar(if (target == 0) 0f else current.toFloat() / target, color)

@@ -2,6 +2,7 @@ package com.shijiankuai.app.ui.chrome
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
@@ -11,6 +12,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -37,7 +39,7 @@ fun PageTitle(
         Text(
             title,
             fontSize = 22.sp,
-            fontWeight = FontWeight.SemiBold,
+            fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onSurface,
             modifier = Modifier.weight(1f),
         )
@@ -67,7 +69,11 @@ fun <T> SegmentTabs(
                     .weight(1f)
                     .clip(RoundedCornerShape(10.dp))
                     .background(if (on) SelectedFill else Color.Transparent)
-                    .clickable { onSelect(option) }
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = null,
+                        onClick = { onSelect(option) },
+                    )
                     .padding(vertical = 7.dp),
                 contentAlignment = Alignment.Center,
             ) {
@@ -75,7 +81,7 @@ fun <T> SegmentTabs(
                     label(option),
                     fontSize = 13.sp,
                     color = if (on) OnSelected else Ink2,
-                    fontWeight = if (on) FontWeight.SemiBold else FontWeight.Medium,
+                    fontWeight = if (on) FontWeight.Bold else FontWeight.SemiBold,
                 )
             }
         }

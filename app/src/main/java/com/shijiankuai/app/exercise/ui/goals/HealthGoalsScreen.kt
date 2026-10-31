@@ -52,8 +52,10 @@ import com.shijiankuai.app.ui.theme.Aero
 import com.shijiankuai.app.ui.theme.Card
 import com.shijiankuai.app.ui.theme.Ink
 import com.shijiankuai.app.ui.theme.OnAccent
+import com.shijiankuai.app.ui.theme.OnSelected
 import com.shijiankuai.app.ui.theme.Paper
 import com.shijiankuai.app.ui.theme.PaperDeep
+import com.shijiankuai.app.ui.theme.SelectedFill
 import com.shijiankuai.app.ui.theme.StrengthHue
 import kotlin.math.max
 import kotlin.math.min
@@ -87,7 +89,7 @@ fun HealthGoalsScreen(
         if (settings.targetMode == TargetMode.PLAN) {
             AppCard(border = Accent) {
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                    Text("渐进计划目标", color = Ink, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
+                    Text("渐进计划目标", color = Ink, fontSize = 14.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
                     Text(currentStageLabel(settings.plan.stage), color = Accent, fontSize = 13.sp)
                 }
                 Spacer(Modifier.height(8.dp))
@@ -139,7 +141,7 @@ fun HealthGoalsScreen(
             }
         } else {
             AppCard(border = Accent) {
-                Text("固定目标", color = Ink, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
+                Text("固定目标", color = Ink, fontSize = 14.sp, fontWeight = FontWeight.Bold)
                 SettingsRow("有氧", "${settings.fixedAerobic}分钟/周") {
                     edit = minuteEdit("固定目标 · 有氧", settings.fixedAerobic, vm::setFixedAerobic)
                 }
@@ -235,7 +237,7 @@ private fun TargetNumberSheet(
                 .padding(bottom = 28.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            Text(edit.title, color = Ink, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+            Text(edit.title, color = Ink, fontSize = 16.sp, fontWeight = FontWeight.Bold)
             Spacer(Modifier.height(22.dp))
             Row(verticalAlignment = Alignment.CenterVertically) {
                 SheetStepButton(plus = false) { value = max(edit.min, value - edit.step) }
@@ -243,7 +245,7 @@ private fun TargetNumberSheet(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier.padding(horizontal = 28.dp),
                 ) {
-                    Text("$value", color = Ink, fontSize = 40.sp, fontWeight = FontWeight.SemiBold)
+                    Text("$value", color = Ink, fontSize = 40.sp, fontWeight = FontWeight.Bold)
                     Text(edit.unit, color = Ink, fontSize = 13.sp)
                 }
                 SheetStepButton(plus = true) { value = min(edit.max, value + edit.step) }
@@ -256,15 +258,15 @@ private fun TargetNumberSheet(
                         Modifier
                             .size(44.dp)
                             .clip(CircleShape)
-                            .background(if (on) Accent else PaperDeep)
+                            .background(if (on) SelectedFill else PaperDeep)
                             .clickable { value = chip },
                         contentAlignment = Alignment.Center,
                     ) {
                         Text(
                             chip.toString(),
-                            color = if (on) OnAccent else Ink,
+                            color = if (on) OnSelected else Ink,
                             fontSize = 14.sp,
-                            fontWeight = FontWeight.Medium,
+                            fontWeight = FontWeight.SemiBold,
                         )
                     }
                 }
@@ -280,7 +282,7 @@ private fun TargetNumberSheet(
                         .clickable(onClick = onDismiss),
                     contentAlignment = Alignment.Center,
                 ) {
-                    Text("取消", color = Ink, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
+                    Text("取消", color = Ink, fontSize = 15.sp, fontWeight = FontWeight.Bold)
                 }
                 Spacer(Modifier.width(12.dp))
                 Box(
@@ -292,7 +294,7 @@ private fun TargetNumberSheet(
                         .clickable { onSave(value) },
                     contentAlignment = Alignment.Center,
                 ) {
-                    Text("保存", color = OnAccent, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
+                    Text("保存", color = OnAccent, fontSize = 15.sp, fontWeight = FontWeight.Bold)
                 }
             }
         }

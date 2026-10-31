@@ -114,7 +114,7 @@ fun TypeColorPicker(
                 singleLine = true,
                 textStyle = TextStyle(
                     fontSize = 14.sp,
-                    fontWeight = FontWeight.SemiBold,
+                    fontWeight = FontWeight.Bold,
                     color = Ink,
                 ),
                 modifier = Modifier.weight(1f),

@@ -120,7 +120,7 @@ fun TodayScreen(
             Text(
                 ui.date.toCn(),
                 fontSize = 22.sp,
-                fontWeight = FontWeight.SemiBold,
+                fontWeight = FontWeight.Bold,
                 color = Ink,
                 modifier = Modifier
                     .weight(1f)
@@ -496,7 +496,7 @@ fun AsleepScreen(
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Row(Modifier.fillMaxWidth().padding(top = 8.dp), horizontalArrangement = Arrangement.SpaceBetween) {
-            Text("时间块", fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = Ink)
+            Text("时间块", fontSize = 15.sp, fontWeight = FontWeight.Bold, color = Ink)
         }
         Spacer(Modifier.weight(1f))
         Text(
@@ -516,7 +516,7 @@ fun AsleepScreen(
                 }
                 .clickable(onClick = onOpenDate),
         )
-        Text("还在睡", fontSize = 30.sp, fontWeight = FontWeight.SemiBold, color = Ink, modifier = Modifier.padding(top = 10.dp))
+        Text("还在睡", fontSize = 30.sp, fontWeight = FontWeight.Bold, color = Ink, modifier = Modifier.padding(top = 10.dp))
         Spacer(Modifier.height(36.dp))
         Box(
             Modifier
@@ -526,7 +526,7 @@ fun AsleepScreen(
                 .clickable(onClick = onWake),
             contentAlignment = Alignment.Center,
         ) {
-            Text("我醒了", color = Color.White, fontSize = 28.sp, fontWeight = FontWeight.SemiBold)
+            Text("我醒了", color = Color.White, fontSize = 28.sp, fontWeight = FontWeight.Bold)
         }
         Spacer(Modifier.weight(1.2f))
     }

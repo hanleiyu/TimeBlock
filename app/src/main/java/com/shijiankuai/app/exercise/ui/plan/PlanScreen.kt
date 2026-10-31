@@ -61,7 +61,7 @@ fun PlanScreen(vm: PlanViewModel, onBack: () -> Unit) {
         Spacer(Modifier.height(14.dp))
 
         AppCard {
-            Text(ui.stageLine, color = Ink, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+            Text(ui.stageLine, color = Ink, fontSize = 16.sp, fontWeight = FontWeight.Bold)
             Spacer(Modifier.height(6.dp))
             Text(
                 "本阶段目标：有氧 ${ui.aerobicTarget} · 力量 ${ui.strengthTarget} 分钟",
@@ -72,7 +72,7 @@ fun PlanScreen(vm: PlanViewModel, onBack: () -> Unit) {
 
         Spacer(Modifier.height(12.dp))
         AppCard {
-            Text("阶段时间线", color = Ink, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
+            Text("阶段时间线", color = Ink, fontSize = 14.sp, fontWeight = FontWeight.Bold)
             Spacer(Modifier.height(14.dp))
             Stage.entries.forEachIndexed { index, stage ->
                 val spent = ui.weeksSpent[stage] ?: 0
@@ -102,7 +102,7 @@ fun PlanScreen(vm: PlanViewModel, onBack: () -> Unit) {
 
         Spacer(Modifier.height(12.dp))
         AppCard {
-            Text("升级条件", color = Ink, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
+            Text("升级条件", color = Ink, fontSize = 14.sp, fontWeight = FontWeight.Bold)
             Spacer(Modifier.height(8.dp))
             Text(
                 "连续 ${ui.weeksToAdvance} 周同时达成有氧和力量目标 → 自动进入下一阶段；未达标则连续达标清零，停留在当前阶段。平衡次数不计入是否达标。只评估已结束的周。",
@@ -154,7 +154,7 @@ private fun StageRow(stage: Stage, weeks: Int, status: StageStatus, aerobic: Int
                     "${stage.label}$weekLabel",
                     color = Ink,
                     fontSize = 14.sp,
-                    fontWeight = FontWeight.Medium,
+                    fontWeight = FontWeight.SemiBold,
                     modifier = Modifier.weight(1f),
                 )
                 StatusPill(pillText, pillBg, pillFg)

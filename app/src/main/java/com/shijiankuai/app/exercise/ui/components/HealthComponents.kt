@@ -51,7 +51,9 @@ import com.shijiankuai.app.ui.theme.Ink2
 import com.shijiankuai.app.ui.theme.Ink3
 import com.shijiankuai.app.ui.theme.Line
 import com.shijiankuai.app.ui.theme.OnAccent
+import com.shijiankuai.app.ui.theme.OnSelected
 import com.shijiankuai.app.ui.theme.PaperDeep
+import com.shijiankuai.app.ui.theme.SelectedFill
 import com.shijiankuai.app.ui.theme.Unfilled
 import kotlin.math.max
 
@@ -89,7 +91,7 @@ fun ScreenHeader(title: String, subtitle: String? = null, onBack: (() -> Unit)? 
                         .padding(end = 8.dp),
                 )
             }
-            Text(title, fontSize = 22.sp, fontWeight = FontWeight.SemiBold, color = Ink)
+            Text(title, fontSize = 22.sp, fontWeight = FontWeight.Bold, color = Ink)
         }
         if (!subtitle.isNullOrBlank()) {
             Spacer(Modifier.height(4.dp))
@@ -123,7 +125,7 @@ fun StatusPill(text: String, bg: Color, fg: Color) {
         text = text,
         color = fg,
         fontSize = 12.sp,
-        fontWeight = FontWeight.Medium,
+        fontWeight = FontWeight.SemiBold,
         modifier = Modifier
             .clip(RoundedCornerShape(99.dp))
             .background(bg)
@@ -148,11 +150,11 @@ fun ChoiceChipRow(
             val on = option == selected
             Text(
                 text = option,
-                color = if (on) OnAccent else Ink,
+                color = if (on) OnSelected else Ink,
                 fontSize = 13.sp,
                 modifier = Modifier
                     .clip(RoundedCornerShape(99.dp))
-                    .background(if (on) Accent else PaperDeep)
+                    .background(if (on) SelectedFill else PaperDeep)
                     .clickable { onSelect(option) }
                     .padding(horizontal = 14.dp, vertical = 8.dp),
             )
@@ -188,7 +190,7 @@ fun DurationStepper(
             Text(
                 text = "${value}分钟",
                 fontSize = 28.sp,
-                fontWeight = FontWeight.SemiBold,
+                fontWeight = FontWeight.Bold,
                 color = Ink,
                 modifier = Modifier.padding(horizontal = 24.dp),
             )
@@ -206,14 +208,14 @@ fun DurationStepper(
                     Modifier
                         .size(40.dp)
                         .clip(CircleShape)
-                        .background(if (on) Accent else PaperDeep),
+                        .background(if (on) SelectedFill else PaperDeep),
                     contentAlignment = Alignment.Center,
                 ) {
                     Text(
                         chip.toString(),
-                        color = if (on) OnAccent else Ink2,
+                        color = if (on) OnSelected else Ink2,
                         fontSize = 13.sp,
-                        fontWeight = FontWeight.Medium,
+                        fontWeight = FontWeight.SemiBold,
                         modifier = Modifier.clickable { onChange(chip) },
                     )
                 }
@@ -258,7 +260,7 @@ fun PrimaryButton(text: String, enabled: Boolean = true, onClick: () -> Unit) {
         ),
         contentPadding = PaddingValues(0.dp),
     ) {
-        Text(text, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+        Text(text, fontSize = 16.sp, fontWeight = FontWeight.Bold)
     }
 }
 
@@ -362,7 +364,7 @@ fun SoftHintCard(text: String) {
             .padding(14.dp),
     ) {
         Column {
-            Text("升级提示", color = Accent, fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
+            Text("升级提示", color = Accent, fontWeight = FontWeight.Bold, fontSize = 14.sp)
             Spacer(Modifier.height(6.dp))
             Text(text, color = Ink, fontSize = 13.sp, lineHeight = 20.sp)
         }

@@ -92,7 +92,7 @@ fun MetricsScreen(
                 .padding(vertical = 14.dp),
             contentAlignment = Alignment.Center,
         ) {
-            Text("+ 新建指标", color = Accent, fontSize = 14.sp, fontWeight = FontWeight.Medium)
+            Text("+ 新建指标", color = Accent, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
         }
     }
 
@@ -116,7 +116,7 @@ private fun MetricRow(item: MetricListItem, onClick: () -> Unit) {
     AppCard(onClick = onClick) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f)) {
-                Text(item.metric.name, color = Ink, fontSize = 15.sp, fontWeight = FontWeight.Medium)
+                Text(item.metric.name, color = Ink, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
                 Spacer(Modifier.height(4.dp))
                 val best = item.best?.let { "最佳 ${formatValue(it.value)}${item.metric.unit}" } ?: "还没有测试"
                 val last = latest?.let { "上次 ${it.date.toZhDate()}" } ?: ""
@@ -127,7 +127,7 @@ private fun MetricRow(item: MetricListItem, onClick: () -> Unit) {
                     text = latest?.let { "${formatValue(it.value)}${item.metric.unit}" } ?: "—",
                     color = Ink,
                     fontSize = 20.sp,
-                    fontWeight = FontWeight.SemiBold,
+                    fontWeight = FontWeight.Bold,
                 )
                 if (delta != null) {
                     Spacer(Modifier.height(4.dp))
@@ -193,7 +193,7 @@ fun MetricDetailScreen(
 
         Spacer(Modifier.height(12.dp))
         AppCard {
-            Text("进步轨迹", color = Ink, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
+            Text("进步轨迹", color = Ink, fontSize = 14.sp, fontWeight = FontWeight.Bold)
             Spacer(Modifier.height(10.dp))
             Segmented(
                 options = listOf("1月", "3月", "全部"),
@@ -213,7 +213,7 @@ fun MetricDetailScreen(
 
         Spacer(Modifier.height(12.dp))
         AppCard {
-            Text("测试记录", color = Ink, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
+            Text("测试记录", color = Ink, fontSize = 14.sp, fontWeight = FontWeight.Bold)
             Spacer(Modifier.height(8.dp))
             if (tests.isEmpty()) EmptyHint("还没有测试记录")
             tests.forEach { t ->
@@ -276,7 +276,7 @@ fun MetricDetailScreen(
 @Composable
 private fun StatCell(value: String, label: String, color: androidx.compose.ui.graphics.Color = Ink) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(value, color = color, fontSize = 20.sp, fontWeight = FontWeight.SemiBold)
+        Text(value, color = color, fontSize = 20.sp, fontWeight = FontWeight.Bold)
         Spacer(Modifier.height(4.dp))
         Text(label, color = Ink2, fontSize = 12.sp)
     }
