@@ -58,13 +58,17 @@ import com.shijiankuai.app.domain.TodoItem
 import com.shijiankuai.app.domain.TodoList
 import com.shijiankuai.app.domain.TodoMonth
 import com.shijiankuai.app.domain.TodoRange
+import com.shijiankuai.app.ui.DatePick
+import com.shijiankuai.app.ui.chrome.PageTitle
+import com.shijiankuai.app.ui.chrome.SegmentTabs
+import com.shijiankuai.app.ui.chrome.tabLabel
 import com.shijiankuai.app.ui.theme.Accent
 import com.shijiankuai.app.ui.theme.Card
 import com.shijiankuai.app.ui.theme.Ink
 import com.shijiankuai.app.ui.theme.Ink2
 import com.shijiankuai.app.ui.theme.Ink3
 import com.shijiankuai.app.ui.theme.Line
-import com.shijiankuai.app.ui.DatePick
+import com.shijiankuai.app.ui.theme.OnAccent
 import com.shijiankuai.app.ui.theme.Paper
 import com.shijiankuai.app.ui.theme.PaperDeep
 import com.shijiankuai.app.ui.theme.Sheet
@@ -101,20 +105,12 @@ fun TodoScreen(
             .fillMaxSize()
             .background(Paper),
     ) {
-        Column(Modifier.fillMaxSize()) {
-            Row(
-                Modifier
-                    .fillMaxWidth()
-                    .padding(start = 20.dp, end = 16.dp, top = 8.dp, bottom = 4.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text(
-                    "清单",
-                    fontSize = 22.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    color = Ink,
-                    modifier = Modifier.weight(1f),
-                )
+        Column(
+            Modifier
+                .fillMaxSize()
+                .padding(horizontal = 16.dp, vertical = 4.dp),
+        ) {
+            PageTitle("清单") {
                 if (!StatsNav.contains(viewKind, date, today)) {
                     Text(
                         "今天",
@@ -131,7 +127,13 @@ fun TodoScreen(
                     )
                 }
             }
-            PeriodTabs(kind = viewKind, onKind = onKind)
+            Spacer(Modifier.height(12.dp))
+            SegmentTabs(
+                options = TodoMonth.CHECKLIST_KINDS,
+                selected = viewKind,
+                onSelect = onKind,
+                label = { it.tabLabel() },
+            )
             DateBar(
                 kind = viewKind,
                 start = start,
@@ -143,7 +145,6 @@ fun TodoScreen(
                 Modifier
                     .weight(1f)
                     .verticalScroll(rememberScrollState())
-                    .padding(horizontal = 16.dp)
                     .padding(top = 12.dp, bottom = if (viewKind == PeriodKind.DAY) 88.dp else 24.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
@@ -177,7 +178,7 @@ fun TodoScreen(
                     .clickable { adding = true },
                 contentAlignment = Alignment.Center,
             ) {
-                Text("+", color = Color.White, fontSize = 28.sp, fontWeight = FontWeight.Medium)
+                Text("+", color = OnAccent, fontSize = 28.sp, fontWeight = FontWeight.Medium)
             }
         }
     }
@@ -225,44 +226,6 @@ fun TodoScreen(
 }
 
 @Composable
-private fun PeriodTabs(kind: PeriodKind, onKind: (PeriodKind) -> Unit) {
-    Row(
-        Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp)
-            .clip(RoundedCornerShape(12.dp))
-            .background(PaperDeep)
-            .padding(3.dp),
-    ) {
-        TodoMonth.CHECKLIST_KINDS.forEach { k ->
-            val label = when (k) {
-                PeriodKind.DAY -> "日"
-                PeriodKind.WEEK -> "周"
-                PeriodKind.MONTH -> "月"
-                PeriodKind.YEAR -> "年"
-            }
-            val on = k == kind
-            Box(
-                Modifier
-                    .weight(1f)
-                    .clip(RoundedCornerShape(10.dp))
-                    .background(if (on) Card else Color.Transparent)
-                    .clickable { onKind(k) }
-                    .padding(vertical = 7.dp),
-                contentAlignment = Alignment.Center,
-            ) {
-                Text(
-                    label,
-                    fontSize = 13.sp,
-                    color = if (on) Ink else Ink2,
-                    fontWeight = if (on) FontWeight.SemiBold else FontWeight.Medium,
-                )
-            }
-        }
-    }
-}
-
-@Composable
 private fun DateBar(
     kind: PeriodKind,
     start: LocalDate,
@@ -273,7 +236,7 @@ private fun DateBar(
     Row(
         Modifier
             .fillMaxWidth()
-            .padding(horizontal = 28.dp, vertical = 8.dp),
+            .padding(vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween,
     ) {
@@ -487,7 +450,7 @@ private fun TodoRow(
             contentAlignment = Alignment.Center,
         ) {
             if (item.done) {
-                Icon(Icons.Outlined.Check, contentDescription = null, tint = Color.White, modifier = Modifier.size(14.dp))
+                Icon(Icons.Outlined.Check, contentDescription = null, tint = OnAccent, modifier = Modifier.size(14.dp))
             }
         }
         Text(
@@ -639,7 +602,7 @@ private fun CategoryChips(selected: TodoCategory, onSelect: (TodoCategory) -> Un
                     .clickable { onSelect(cat) }
                     .padding(horizontal = 12.dp, vertical = 8.dp),
             ) {
-                Text(cat.label, fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = if (on) Color.White else Ink2)
+                Text(cat.label, fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = if (on) OnAccent else Ink2)
             }
         }
     }
@@ -655,7 +618,7 @@ private fun SheetBtn(label: String, primary: Boolean, modifier: Modifier, enable
             .clickable(enabled = enabled, onClick = onClick),
         contentAlignment = Alignment.Center,
     ) {
-        Text(label, color = if (primary) Color.White else Ink2, fontWeight = FontWeight.SemiBold)
+        Text(label, color = if (primary) OnAccent else Ink2, fontWeight = FontWeight.SemiBold)
     }
 }
 

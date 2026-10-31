@@ -39,6 +39,7 @@ import com.shijiankuai.app.ui.TypeColorPicker
 import com.shijiankuai.app.ui.theme.Ink
 import com.shijiankuai.app.ui.theme.Ink2
 import com.shijiankuai.app.ui.theme.Line
+import com.shijiankuai.app.ui.theme.OnInk
 import com.shijiankuai.app.ui.theme.Paper
 import com.shijiankuai.app.ui.theme.PaperDeep
 import com.shijiankuai.app.ui.theme.Sheet
@@ -111,7 +112,7 @@ fun TypePickerSheet(
                             .background(Ink)
                             .clickable(onClick = onCancel),
                         contentAlignment = Alignment.Center,
-                    ) { Text("取消", color = Color(0xFFF7F1E8)) }
+                    ) { Text("取消", color = OnInk) }
                 }
             }
         }
@@ -176,7 +177,7 @@ fun AddTypeForm(onSave: (String, Long) -> Unit, onCancel: () -> Unit) {
                         if (name.isNotBlank()) onSave(name.trim(), color)
                     },
                 contentAlignment = Alignment.Center,
-            ) { Text("保存类型", color = Color(0xFFF7F1E8)) }
+            ) { Text("保存类型", color = OnInk) }
         }
     }
 }

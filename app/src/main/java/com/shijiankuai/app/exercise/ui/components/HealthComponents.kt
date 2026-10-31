@@ -42,6 +42,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.shijiankuai.app.ui.chrome.SegmentTabs
 import com.shijiankuai.app.ui.theme.Accent
 import com.shijiankuai.app.ui.theme.Card
 import com.shijiankuai.app.ui.theme.HighlightWash
@@ -49,6 +50,7 @@ import com.shijiankuai.app.ui.theme.Ink
 import com.shijiankuai.app.ui.theme.Ink2
 import com.shijiankuai.app.ui.theme.Ink3
 import com.shijiankuai.app.ui.theme.Line
+import com.shijiankuai.app.ui.theme.OnAccent
 import com.shijiankuai.app.ui.theme.PaperDeep
 import com.shijiankuai.app.ui.theme.Unfilled
 import kotlin.math.max
@@ -146,7 +148,7 @@ fun ChoiceChipRow(
             val on = option == selected
             Text(
                 text = option,
-                color = if (on) Color.White else Ink,
+                color = if (on) OnAccent else Ink,
                 fontSize = 13.sp,
                 modifier = Modifier
                     .clip(RoundedCornerShape(99.dp))
@@ -165,35 +167,13 @@ fun Segmented(
     onSelect: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Row(
-        modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(12.dp))
-            .background(PaperDeep)
-            .padding(3.dp),
-        horizontalArrangement = Arrangement.spacedBy(4.dp),
-    ) {
-        options.forEach { option ->
-            val on = option == selected
-            Box(
-                Modifier
-                    .weight(1f)
-                    .clip(RoundedCornerShape(10.dp))
-                    .background(if (on) Card else Color.Transparent)
-                    .clickable { onSelect(option) }
-                    .padding(vertical = 7.dp),
-                contentAlignment = Alignment.Center,
-            ) {
-                Text(
-                    option,
-                    color = if (on) Ink else Ink2,
-                    fontWeight = if (on) FontWeight.SemiBold else FontWeight.Medium,
-                    fontSize = 13.sp,
-                    textAlign = TextAlign.Center,
-                )
-            }
-        }
-    }
+    SegmentTabs(
+        options = options,
+        selected = selected,
+        onSelect = onSelect,
+        label = { it },
+        modifier = modifier,
+    )
 }
 
 @Composable
@@ -231,7 +211,7 @@ fun DurationStepper(
                 ) {
                     Text(
                         chip.toString(),
-                        color = if (on) Color.White else Ink2,
+                        color = if (on) OnAccent else Ink2,
                         fontSize = 13.sp,
                         fontWeight = FontWeight.Medium,
                         modifier = Modifier.clickable { onChange(chip) },
@@ -273,7 +253,7 @@ fun PrimaryButton(text: String, enabled: Boolean = true, onClick: () -> Unit) {
         colors = ButtonDefaults.buttonColors(
             containerColor = Accent,
             disabledContainerColor = PaperDeep,
-            contentColor = Color.White,
+            contentColor = OnAccent,
             disabledContentColor = Ink3,
         ),
         contentPadding = PaddingValues(0.dp),
@@ -326,6 +306,8 @@ fun LineChart(
     }
     val maxY = max(yMaxHint ?: 0f, values.max())
         .let { if (it <= 0f) 1f else it }
+    val gridColor = Unfilled
+    val cardColor = Card
     Column(modifier.fillMaxWidth()) {
         Canvas(
             Modifier
@@ -341,7 +323,7 @@ fun LineChart(
             val grid = 3
             for (i in 0..grid) {
                 val y = top + height * i / grid
-                drawLine(Unfilled, Offset(left, y), Offset(size.width - right, y), strokeWidth = 2f)
+                drawLine(gridColor, Offset(left, y), Offset(size.width - right, y), strokeWidth = 2f)
             }
             val step = if (values.size == 1) 0f else width / (values.size - 1)
             val points = values.mapIndexed { i, v ->
@@ -356,9 +338,9 @@ fun LineChart(
             drawPath(path, color, style = Stroke(width = 5f, cap = StrokeCap.Round))
             points.forEachIndexed { i, p ->
                 val last = highlightLast && i == points.lastIndex
-                drawCircle(if (last) Card else color, radius = if (last) 9.dp.toPx() else 5.dp.toPx(), center = p)
+                drawCircle(if (last) cardColor else color, radius = if (last) 9.dp.toPx() else 5.dp.toPx(), center = p)
                 if (last) drawCircle(color, radius = 9.dp.toPx(), center = p, style = Stroke(width = 4f))
-                else drawCircle(Card, radius = 2.2.dp.toPx(), center = p)
+                else drawCircle(cardColor, radius = 2.2.dp.toPx(), center = p)
             }
         }
         if (labels.isNotEmpty()) {

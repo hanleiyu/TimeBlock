@@ -15,8 +15,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
@@ -33,11 +35,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.shijiankuai.app.BuildConfig
 import com.shijiankuai.app.domain.BlockType
+import com.shijiankuai.app.ui.chrome.PageTitle
+import com.shijiankuai.app.ui.chrome.SegmentTabs
 import com.shijiankuai.app.ui.theme.Accent
 import com.shijiankuai.app.ui.theme.Card
 import com.shijiankuai.app.ui.theme.Ink
@@ -59,6 +62,8 @@ fun SettingsScreen(
     autoBackup: Boolean = true,
     lastBackupLabel: String = "尚未备份",
     onAutoBackup: (Boolean) -> Unit = {},
+    darkTheme: Boolean = true,
+    onDarkTheme: (Boolean) -> Unit = {},
 ) {
     val ctx = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -81,9 +86,10 @@ fun SettingsScreen(
         Modifier
             .fillMaxSize()
             .background(Paper)
+            .verticalScroll(rememberScrollState())
             .padding(horizontal = 16.dp, vertical = 4.dp),
     ) {
-        Text("设置", fontSize = 22.sp, fontWeight = FontWeight.SemiBold, color = Ink)
+        PageTitle("设置")
         if (banner != null) {
             Text(
                 banner!!,
@@ -99,6 +105,17 @@ fun SettingsScreen(
             )
         }
         Spacer(Modifier.height(14.dp))
+        Group("外观") {
+            Column(Modifier.padding(horizontal = 10.dp, vertical = 10.dp)) {
+                SegmentTabs(
+                    options = listOf(false, true),
+                    selected = darkTheme,
+                    onSelect = onDarkTheme,
+                    label = { if (it) "深色" else "浅色" },
+                )
+            }
+        }
+        Spacer(Modifier.height(12.dp))
         Group("时间块") {
             RowItem(title = "时间块长度", value = "10 分钟")
         }

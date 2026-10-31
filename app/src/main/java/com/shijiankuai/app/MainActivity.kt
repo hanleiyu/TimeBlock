@@ -84,8 +84,9 @@ class MainActivity : ComponentActivity() {
         requestLegacyStorageIfNeeded()
         val container = (application as TimeBlockApp).container
         setContent {
-            TimeBlockTheme {
-                val vm: AppViewModel = viewModel(factory = AppViewModel.factory(container.repo, container.backup))
+            val vm: AppViewModel = viewModel(factory = AppViewModel.factory(container.repo, container.backup))
+            val dark by vm.darkTheme.collectAsStateWithLifecycle()
+            TimeBlockTheme(dark = dark) {
                 AppRoot(vm, container.exercise)
             }
         }
@@ -120,6 +121,7 @@ private fun AppRoot(vm: AppViewModel, exercise: ExerciseRepository) {
     val showAllTime by vm.showAllTime.collectAsStateWithLifecycle()
     val autoBackup by vm.autoBackup.collectAsStateWithLifecycle()
     val lastAutoBackupAt by vm.lastAutoBackupAt.collectAsStateWithLifecycle()
+    val darkTheme by vm.darkTheme.collectAsStateWithLifecycle()
     val ctx = LocalContext.current
     val todoDate by vm.todoDate.collectAsStateWithLifecycle()
     val todoKind by vm.todoKind.collectAsStateWithLifecycle()
@@ -240,6 +242,8 @@ private fun AppRoot(vm: AppViewModel, exercise: ExerciseRepository) {
                             vm.setAutoBackup(on)
                             DailyBackupScheduler.setEnabled(ctx, on)
                         },
+                        darkTheme = darkTheme,
+                        onDarkTheme = vm::setDarkTheme,
                     )
                 }
             }

@@ -36,13 +36,15 @@ import com.shijiankuai.app.domain.PeriodKind
 import com.shijiankuai.app.domain.PeriodStats
 import com.shijiankuai.app.domain.StatsNav
 import com.shijiankuai.app.ui.DatePick
+import com.shijiankuai.app.ui.chrome.PageTitle
+import com.shijiankuai.app.ui.chrome.SegmentTabs
+import com.shijiankuai.app.ui.chrome.tabLabel
 import com.shijiankuai.app.ui.hoursLabel
 import com.shijiankuai.app.ui.theme.Card
 import com.shijiankuai.app.ui.theme.Ink
 import com.shijiankuai.app.ui.theme.Ink2
 import com.shijiankuai.app.ui.theme.Ink3
 import com.shijiankuai.app.ui.theme.Paper
-import com.shijiankuai.app.ui.theme.PaperDeep
 import com.shijiankuai.app.ui.theme.Unfilled
 import com.shijiankuai.app.ui.toCn
 import java.time.LocalDate
@@ -65,11 +67,7 @@ fun StatsScreen(
             .verticalScroll(rememberScrollState())
             .padding(horizontal = 16.dp, vertical = 4.dp),
     ) {
-        Row(
-            Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Text("统计", fontSize = 22.sp, fontWeight = FontWeight.SemiBold, color = Ink, modifier = Modifier.weight(1f))
+        PageTitle("统计") {
             if (!StatsNav.contains(kind, anchor, today)) {
                 Text(
                     "今天",
@@ -84,34 +82,12 @@ fun StatsScreen(
             }
         }
         Spacer(Modifier.height(12.dp))
-        Row(
-            Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(12.dp))
-                .background(PaperDeep)
-                .padding(3.dp),
-        ) {
-            PeriodKind.entries.forEach { k ->
-                val label = when (k) {
-                    PeriodKind.DAY -> "日"
-                    PeriodKind.WEEK -> "周"
-                    PeriodKind.MONTH -> "月"
-                    PeriodKind.YEAR -> "年"
-                }
-                val on = k == kind
-                Box(
-                    Modifier
-                        .weight(1f)
-                        .clip(RoundedCornerShape(10.dp))
-                        .background(if (on) Card else Color.Transparent)
-                        .clickable { onKind(k) }
-                        .padding(vertical = 7.dp),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Text(label, fontSize = 13.sp, color = if (on) Ink else Ink2, fontWeight = if (on) FontWeight.SemiBold else FontWeight.Medium)
-                }
-            }
-        }
+        SegmentTabs(
+            options = PeriodKind.entries,
+            selected = kind,
+            onSelect = onKind,
+            label = { it.tabLabel() },
+        )
         Row(
             Modifier.fillMaxWidth().padding(vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically,
@@ -169,15 +145,16 @@ private fun Donut(stats: PeriodStats?) {
     val slices = stats?.byType.orEmpty()
     val filled = stats?.filled ?: 0
     val total = stats?.totalElapsed ?: 0
+    val unfilled = Unfilled
     Box(Modifier.fillMaxWidth().padding(vertical = 6.dp), contentAlignment = Alignment.Center) {
         Canvas(Modifier.size(148.dp)) {
             val stroke = Stroke(width = 36.dp.toPx(), cap = StrokeCap.Butt)
             val full = stats?.fullSpan == true
             val pieTotal = if (full) total.coerceAtLeast(1) else filled.coerceAtLeast(1)
             if (!full && (slices.isEmpty() || filled == 0)) {
-                drawArc(Unfilled, 0f, 360f, false, style = stroke)
+                drawArc(unfilled, 0f, 360f, false, style = stroke)
             } else if (full && filled == 0) {
-                drawArc(Unfilled, 0f, 360f, false, style = stroke)
+                drawArc(unfilled, 0f, 360f, false, style = stroke)
             } else {
                 var start = -90f
                 slices.forEach { sl ->
@@ -186,7 +163,7 @@ private fun Donut(stats: PeriodStats?) {
                     start += sweep
                 }
                 if (full && (stats?.unfilled ?: 0) > 0) {
-                    drawArc(Unfilled, start, 360f * (stats?.unfilled ?: 0) / pieTotal.toFloat(), false, style = stroke)
+                    drawArc(unfilled, start, 360f * (stats?.unfilled ?: 0) / pieTotal.toFloat(), false, style = stroke)
                 }
             }
         }

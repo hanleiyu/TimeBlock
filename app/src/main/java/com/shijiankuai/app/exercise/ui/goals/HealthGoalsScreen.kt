@@ -51,6 +51,7 @@ import com.shijiankuai.app.ui.theme.Accent
 import com.shijiankuai.app.ui.theme.Aero
 import com.shijiankuai.app.ui.theme.Card
 import com.shijiankuai.app.ui.theme.Ink
+import com.shijiankuai.app.ui.theme.OnAccent
 import com.shijiankuai.app.ui.theme.Paper
 import com.shijiankuai.app.ui.theme.PaperDeep
 import com.shijiankuai.app.ui.theme.StrengthHue
@@ -261,7 +262,7 @@ private fun TargetNumberSheet(
                     ) {
                         Text(
                             chip.toString(),
-                            color = if (on) Color.White else Ink,
+                            color = if (on) OnAccent else Ink,
                             fontSize = 14.sp,
                             fontWeight = FontWeight.Medium,
                         )
@@ -291,7 +292,7 @@ private fun TargetNumberSheet(
                         .clickable { onSave(value) },
                     contentAlignment = Alignment.Center,
                 ) {
-                    Text("保存", color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
+                    Text("保存", color = OnAccent, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
                 }
             }
         }

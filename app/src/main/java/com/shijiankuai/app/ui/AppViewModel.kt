@@ -140,6 +140,7 @@ class AppViewModel(
     val statsAnchor = MutableStateFlow(repo.clock.today())
     val showAllTime: StateFlow<Boolean> = repo.showAllTime
     val autoBackup: StateFlow<Boolean> = repo.autoBackup
+    val darkTheme: StateFlow<Boolean> = repo.darkTheme
     val lastAutoBackupAt: StateFlow<Instant?> = repo.lastAutoBackupAt
 
     val todoKind = MutableStateFlow(PeriodKind.DAY)
@@ -297,6 +298,10 @@ class AppViewModel(
 
     fun setAutoBackup(on: Boolean) {
         viewModelScope.launch { repo.setAutoBackup(on) }
+    }
+
+    fun setDarkTheme(on: Boolean) {
+        viewModelScope.launch { repo.setDarkTheme(on) }
     }
 
     suspend fun exportCsv(): String = repo.exportCsv()

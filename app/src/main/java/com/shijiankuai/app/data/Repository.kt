@@ -38,6 +38,8 @@ class Repository(
     val showAllTime: StateFlow<Boolean> = _showAllTime
     private val _autoBackup = MutableStateFlow(true)
     val autoBackup: StateFlow<Boolean> = _autoBackup
+    private val _darkTheme = MutableStateFlow(true)
+    val darkTheme: StateFlow<Boolean> = _darkTheme
     private val _lastAutoBackupAt = MutableStateFlow<Instant?>(null)
     val lastAutoBackupAt: StateFlow<Instant?> = _lastAutoBackupAt
 
@@ -66,6 +68,7 @@ class Repository(
         _isAsleep.value = db.kv().get("is_asleep") != "0"
         _showAllTime.value = Prefs.showAllTimeEnabled(db.kv().get(Prefs.SHOW_ALL_TIME))
         _autoBackup.value = Prefs.autoBackupEnabled(db.kv().get(Prefs.AUTO_BACKUP))
+        _darkTheme.value = Prefs.darkThemeEnabled(db.kv().get(Prefs.DARK_THEME))
         _lastAutoBackupAt.value = Prefs.lastAutoBackupAt(db.kv().get(Prefs.LAST_AUTO_BACKUP_AT))
     }
 
@@ -77,6 +80,11 @@ class Repository(
     suspend fun setAutoBackup(on: Boolean) {
         db.kv().put(KvRow(Prefs.AUTO_BACKUP, if (on) "1" else "0"))
         _autoBackup.value = on
+    }
+
+    suspend fun setDarkTheme(on: Boolean) {
+        db.kv().put(KvRow(Prefs.DARK_THEME, if (on) "1" else "0"))
+        _darkTheme.value = on
     }
 
     suspend fun markAutoBackupDone(at: Instant) {
@@ -240,6 +248,7 @@ class Repository(
         _isAsleep.value = db.kv().get("is_asleep") != "0"
         _showAllTime.value = Prefs.showAllTimeEnabled(db.kv().get(Prefs.SHOW_ALL_TIME))
         _autoBackup.value = Prefs.autoBackupEnabled(db.kv().get(Prefs.AUTO_BACKUP))
+        _darkTheme.value = Prefs.darkThemeEnabled(db.kv().get(Prefs.DARK_THEME))
         _lastAutoBackupAt.value = Prefs.lastAutoBackupAt(db.kv().get(Prefs.LAST_AUTO_BACKUP_AT))
     }
 

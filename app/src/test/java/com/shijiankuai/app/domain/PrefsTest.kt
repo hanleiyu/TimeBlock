@@ -21,6 +21,13 @@ class PrefsTest {
     }
 
     @Test
+    fun darkThemeDefaultsOn() {
+        assertTrue(Prefs.darkThemeEnabled(null))
+        assertTrue(Prefs.darkThemeEnabled("1"))
+        assertFalse(Prefs.darkThemeEnabled("0"))
+    }
+
+    @Test
     fun lastAutoBackupAtParsesMillis() {
         assertEquals(null, Prefs.lastAutoBackupAt(null))
         assertEquals(null, Prefs.lastAutoBackupAt("nope"))

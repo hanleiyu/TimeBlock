@@ -58,6 +58,7 @@ import com.shijiankuai.app.ui.theme.Ink
 import com.shijiankuai.app.ui.theme.Ink2
 import com.shijiankuai.app.ui.theme.Ink3
 import com.shijiankuai.app.ui.theme.Line
+import com.shijiankuai.app.ui.theme.OnAccent
 import com.shijiankuai.app.ui.theme.Paper
 import com.shijiankuai.app.ui.theme.Sleep
 import com.shijiankuai.app.ui.theme.Wake
@@ -186,8 +187,8 @@ fun TodayScreen(
                     .padding(horizontal = 14.dp, vertical = 10.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Box(Modifier.size(8.dp).clip(CircleShape).background(Color(0xFFC5C8DC)))
-                Text(ui.toast, color = Color.White, fontSize = 13.sp, modifier = Modifier.padding(start = 8.dp))
+                Box(Modifier.size(8.dp).clip(CircleShape).background(OnAccent.copy(alpha = 0.7f)))
+                Text(ui.toast, color = OnAccent, fontSize = 13.sp, modifier = Modifier.padding(start = 8.dp))
             }
             Spacer(Modifier.height(10.dp))
         }
@@ -465,7 +466,7 @@ private fun HourRow(
                 )
                 Text(
                     "现在 ${"%02d:%02d".format(nowTime.hour, nowTime.minute)}",
-                    color = Color.White,
+                    color = OnAccent,
                     fontSize = 10.sp,
                     modifier = Modifier
                         .align(Alignment.CenterEnd)
