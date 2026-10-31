@@ -39,6 +39,119 @@ class BackupTest {
         assertEquals(2_000L, snap.sleeps[0].endedAtMillis)
         assertEquals(kv, snap.kv)
         assertEquals(todos, snap.todos)
+        assertEquals(2, org.json.JSONObject(json).getInt("version"))
+        assertTrue(org.json.JSONObject(json).has("exercise"))
+        assertTrue(snap.applyTimeblock)
+        assertTrue(snap.applyExercise)
+        assertTrue(snap.exercise != null)
+    }
+
+    @Test
+    fun v2ExportNestsExerciseWithSettingsAndWorkouts() {
+        val exercise = org.json.JSONObject()
+            .put("exportedAt", "2026-10-31")
+            .put(
+                "settings",
+                org.json.JSONObject()
+                    .put("targetMode", "PLAN")
+                    .put("fixedAerobic", 100)
+                    .put("fixedStrength", 60)
+                    .put("balanceGoal", 2)
+                    .put("stage", "STAGE_1")
+                    .put("consecutiveMetWeeks", 0)
+                    .put("lastEvaluatedEpochDay", -1)
+                    .put("weeksSpentJson", """{"STAGE_1":0,"STAGE_2":0,"STAGE_3":0,"MAINTAIN":0}""")
+                    .put("pendingAdvanceMessage", org.json.JSONObject.NULL)
+                    .put("stage1Aerobic", 60)
+                    .put("stage1Strength", 40)
+                    .put("stage2Aerobic", 80)
+                    .put("stage2Strength", 50)
+                    .put("stage3Aerobic", 100)
+                    .put("stage3Strength", 60)
+                    .put("weeksToAdvance", 2),
+            )
+            .put(
+                "workouts",
+                org.json.JSONArray().put(
+                    org.json.JSONObject()
+                        .put("category", "AEROBIC")
+                        .put("activityName", "慢跑")
+                        .put("durationMinutes", 30)
+                        .put("intensity", "MID")
+                        .put("date", "2026-10-30")
+                        .put("note", org.json.JSONObject.NULL)
+                        .put("isFree", false),
+                ),
+            )
+            .put("activities", org.json.JSONArray())
+            .put("metrics", org.json.JSONArray())
+            .put("tests", org.json.JSONArray())
+        val json = Backup.exportJson(types, blocks, sleeps, kv, todos, exercise)
+        val snap = Backup.tryParse(json)!!
+        assertTrue(snap.applyTimeblock)
+        assertTrue(snap.applyExercise)
+        assertEquals(1, snap.exercise!!.workouts.size)
+        assertEquals("AEROBIC", snap.exercise.workouts[0].category)
+        assertEquals("慢跑", snap.exercise.workouts[0].activityName)
+        assertEquals("PLAN", snap.exercise.settings.targetMode)
+    }
+
+    @Test
+    fun v1TimeblockDoesNotTouchExercise() {
+        val legacy = org.json.JSONObject()
+            .put("version", 1)
+            .put("types", org.json.JSONArray())
+            .put("blocks", org.json.JSONArray())
+            .put("sleeps", org.json.JSONArray())
+            .put("kv", org.json.JSONArray())
+            .put("todos", org.json.JSONArray())
+            .toString()
+        val snap = Backup.tryParse(legacy)!!
+        assertTrue(snap.applyTimeblock)
+        assertTrue(!snap.applyExercise)
+        assertEquals(null, snap.exercise)
+    }
+
+    @Test
+    fun legacyExerciseBackupOnlyAppliesExercise() {
+        val old = org.json.JSONObject()
+            .put("version", 1)
+            .put("exportedAt", "2026-10-01")
+            .put(
+                "settings",
+                org.json.JSONObject()
+                    .put("targetMode", "FIXED")
+                    .put("fixedAerobic", 90)
+                    .put("fixedStrength", 55)
+                    .put("balanceGoal", 1)
+                    .put("stage", "STAGE_2")
+                    .put("consecutiveMetWeeks", 1),
+            )
+            .put(
+                "workouts",
+                org.json.JSONArray().put(
+                    org.json.JSONObject()
+                        .put("category", "STRENGTH")
+                        .put("activityName", "深蹲")
+                        .put("durationMinutes", 25)
+                        .put("intensity", org.json.JSONObject.NULL)
+                        .put("date", "2026-09-30")
+                        .put("note", "")
+                        .put("isFree", true),
+                ),
+            )
+            .put("activities", org.json.JSONArray())
+            .put("metrics", org.json.JSONArray())
+            .put("tests", org.json.JSONArray())
+            .toString()
+        val snap = Backup.tryParse(old)!!
+        assertTrue(!snap.applyTimeblock)
+        assertTrue(snap.applyExercise)
+        assertTrue(snap.types.isEmpty())
+        assertEquals("FIXED", snap.exercise!!.settings.targetMode)
+        assertEquals(1, snap.exercise.workouts.size)
+        assertEquals("深蹲", snap.exercise.workouts[0].activityName)
+        assertTrue(snap.exercise.workouts[0].isFree)
     }
 
     @Test

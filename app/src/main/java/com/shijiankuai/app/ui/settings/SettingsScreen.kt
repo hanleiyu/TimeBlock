@@ -51,6 +51,7 @@ import kotlinx.coroutines.launch
 fun SettingsScreen(
     types: List<BlockType>,
     onOpenTypes: () -> Unit,
+    onOpenHealthGoals: () -> Unit = {},
     exportBackup: suspend () -> String,
     restore: suspend (String) -> Boolean,
     showAllTime: Boolean = true,
@@ -143,6 +144,22 @@ fun SettingsScreen(
             }
         }
         Spacer(Modifier.height(12.dp))
+        Group("健康") {
+            Row(
+                Modifier
+                    .fillMaxWidth()
+                    .clickable(onClick = onOpenHealthGoals)
+                    .padding(horizontal = 14.dp, vertical = 13.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Column(Modifier.weight(1f)) {
+                    Text("健康目标", fontSize = 14.sp, color = Ink)
+                    Text("渐进计划、固定目标、平衡次数", fontSize = 11.sp, color = Ink3)
+                }
+                Text("›", color = Ink2)
+            }
+        }
+        Spacer(Modifier.height(12.dp))
         Group("数据 · 仅本机") {
             Row(
                 Modifier
@@ -153,7 +170,7 @@ fun SettingsScreen(
             ) {
                 Column(Modifier.weight(1f)) {
                     Text("每晚 0 点自动备份到下载目录", fontSize = 14.sp, color = Ink)
-                    Text(lastBackupLabel, fontSize = 11.sp, color = Ink3)
+                    Text("含时间块与健康 · $lastBackupLabel", fontSize = 11.sp, color = Ink3)
                 }
                 Switch(
                     checked = autoBackup,
@@ -164,13 +181,19 @@ fun SettingsScreen(
                     ),
                 )
             }
-            RowItem("本地备份") {
+            RowItem(
+                title = "本地备份",
+                sub = "时间块 + 健康，默认名 时间块-备份.txt",
+            ) {
                 scope.launch {
                     pending.value = exportBackup()
                     create.launch("时间块-备份.txt")
                 }
             }
-            RowItem("从备份恢复") {
+            RowItem(
+                title = "从备份恢复",
+                sub = "先清空对应库再写入；全量会动两边",
+            ) {
                 open.launch(arrayOf("application/json", "text/plain", "*/*"))
             }
         }
@@ -195,7 +218,13 @@ fun SettingsScreen(
         AlertDialog(
             onDismissRequest = { confirmRestore = null },
             title = { Text("从备份恢复？") },
-            text = { Text("会覆盖当前本机的类型、时间块和睡觉记录，且不能撤销。") },
+            text = {
+                Text(
+                    "恢复会先清空对应数据库再写入，且不能撤销。" +
+                        "全量备份（version 2）会同时覆盖时间块（类型、格子、睡觉、清单）和健康数据；" +
+                        "旧时间块备份只覆盖时间块；旧运动备份只覆盖健康。",
+                )
+            },
             confirmButton = {
                 TextButton(onClick = {
                     val json = body

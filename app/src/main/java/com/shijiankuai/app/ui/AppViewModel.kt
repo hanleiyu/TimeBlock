@@ -3,6 +3,7 @@ package com.shijiankuai.app.ui
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.shijiankuai.app.data.BackupOps
 import com.shijiankuai.app.data.Repository
 import com.shijiankuai.app.data.WakeOutcome
 import com.shijiankuai.app.domain.BLOCK_MINUTES
@@ -54,7 +55,10 @@ data class TodayUi(
     val toast: String? = null,
 )
 
-class AppViewModel(private val repo: Repository) : ViewModel() {
+class AppViewModel(
+    private val repo: Repository,
+    private val backup: BackupOps,
+) : ViewModel() {
     val viewedDate = MutableStateFlow(repo.clock.today())
     val todoDate = MutableStateFlow(repo.clock.today())
     val toast = MutableStateFlow<String?>(null)
@@ -296,8 +300,8 @@ class AppViewModel(private val repo: Repository) : ViewModel() {
     }
 
     suspend fun exportCsv(): String = repo.exportCsv()
-    suspend fun exportBackup(): String = repo.exportBackup()
-    suspend fun restore(json: String): Boolean = repo.restoreBackup(json)
+    suspend fun exportBackup(): String = backup.export()
+    suspend fun restore(json: String): Boolean = backup.restore(json)
 
     fun addType(name: String, color: Long) {
         viewModelScope.launch { repo.addType(name, color) }
@@ -324,10 +328,11 @@ class AppViewModel(private val repo: Repository) : ViewModel() {
     }
 
     companion object {
-        fun factory(repo: Repository): ViewModelProvider.Factory =
+        fun factory(repo: Repository, backup: BackupOps): ViewModelProvider.Factory =
             object : ViewModelProvider.Factory {
                 @Suppress("UNCHECKED_CAST")
-                override fun <T : ViewModel> create(modelClass: Class<T>): T = AppViewModel(repo) as T
+                override fun <T : ViewModel> create(modelClass: Class<T>): T =
+                    AppViewModel(repo, backup) as T
             }
     }
 }

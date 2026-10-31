@@ -2,6 +2,7 @@ package com.shijiankuai.app.data
 
 import androidx.room.withTransaction
 import com.shijiankuai.app.domain.AppClock
+import org.json.JSONObject
 import com.shijiankuai.app.domain.BlockId
 import com.shijiankuai.app.domain.BlockType
 import com.shijiankuai.app.domain.ColorMath
@@ -207,17 +208,23 @@ class Repository(
 
     suspend fun exportCsv(): String = Backup.csv(db.blocks().all(), db.types().all())
 
-    suspend fun exportBackup(): String =
+    suspend fun exportBackup(exercise: JSONObject = com.shijiankuai.app.exercise.data.ExerciseBackup.emptyObject()): String =
         Backup.exportJson(
             db.types().all(),
             db.blocks().all(),
             db.sleeps().all(),
             db.kv().all(),
             db.todos().all(),
+            exercise,
         )
 
     suspend fun restoreBackup(json: String): Boolean {
         val snap = Backup.tryParse(json) ?: return false
+        if (snap.applyTimeblock) restoreTimeblock(snap)
+        return true
+    }
+
+    suspend fun restoreTimeblock(snap: Backup.Snapshot) {
         db.withTransaction {
             db.types().clearAll()
             db.blocks().clearAll()
@@ -234,7 +241,6 @@ class Repository(
         _showAllTime.value = Prefs.showAllTimeEnabled(db.kv().get(Prefs.SHOW_ALL_TIME))
         _autoBackup.value = Prefs.autoBackupEnabled(db.kv().get(Prefs.AUTO_BACKUP))
         _lastAutoBackupAt.value = Prefs.lastAutoBackupAt(db.kv().get(Prefs.LAST_AUTO_BACKUP_AT))
-        return true
     }
 
     fun sleptBlocksToday(date: LocalDate, map: Map<Int, String>): Int =
