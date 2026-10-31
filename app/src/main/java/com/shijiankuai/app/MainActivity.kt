@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material.icons.outlined.CheckBox
@@ -37,6 +38,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -59,8 +61,9 @@ import com.shijiankuai.app.ui.AppViewModel
 import com.shijiankuai.app.ui.settings.SettingsScreen
 import com.shijiankuai.app.ui.settings.TypesScreen
 import com.shijiankuai.app.ui.stats.StatsScreen
-import com.shijiankuai.app.ui.theme.Ink
 import com.shijiankuai.app.ui.theme.Ink3
+import com.shijiankuai.app.ui.theme.NavSelected
+import com.shijiankuai.app.ui.theme.NavSelectedWash
 import com.shijiankuai.app.ui.theme.Paper
 import com.shijiankuai.app.ui.theme.TabBar
 import com.shijiankuai.app.ui.theme.TimeBlockTheme
@@ -275,12 +278,24 @@ private fun TabItem(
     modifier: Modifier,
     click: () -> Unit,
 ) {
+    val wash = NavSelectedWash
     Column(
-        modifier.clickable(onClick = click),
+        modifier
+            .then(
+                if (on && wash.alpha > 0.01f) {
+                    Modifier
+                        .padding(horizontal = 4.dp, vertical = 4.dp)
+                        .clip(RoundedCornerShape(10.dp))
+                        .background(wash)
+                } else {
+                    Modifier
+                },
+            )
+            .clickable(onClick = click),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Spacer(Modifier.height(8.dp))
-        Icon(icon, contentDescription = label, tint = if (on) Ink else Ink3)
-        Text(label, fontSize = 11.sp, fontWeight = FontWeight.Medium, color = if (on) Ink else Ink3)
+        Icon(icon, contentDescription = label, tint = if (on) NavSelected else Ink3)
+        Text(label, fontSize = 11.sp, fontWeight = FontWeight.Medium, color = if (on) NavSelected else Ink3)
     }
 }

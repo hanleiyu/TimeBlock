@@ -14,9 +14,9 @@ import androidx.core.view.WindowInsetsControllerCompat
 private fun scheme(palette: Palette, dark: Boolean) = if (dark) {
     darkColorScheme(
         primary = palette.accent,
-        onPrimary = Color(0xFF1C1A1F),
-        secondary = Wake,
-        onSecondary = Color(0xFF1C1A1F),
+        onPrimary = Color.Black,
+        secondary = palette.strength,
+        onSecondary = Color.Black,
         background = palette.paper,
         onBackground = palette.ink,
         surface = palette.card,
@@ -25,7 +25,8 @@ private fun scheme(palette: Palette, dark: Boolean) = if (dark) {
         onSurfaceVariant = palette.ink2,
         outline = palette.line,
         primaryContainer = palette.highlightWash,
-        onPrimaryContainer = palette.ink,
+        onPrimaryContainer = palette.accent,
+        error = Danger,
     )
 } else {
     lightColorScheme(

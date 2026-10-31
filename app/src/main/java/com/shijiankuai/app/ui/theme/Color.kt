@@ -29,6 +29,18 @@ data class Palette(
     val pillPendingText: Color,
     val onAccent: Color,
     val onInk: Color,
+    val selectedFill: Color,
+    val onSelected: Color,
+    val navSelected: Color,
+    val navSelectedWash: Color,
+    val daySelect: Color,
+    val aero: Color,
+    val strength: Color,
+    val balance: Color,
+    val periodMark: Color,
+    val bowelMark: Color,
+    val earlySleep: Color,
+    val gold: Color,
 )
 
 val LightPalette = Palette(
@@ -55,32 +67,57 @@ val LightPalette = Palette(
     pillPendingText = Color(0xFF5C5F75),
     onAccent = Color(0xFFFFFFFF),
     onInk = Color(0xFFF7F1E8),
+    selectedFill = Color(0xFFFFFCF9),
+    onSelected = Color(0xFF2B2E45),
+    navSelected = Color(0xFF2B2E45),
+    navSelectedWash = Color.Transparent,
+    daySelect = Color(0xFF6B8F71),
+    aero = Color(0xFF6B8F71),
+    strength = Color(0xFF7A7EB0),
+    balance = Color(0xFFD99A76),
+    periodMark = Color(0xFFC45B5B),
+    bowelMark = Color(0xFF6A8C9E),
+    earlySleep = Color(0xFFE4C35A),
+    gold = Color(0xFFE4C35A),
 )
 
+/** Dark = ExcerciseApp Theme.kt: true black + neon green, not deep paper. */
 val DarkPalette = Palette(
-    paper = Color(0xFF1C1A1F),
-    paperDeep = Color(0xFF26232B),
-    card = Color(0xFF2C2933),
-    ink = Color(0xFFF4EFE8),
-    ink2 = Color(0xFFC4BEC8),
-    ink3 = Color(0xFF9E98A6),
-    line = Color(0xFF3E3A46),
-    accent = Color(0xFF9AA0C8),
-    sheet = Color(0xFF2C2933),
-    unfilled = Color(0xFF3A3642),
-    tabBar = Color(0xFF1C1A1F),
-    highlightWash = Color(0xFF35344A),
-    highlightLine = Color(0xFF4A4860),
-    emptyPast = Color(0xFF35323C),
-    emptyFuture = Color(0xFF2A2730),
-    pillWash = Color(0xFF35344A),
-    pillWashText = Color(0xFFC4C8E8),
-    pillDone = Color(0xFF2A3D32),
-    pillDoneText = Color(0xFF8FCB9A),
-    pillPending = Color(0xFF35323C),
-    pillPendingText = Color(0xFFB8B3C0),
-    onAccent = Color(0xFF1C1A1F),
-    onInk = Color(0xFF1C1A1F),
+    paper = Color(0xFF000000),
+    paperDeep = Color(0xFF1C1C1F),
+    card = Color(0xFF141414),
+    ink = Color(0xFFF4F4F5),
+    ink2 = Color(0xFFB4B4BB),
+    ink3 = Color(0xFF8A8A93),
+    line = Color(0xFF2A2A2E),
+    accent = Color(0xFF00E676),
+    sheet = Color(0xFF141414),
+    unfilled = Color(0xFF2C2C31),
+    tabBar = Color(0xFF000000),
+    highlightWash = Color(0xFF0B2A18),
+    highlightLine = Color(0xFF00C853),
+    emptyPast = Color(0xFF1C1C1F),
+    emptyFuture = Color(0xFF141414),
+    pillWash = Color(0xFF1E2248),
+    pillWashText = Color(0xFFB4C0FF),
+    pillDone = Color(0xFF12351F),
+    pillDoneText = Color(0xFF4ADE80),
+    pillPending = Color(0xFF222226),
+    pillPendingText = Color(0xFFD4D4D8),
+    onAccent = Color(0xFF000000),
+    onInk = Color(0xFF000000),
+    selectedFill = Color(0xFF00E676),
+    onSelected = Color(0xFF000000),
+    navSelected = Color(0xFF00E676),
+    navSelectedWash = Color(0xFF0B2A18),
+    daySelect = Color(0xFF00E676),
+    aero = Color(0xFF00E676),
+    strength = Color(0xFF8B82F6),
+    balance = Color(0xFFF5A524),
+    periodMark = Color(0xFFFF4D6D),
+    bowelMark = Color(0xFF5EB0FF),
+    earlySleep = Color(0xFFFFDB58),
+    gold = Color(0xFFFFC14A),
 )
 
 val LocalPalette = staticCompositionLocalOf { DarkPalette }
@@ -108,16 +145,20 @@ val PillPending: Color @Composable @ReadOnlyComposable get() = LocalPalette.curr
 val PillPendingText: Color @Composable @ReadOnlyComposable get() = LocalPalette.current.pillPendingText
 val OnAccent: Color @Composable @ReadOnlyComposable get() = LocalPalette.current.onAccent
 val OnInk: Color @Composable @ReadOnlyComposable get() = LocalPalette.current.onInk
+val SelectedFill: Color @Composable @ReadOnlyComposable get() = LocalPalette.current.selectedFill
+val OnSelected: Color @Composable @ReadOnlyComposable get() = LocalPalette.current.onSelected
+val NavSelected: Color @Composable @ReadOnlyComposable get() = LocalPalette.current.navSelected
+val NavSelectedWash: Color @Composable @ReadOnlyComposable get() = LocalPalette.current.navSelectedWash
+val DaySelect: Color @Composable @ReadOnlyComposable get() = LocalPalette.current.daySelect
+val Aero: Color @Composable @ReadOnlyComposable get() = LocalPalette.current.aero
+val StrengthHue: Color @Composable @ReadOnlyComposable get() = LocalPalette.current.strength
+val BalanceHue: Color @Composable @ReadOnlyComposable get() = LocalPalette.current.balance
+val PeriodMark: Color @Composable @ReadOnlyComposable get() = LocalPalette.current.periodMark
+val BowelMark: Color @Composable @ReadOnlyComposable get() = LocalPalette.current.bowelMark
+val EarlySleepMark: Color @Composable @ReadOnlyComposable get() = LocalPalette.current.earlySleep
+val HealthGold: Color @Composable @ReadOnlyComposable get() = LocalPalette.current.gold
 
 val Wake = Color(0xFFD99A76)
 val WakeDeep = Color(0xFFD99A76)
 val Sleep = Color(0xFF5A5F92)
-
-/** Health category accents — muted so they sit on paper and stay readable on dark. */
-val Aero = Color(0xFF6B8F71)
-val StrengthHue = Color(0xFF7A7EB0)
-val BalanceHue = Color(0xFFD99A76)
-val PeriodMark = Color(0xFFC45B5B)
-val BowelMark = Color(0xFF6A8C9E)
-val EarlySleepMark = Color(0xFFE4C35A)
-val HealthGold = Color(0xFFE4C35A)
+val Danger = Color(0xFFFF4D6D)

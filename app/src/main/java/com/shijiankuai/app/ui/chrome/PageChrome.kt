@@ -19,10 +19,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.shijiankuai.app.domain.PeriodKind
-import com.shijiankuai.app.ui.theme.Card
-import com.shijiankuai.app.ui.theme.Ink
 import com.shijiankuai.app.ui.theme.Ink2
+import com.shijiankuai.app.ui.theme.OnSelected
 import com.shijiankuai.app.ui.theme.PaperDeep
+import com.shijiankuai.app.ui.theme.SelectedFill
 
 @Composable
 fun PageTitle(
@@ -66,7 +66,7 @@ fun <T> SegmentTabs(
                 Modifier
                     .weight(1f)
                     .clip(RoundedCornerShape(10.dp))
-                    .background(if (on) Card else Color.Transparent)
+                    .background(if (on) SelectedFill else Color.Transparent)
                     .clickable { onSelect(option) }
                     .padding(vertical = 7.dp),
                 contentAlignment = Alignment.Center,
@@ -74,7 +74,7 @@ fun <T> SegmentTabs(
                 Text(
                     label(option),
                     fontSize = 13.sp,
-                    color = if (on) Ink else Ink2,
+                    color = if (on) OnSelected else Ink2,
                     fontWeight = if (on) FontWeight.SemiBold else FontWeight.Medium,
                 )
             }

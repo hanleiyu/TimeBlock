@@ -34,10 +34,10 @@ fun categoryTint(category: TodoCategory): Color = when (category) {
 fun categoryWash(category: TodoCategory): Color {
     val dark = LocalPalette.current.paper == DarkPalette.paper
     return if (dark) when (category) {
-        TodoCategory.WORK -> Color(0xFF2A3640)
-        TodoCategory.HEALTH -> Color(0xFF243530)
-        TodoCategory.LIFE -> Color(0xFF3A3028)
-        TodoCategory.STUDY -> Color(0xFF2E2E40)
+        TodoCategory.WORK -> Color(0xFF141418)
+        TodoCategory.HEALTH -> Color(0xFF0B2A18)
+        TodoCategory.LIFE -> Color(0xFF1C1810)
+        TodoCategory.STUDY -> Color(0xFF16141C)
     } else when (category) {
         TodoCategory.WORK -> Color(0xFFE8E9F4)
         TodoCategory.HEALTH -> Color(0xFFE4F2F0)

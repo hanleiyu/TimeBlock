@@ -45,6 +45,7 @@ import com.shijiankuai.app.exercise.ui.RecordsViewModel
 import com.shijiankuai.app.exercise.ui.components.AppCard
 import com.shijiankuai.app.ui.theme.Accent
 import com.shijiankuai.app.ui.theme.Aero
+import com.shijiankuai.app.ui.theme.DaySelect
 import com.shijiankuai.app.ui.theme.BalanceHue
 import com.shijiankuai.app.ui.theme.BowelMark
 import com.shijiankuai.app.ui.theme.Card
@@ -254,7 +255,7 @@ private fun DayCell(
     ) {
         Box(Modifier.size(34.dp), contentAlignment = Alignment.Center) {
             if (selectedDay) {
-                Box(Modifier.size(34.dp).border(1.5.dp, Accent, CircleShape))
+                Box(Modifier.size(34.dp).border(1.5.dp, DaySelect, CircleShape))
             }
             Text(
                 date.dayOfMonth.toString(),
@@ -279,6 +280,7 @@ private fun DayCell(
 
 @Composable
 private fun PeriodTriangleMark() {
+    val mark = PeriodMark
     Canvas(Modifier.size(6.dp)) {
         val path = Path().apply {
             moveTo(size.width / 2f, 0f)
@@ -286,12 +288,13 @@ private fun PeriodTriangleMark() {
             lineTo(0f, size.height)
             close()
         }
-        drawPath(path, color = PeriodMark)
+        drawPath(path, color = mark)
     }
 }
 
 @Composable
 private fun BowelCheckMark() {
+    val mark = BowelMark
     Canvas(Modifier.size(7.dp)) {
         val stroke = Stroke(width = size.minDimension * 0.22f, cap = StrokeCap.Round, join = StrokeJoin.Round)
         val path = Path().apply {
@@ -299,7 +302,7 @@ private fun BowelCheckMark() {
             lineTo(size.width * 0.38f, size.height * 0.82f)
             lineTo(size.width * 0.88f, size.height * 0.18f)
         }
-        drawPath(path, color = BowelMark, style = stroke)
+        drawPath(path, color = mark, style = stroke)
     }
 }
 
@@ -341,6 +344,7 @@ private fun DayWorkoutRow(w: Workout, onClick: () -> Unit) {
     }
 }
 
+@Composable
 fun Category.dotColor(): Color = when (this) {
     Category.AEROBIC -> Aero
     Category.STRENGTH -> StrengthHue
