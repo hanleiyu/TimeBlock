@@ -50,6 +50,7 @@ import com.shijiankuai.app.ui.TodayUi
 import com.shijiankuai.app.ui.hoursLabel
 import com.shijiankuai.app.ui.theme.Accent
 import com.shijiankuai.app.ui.theme.Card
+import com.shijiankuai.app.ui.theme.GooseYellow
 import com.shijiankuai.app.ui.theme.EmptyFuture
 import com.shijiankuai.app.ui.theme.EmptyPast
 import com.shijiankuai.app.ui.theme.HighlightLine
@@ -462,17 +463,17 @@ private fun HourRow(
                     Modifier
                         .fillMaxWidth()
                         .height(2.dp)
-                        .background(Accent),
+                        .background(GooseYellow),
                 )
                 Text(
                     "现在 ${"%02d:%02d".format(nowTime.hour, nowTime.minute)}",
-                    color = OnAccent,
+                    color = Color.Black,
                     fontSize = 10.sp,
                     modifier = Modifier
                         .align(Alignment.CenterEnd)
                         .offset(y = (-9).dp)
                         .clip(RoundedCornerShape(999.dp))
-                        .background(Accent)
+                        .background(GooseYellow)
                         .padding(horizontal = 6.dp, vertical = 1.dp),
                 )
             }
