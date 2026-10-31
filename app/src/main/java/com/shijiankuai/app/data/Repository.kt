@@ -18,6 +18,7 @@ import com.shijiankuai.app.domain.TodoCalendar
 import com.shijiankuai.app.domain.TodoCategory
 import com.shijiankuai.app.domain.TodoItem
 import com.shijiankuai.app.domain.TodoList
+import com.shijiankuai.app.domain.TodoRecurrence
 import com.shijiankuai.app.domain.WakeFill
 import com.shijiankuai.app.domain.WakeFillResult
 import kotlinx.coroutines.flow.Flow
@@ -55,13 +56,19 @@ class Repository(
     val sessions: Flow<List<SleepRow>> = db.sleeps().observe()
 
     fun todosOn(date: LocalDate): Flow<List<TodoItem>> =
-        db.todos().observeDay(date.toEpochDay()).map { rows -> rows.map { it.toDomain() } }
+        todosBetween(date, date)
 
     fun todosBetween(start: LocalDate, end: LocalDate): Flow<List<TodoItem>> =
-        db.todos().observeRange(start.toEpochDay(), end.toEpochDay()).map { rows -> rows.map { it.toDomain() } }
+        db.todos().observeAll().map { rows ->
+            TodoRecurrence.expand(rows.map { it.toDomain() }, start, end)
+        }
 
     fun todoCompletedDays(): Flow<Set<LocalDate>> =
-        db.todos().observeDoneDays().map(TodoCalendar::datesFromEpochDays)
+        db.todos().observeAll().map { rows ->
+            TodoCalendar.datesFromEpochDays(
+                TodoRecurrence.completedEpochDays(rows.map { it.toDomain() }).toList(),
+            )
+        }
 
     suspend fun hydrate() {
         AppDatabase.seedIfNeeded(db)
@@ -255,43 +262,101 @@ class Repository(
     fun sleptBlocksToday(date: LocalDate, map: Map<Int, String>): Int =
         map.values.count { it == SLEEP_TYPE_ID }
 
-    suspend fun addTodo(date: LocalDate, category: TodoCategory, title: String): String {
+    suspend fun addTodo(
+        date: LocalDate,
+        category: TodoCategory,
+        title: String,
+        recurrence: TodoRecurrence = TodoRecurrence.None,
+    ): String {
         val text = title.trim()
         require(text.isNotEmpty())
+        val rec = if (recurrence.hasDays()) recurrence else TodoRecurrence.None
         val day = date.toEpochDay()
         val id = "t_" + UUID.randomUUID().toString().take(8)
         val sort = db.todos().maxSort(day, category.id) + 1
-        db.todos().upsert(TodoRow(id, day, category.id, text, done = false, sortOrder = sort))
+        db.todos().upsert(
+            TodoRow(
+                id, day, category.id, text, done = false, sortOrder = sort,
+                recurKind = rec.kind(), recurMask = rec.mask(),
+            ),
+        )
         return id
     }
 
     suspend fun setTodoDone(id: String, done: Boolean) {
-        val row = db.todos().byId(id) ?: return
-        db.todos().update(row.copy(done = done))
+        val (seriesId, occDay) = TodoRecurrence.parseOcc(id)
+        val row = db.todos().byId(seriesId) ?: return
+        val rec = TodoRecurrence.parse(row.recurKind, row.recurMask)
+        if (rec is TodoRecurrence.None) {
+            db.todos().update(row.copy(done = done))
+            return
+        }
+        val day = occDay ?: row.epochDay
+        val days = TodoRecurrence.decodeDays(row.doneDays).toMutableSet()
+        if (done) days += day else days -= day
+        db.todos().update(row.copy(doneDays = TodoRecurrence.encodeDays(days)))
     }
 
     suspend fun updateTodoTitle(id: String, title: String) {
         val text = title.trim()
         if (text.isEmpty()) return
-        val row = db.todos().byId(id) ?: return
+        val (seriesId, _) = TodoRecurrence.parseOcc(id)
+        val row = db.todos().byId(seriesId) ?: return
         db.todos().update(row.copy(title = text))
     }
 
+    suspend fun updateTodo(
+        id: String,
+        title: String,
+        category: TodoCategory,
+        recurrence: TodoRecurrence,
+    ) {
+        val text = title.trim()
+        if (text.isEmpty()) return
+        val (seriesId, _) = TodoRecurrence.parseOcc(id)
+        val row = db.todos().byId(seriesId) ?: return
+        val rec = if (recurrence.hasDays()) recurrence else TodoRecurrence.None
+        db.todos().update(
+            row.copy(
+                title = text,
+                category = category.id,
+                recurKind = rec.kind(),
+                recurMask = rec.mask(),
+            ),
+        )
+    }
+
     suspend fun deleteTodo(id: String) {
-        db.todos().delete(id)
+        val (seriesId, _) = TodoRecurrence.parseOcc(id)
+        db.todos().delete(seriesId)
     }
 
     suspend fun reorderTodos(date: LocalDate, category: TodoCategory, orderedIds: List<String>) {
-        val day = date.toEpochDay()
-        val existing = db.todos().day(day).map { it.toDomain() }
+        val existing = TodoRecurrence.expand(db.todos().all().map { it.toDomain() }, date, date)
         TodoList.reorderWithin(existing, category, orderedIds).filter { it.category == category }.forEach { item ->
-            val row = db.todos().byId(item.id) ?: return@forEach
+            val row = db.todos().byId(item.seriesId) ?: return@forEach
             db.todos().update(row.copy(sortOrder = item.sortOrder))
         }
     }
 
     suspend fun deferTodo(id: String) {
-        val row = db.todos().byId(id) ?: return
+        val (seriesId, occDay) = TodoRecurrence.parseOcc(id)
+        val row = db.todos().byId(seriesId) ?: return
+        val rec = TodoRecurrence.parse(row.recurKind, row.recurMask)
+        if (rec !is TodoRecurrence.None) {
+            val day = occDay ?: row.epochDay
+            val skip = TodoRecurrence.decodeDays(row.skipDays).toMutableSet()
+            skip += day
+            val done = TodoRecurrence.decodeDays(row.doneDays).toMutableSet()
+            done -= day
+            db.todos().update(
+                row.copy(
+                    skipDays = TodoRecurrence.encodeDays(skip),
+                    doneDays = TodoRecurrence.encodeDays(done),
+                ),
+            )
+            return
+        }
         if (row.done) return
         val item = row.toDomain()
         val target = item.epochDay + 1
@@ -323,4 +388,8 @@ private fun TodoRow.toDomain() = TodoItem(
     title = title,
     done = done,
     sortOrder = sortOrder,
+    seriesId = id,
+    recurrence = TodoRecurrence.parse(recurKind, recurMask),
+    doneDays = TodoRecurrence.decodeDays(doneDays),
+    skipDays = TodoRecurrence.decodeDays(skipDays),
 )

@@ -1,5 +1,6 @@
 package com.shijiankuai.app.ui.theme
 
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -46,6 +47,21 @@ class ReadabilityTest {
         assertTrue(Contrast.ratio(0x5EB0FF, darkPaper) >= 3.0)
         assertTrue(Contrast.ratio(0xFFDB58, darkPaper) >= 3.0)
         assertTrue(Contrast.ratio(0xFFC14A, darkPaper) >= 3.0)
+    }
+
+    @Test
+    fun darkNavSelectedIsInkTextNotFill() {
+        assertEquals(Color(0xFFF4F4F5), DarkPalette.navSelected)
+        assertEquals(Color.Transparent, DarkPalette.navSelectedWash)
+        assertEquals(Color(0xFF2B2E45), LightPalette.navSelected)
+        assertEquals(Color.Transparent, LightPalette.navSelectedWash)
+        assertTrue(Contrast.ratio(0xF4F4F5, darkPaper) >= 4.5)
+        assertTrue(Contrast.ratio(0x8A8A93, darkPaper) >= 4.5)
+    }
+
+    @Test
+    fun softerNowLineReadableOnBlack() {
+        assertTrue(Contrast.ratio(0xE8C96A, darkPaper) >= 3.0)
     }
 
     @Test

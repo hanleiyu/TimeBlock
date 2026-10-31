@@ -66,7 +66,11 @@ object Backup {
                         .put("category", t.category)
                         .put("title", t.title)
                         .put("done", t.done)
-                        .put("sortOrder", t.sortOrder),
+                        .put("sortOrder", t.sortOrder)
+                        .put("recurKind", t.recurKind)
+                        .put("recurMask", t.recurMask)
+                        .put("doneDays", t.doneDays)
+                        .put("skipDays", t.skipDays),
                 )
             }
         })
@@ -146,6 +150,10 @@ object Backup {
                         title = o.getString("title"),
                         done = o.getBoolean("done"),
                         sortOrder = o.getInt("sortOrder"),
+                        recurKind = o.optString("recurKind", "none"),
+                        recurMask = o.optInt("recurMask", 0),
+                        doneDays = o.optString("doneDays", ""),
+                        skipDays = o.optString("skipDays", ""),
                     )
                 }
             } ?: emptyList()

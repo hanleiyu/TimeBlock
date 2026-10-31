@@ -20,6 +20,7 @@ import com.shijiankuai.app.domain.StatsNav
 import com.shijiankuai.app.domain.TodoCategory
 import com.shijiankuai.app.domain.TodoItem
 import com.shijiankuai.app.domain.TodoMonth
+import com.shijiankuai.app.domain.TodoRecurrence
 import com.shijiankuai.app.domain.WakeFill
 import com.shijiankuai.app.domain.WakeFillResult
 import com.shijiankuai.app.ui.today.TodayScroll
@@ -203,8 +204,8 @@ class AppViewModel(
         todoKind.value = TodoMonth.coerceKind(kind)
     }
 
-    fun addTodo(category: TodoCategory, title: String) {
-        viewModelScope.launch { repo.addTodo(todoDate.value, category, title) }
+    fun addTodo(category: TodoCategory, title: String, recurrence: TodoRecurrence = TodoRecurrence.None) {
+        viewModelScope.launch { repo.addTodo(todoDate.value, category, title, recurrence) }
     }
 
     fun setTodoDone(id: String, done: Boolean) {
@@ -213,6 +214,10 @@ class AppViewModel(
 
     fun updateTodoTitle(id: String, title: String) {
         viewModelScope.launch { repo.updateTodoTitle(id, title) }
+    }
+
+    fun updateTodo(id: String, title: String, category: TodoCategory, recurrence: TodoRecurrence) {
+        viewModelScope.launch { repo.updateTodo(id, title, category, recurrence) }
     }
 
     fun deleteTodo(id: String) {

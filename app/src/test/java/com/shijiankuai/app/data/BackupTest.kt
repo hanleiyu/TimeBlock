@@ -183,6 +183,57 @@ class BackupTest {
     }
 
     @Test
+    fun jsonRoundtripPreservesTodoRecurrence() {
+        val recurring = listOf(
+            TodoRow(
+                "t_w", 20_000L, "work", "站会", done = false, sortOrder = 0,
+                recurKind = "weekly", recurMask = 31, doneDays = "20000,20007", skipDays = "20001",
+            ),
+            TodoRow(
+                "t_m", 20_000L, "life", "交房租", done = false, sortOrder = 1,
+                recurKind = "monthly", recurMask = 1, doneDays = "20000", skipDays = "",
+            ),
+        )
+        val snap = Backup.tryParse(Backup.exportJson(types, blocks, sleeps, kv, recurring))!!
+        assertEquals(recurring, snap.todos)
+        val first = org.json.JSONObject(Backup.exportJson(types, blocks, sleeps, kv, recurring))
+            .getJSONArray("todos").getJSONObject(0)
+        assertEquals("weekly", first.getString("recurKind"))
+        assertEquals(31, first.getInt("recurMask"))
+        assertEquals("20000,20007", first.getString("doneDays"))
+        assertEquals("20001", first.getString("skipDays"))
+    }
+
+    @Test
+    fun parseTodoRecurrenceDefaultsWhenMissing() {
+        val json = org.json.JSONObject()
+            .put("version", 2)
+            .put("types", org.json.JSONArray())
+            .put("blocks", org.json.JSONArray())
+            .put("sleeps", org.json.JSONArray())
+            .put("kv", org.json.JSONArray())
+            .put(
+                "todos",
+                org.json.JSONArray().put(
+                    org.json.JSONObject()
+                        .put("id", "t_old")
+                        .put("epochDay", 20_000L)
+                        .put("category", "work")
+                        .put("title", "旧任务")
+                        .put("done", false)
+                        .put("sortOrder", 0),
+                ),
+            )
+            .toString()
+        val snap = Backup.tryParse(json)!!
+        val row = snap.todos.single()
+        assertEquals("none", row.recurKind)
+        assertEquals(0, row.recurMask)
+        assertEquals("", row.doneDays)
+        assertEquals("", row.skipDays)
+    }
+
+    @Test
     fun tryParseRejectsGarbage() {
         assertNull(Backup.tryParse("{not-json"))
         assertNull(Backup.tryParse("{}"))

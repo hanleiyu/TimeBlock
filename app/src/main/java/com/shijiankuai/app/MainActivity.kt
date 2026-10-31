@@ -23,7 +23,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material.icons.outlined.CheckBox
@@ -40,8 +39,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -64,10 +61,9 @@ import com.shijiankuai.app.ui.AppViewModel
 import com.shijiankuai.app.ui.settings.SettingsScreen
 import com.shijiankuai.app.ui.settings.TypesScreen
 import com.shijiankuai.app.ui.stats.StatsScreen
+import com.shijiankuai.app.ui.theme.Ink
 import com.shijiankuai.app.ui.theme.Ink3
-import com.shijiankuai.app.ui.theme.OnSelected
 import com.shijiankuai.app.ui.theme.Paper
-import com.shijiankuai.app.ui.theme.SelectedFill
 import com.shijiankuai.app.ui.theme.TabBar
 import com.shijiankuai.app.ui.theme.TimeBlockTheme
 import com.shijiankuai.app.ui.today.TodayScreen
@@ -219,7 +215,7 @@ private fun AppRoot(vm: AppViewModel, exercise: ExerciseRepository) {
                         onAdd = vm::addTodo,
                         onToggle = vm::setTodoDone,
                         onDefer = vm::deferTodo,
-                        onEdit = vm::updateTodoTitle,
+                        onEdit = vm::updateTodo,
                         onDelete = vm::deleteTodo,
                         onReorder = vm::reorderTodos,
                     )
@@ -260,8 +256,8 @@ private fun AppRoot(vm: AppViewModel, exercise: ExerciseRepository) {
                     .fillMaxWidth()
                     .background(TabBar)
                     .navigationBarsPadding()
-                    .heightIn(min = 72.dp)
-                    .padding(top = 8.dp, bottom = 12.dp),
+                    .heightIn(min = 56.dp)
+                    .padding(top = 6.dp, bottom = 8.dp),
             ) {
                 TabItem("今天", tab == 0, Icons.Outlined.CalendarMonth, Modifier.weight(1f)) { tab = 0 }
                 TabItem("统计", tab == 1, Icons.Outlined.PieChart, Modifier.weight(1f)) { tab = 1 }
@@ -281,21 +277,24 @@ private fun TabItem(
     modifier: Modifier,
     click: () -> Unit,
 ) {
+    val tint = if (on) Ink else Ink3
     Column(
         modifier
-            .padding(horizontal = 4.dp)
-            .clip(RoundedCornerShape(10.dp))
-            .background(if (on) SelectedFill else Color.Transparent)
             .clickable(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null,
                 onClick = click,
             )
-            .padding(vertical = 6.dp),
+            .padding(vertical = 4.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Icon(icon, contentDescription = label, tint = if (on) OnSelected else Ink3)
-        Spacer(Modifier.height(4.dp))
-        Text(label, fontSize = 11.sp, fontWeight = FontWeight.SemiBold, color = if (on) OnSelected else Ink3)
+        Icon(icon, contentDescription = label, tint = tint)
+        Spacer(Modifier.height(2.dp))
+        Text(
+            label,
+            fontSize = 11.sp,
+            fontWeight = if (on) FontWeight.Bold else FontWeight.SemiBold,
+            color = tint,
+        )
     }
 }
