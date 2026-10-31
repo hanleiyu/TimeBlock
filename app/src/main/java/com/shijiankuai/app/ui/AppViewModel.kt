@@ -3,6 +3,7 @@ package com.shijiankuai.app.ui
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.shijiankuai.app.data.BackupOps
 import com.shijiankuai.app.data.Repository
 import com.shijiankuai.app.data.WakeOutcome
 import com.shijiankuai.app.domain.BLOCK_MINUTES
@@ -19,6 +20,7 @@ import com.shijiankuai.app.domain.StatsNav
 import com.shijiankuai.app.domain.TodoCategory
 import com.shijiankuai.app.domain.TodoItem
 import com.shijiankuai.app.domain.TodoMonth
+import com.shijiankuai.app.domain.TodoRecurrence
 import com.shijiankuai.app.domain.WakeFill
 import com.shijiankuai.app.domain.WakeFillResult
 import com.shijiankuai.app.ui.today.TodayScroll
@@ -54,7 +56,10 @@ data class TodayUi(
     val toast: String? = null,
 )
 
-class AppViewModel(private val repo: Repository) : ViewModel() {
+class AppViewModel(
+    private val repo: Repository,
+    private val backup: BackupOps,
+) : ViewModel() {
     val viewedDate = MutableStateFlow(repo.clock.today())
     val todoDate = MutableStateFlow(repo.clock.today())
     val toast = MutableStateFlow<String?>(null)
@@ -136,6 +141,7 @@ class AppViewModel(private val repo: Repository) : ViewModel() {
     val statsAnchor = MutableStateFlow(repo.clock.today())
     val showAllTime: StateFlow<Boolean> = repo.showAllTime
     val autoBackup: StateFlow<Boolean> = repo.autoBackup
+    val darkTheme: StateFlow<Boolean> = repo.darkTheme
     val lastAutoBackupAt: StateFlow<Instant?> = repo.lastAutoBackupAt
 
     val todoKind = MutableStateFlow(PeriodKind.DAY)
@@ -198,8 +204,8 @@ class AppViewModel(private val repo: Repository) : ViewModel() {
         todoKind.value = TodoMonth.coerceKind(kind)
     }
 
-    fun addTodo(category: TodoCategory, title: String) {
-        viewModelScope.launch { repo.addTodo(todoDate.value, category, title) }
+    fun addTodo(category: TodoCategory, title: String, recurrence: TodoRecurrence = TodoRecurrence.None) {
+        viewModelScope.launch { repo.addTodo(todoDate.value, category, title, recurrence) }
     }
 
     fun setTodoDone(id: String, done: Boolean) {
@@ -208,6 +214,10 @@ class AppViewModel(private val repo: Repository) : ViewModel() {
 
     fun updateTodoTitle(id: String, title: String) {
         viewModelScope.launch { repo.updateTodoTitle(id, title) }
+    }
+
+    fun updateTodo(id: String, title: String, category: TodoCategory, recurrence: TodoRecurrence) {
+        viewModelScope.launch { repo.updateTodo(id, title, category, recurrence) }
     }
 
     fun deleteTodo(id: String) {
@@ -295,9 +305,13 @@ class AppViewModel(private val repo: Repository) : ViewModel() {
         viewModelScope.launch { repo.setAutoBackup(on) }
     }
 
+    fun setDarkTheme(on: Boolean) {
+        viewModelScope.launch { repo.setDarkTheme(on) }
+    }
+
     suspend fun exportCsv(): String = repo.exportCsv()
-    suspend fun exportBackup(): String = repo.exportBackup()
-    suspend fun restore(json: String): Boolean = repo.restoreBackup(json)
+    suspend fun exportBackup(): String = backup.export()
+    suspend fun restore(json: String): Boolean = backup.restore(json)
 
     fun addType(name: String, color: Long) {
         viewModelScope.launch { repo.addType(name, color) }
@@ -324,10 +338,11 @@ class AppViewModel(private val repo: Repository) : ViewModel() {
     }
 
     companion object {
-        fun factory(repo: Repository): ViewModelProvider.Factory =
+        fun factory(repo: Repository, backup: BackupOps): ViewModelProvider.Factory =
             object : ViewModelProvider.Factory {
                 @Suppress("UNCHECKED_CAST")
-                override fun <T : ViewModel> create(modelClass: Class<T>): T = AppViewModel(repo) as T
+                override fun <T : ViewModel> create(modelClass: Class<T>): T =
+                    AppViewModel(repo, backup) as T
             }
     }
 }

@@ -2,6 +2,7 @@ package com.shijiankuai.app.data
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import com.shijiankuai.app.domain.TodoRecurrence
 
 @Entity(tableName = "block_types")
 data class TypeRow(
@@ -42,4 +43,8 @@ data class TodoRow(
     val title: String,
     val done: Boolean,
     val sortOrder: Int,
+    val recurKind: String = TodoRecurrence.KIND_NONE,
+    val recurMask: Int = 0,
+    val doneDays: String = "",
+    val skipDays: String = "",
 )

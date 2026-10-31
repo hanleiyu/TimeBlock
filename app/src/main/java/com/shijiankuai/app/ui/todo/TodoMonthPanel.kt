@@ -30,7 +30,7 @@ import com.shijiankuai.app.domain.TodoItem
 import com.shijiankuai.app.domain.TodoMonth
 import com.shijiankuai.app.domain.TodoRange
 import com.shijiankuai.app.ui.theme.Card
-import com.shijiankuai.app.ui.theme.HighlightWash
+import com.shijiankuai.app.ui.theme.DaySelect
 import com.shijiankuai.app.ui.theme.Ink
 import com.shijiankuai.app.ui.theme.Ink2
 import com.shijiankuai.app.ui.theme.Ink3
@@ -88,7 +88,7 @@ private fun MonthCountRow(counts: Map<TodoCategory, Int>) {
                 Text(
                     "${counts[cat] ?: 0}",
                     fontSize = 22.sp,
-                    fontWeight = FontWeight.SemiBold,
+                    fontWeight = FontWeight.Bold,
                     color = categoryTint(cat),
                     modifier = Modifier.padding(top = 1.dp),
                 )
@@ -163,22 +163,18 @@ private fun MonthDayCell(
         verticalArrangement = Arrangement.Center,
     ) {
         Box(
-            Modifier
-                .size(32.dp)
-                .clip(CircleShape)
-                .then(
-                    when {
-                        selected -> Modifier.background(HighlightWash)
-                        isToday && inMonth -> Modifier.border(1.dp, Ink3.copy(alpha = 0.35f), CircleShape)
-                        else -> Modifier
-                    },
-                ),
+            Modifier.size(34.dp),
             contentAlignment = Alignment.Center,
         ) {
+            if (selected) {
+                Box(Modifier.size(34.dp).border(1.5.dp, DaySelect, CircleShape))
+            } else if (isToday && inMonth) {
+                Box(Modifier.size(34.dp).border(1.dp, Ink3.copy(alpha = 0.35f), CircleShape))
+            }
             Text(
                 "${day.dayOfMonth}",
                 fontSize = 14.sp,
-                fontWeight = if (selected || isToday) FontWeight.SemiBold else FontWeight.Medium,
+                fontWeight = if (selected || isToday) FontWeight.Bold else FontWeight.SemiBold,
                 color = numberColor,
             )
         }
@@ -212,7 +208,7 @@ private fun DayDoneSummary(date: LocalDate, done: List<TodoItem>) {
         Text(
             TodoMonth.summaryTitle(date),
             fontSize = 15.sp,
-            fontWeight = FontWeight.SemiBold,
+            fontWeight = FontWeight.Bold,
             color = Ink,
         )
         if (done.isEmpty()) {
@@ -238,11 +234,11 @@ private fun DayDoneSummary(date: LocalDate, done: List<TodoItem>) {
                         .height(40.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Text("✓", color = DoneGreen, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+                    Text("✓", color = DoneGreen, fontSize = 16.sp, fontWeight = FontWeight.Bold)
                     Text(
                         item.title,
                         fontSize = 15.sp,
-                        fontWeight = FontWeight.Medium,
+                        fontWeight = FontWeight.SemiBold,
                         color = Ink,
                         modifier = Modifier
                             .weight(1f)

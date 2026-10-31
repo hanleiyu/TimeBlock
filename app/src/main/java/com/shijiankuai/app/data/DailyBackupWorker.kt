@@ -10,13 +10,15 @@ class DailyBackupWorker(
     params: WorkerParameters,
 ) : CoroutineWorker(context, params) {
     override suspend fun doWork(): Result {
-        val repo = (applicationContext as TimeBlockApp).container.repo
+        val container = (applicationContext as TimeBlockApp).container
+        val repo = container.repo
         repo.hydrate()
+        container.exercise.seedIfNeeded()
         if (!repo.autoBackup.value) {
             return Result.success()
         }
         return try {
-            val json = repo.exportBackup()
+            val json = container.backup.export()
             DownloadsBackupWriter(applicationContext).write(json)
             repo.markAutoBackupDone(repo.clock.now())
             Result.success()

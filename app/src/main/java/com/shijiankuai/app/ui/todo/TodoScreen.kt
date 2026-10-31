@@ -58,15 +58,22 @@ import com.shijiankuai.app.domain.TodoItem
 import com.shijiankuai.app.domain.TodoList
 import com.shijiankuai.app.domain.TodoMonth
 import com.shijiankuai.app.domain.TodoRange
+import com.shijiankuai.app.domain.TodoRecurrence
+import com.shijiankuai.app.ui.DatePick
+import com.shijiankuai.app.ui.chrome.PageTitle
+import com.shijiankuai.app.ui.chrome.SegmentTabs
+import com.shijiankuai.app.ui.chrome.tabLabel
 import com.shijiankuai.app.ui.theme.Accent
 import com.shijiankuai.app.ui.theme.Card
 import com.shijiankuai.app.ui.theme.Ink
 import com.shijiankuai.app.ui.theme.Ink2
 import com.shijiankuai.app.ui.theme.Ink3
 import com.shijiankuai.app.ui.theme.Line
-import com.shijiankuai.app.ui.DatePick
+import com.shijiankuai.app.ui.theme.OnAccent
+import com.shijiankuai.app.ui.theme.OnSelected
 import com.shijiankuai.app.ui.theme.Paper
 import com.shijiankuai.app.ui.theme.PaperDeep
+import com.shijiankuai.app.ui.theme.SelectedFill
 import com.shijiankuai.app.ui.theme.Sheet
 import java.time.LocalDate
 import kotlin.math.roundToInt
@@ -81,10 +88,10 @@ fun TodoScreen(
     onSetDate: (LocalDate) -> Unit,
     onJumpToday: () -> Unit,
     onKind: (PeriodKind) -> Unit,
-    onAdd: (TodoCategory, String) -> Unit,
+    onAdd: (TodoCategory, String, TodoRecurrence) -> Unit,
     onToggle: (String, Boolean) -> Unit,
     onDefer: (String) -> Unit,
-    onEdit: (String, String) -> Unit,
+    onEdit: (String, String, TodoCategory, TodoRecurrence) -> Unit,
     onDelete: (String) -> Unit,
     onReorder: (TodoCategory, List<String>) -> Unit,
 ) {
@@ -101,20 +108,12 @@ fun TodoScreen(
             .fillMaxSize()
             .background(Paper),
     ) {
-        Column(Modifier.fillMaxSize()) {
-            Row(
-                Modifier
-                    .fillMaxWidth()
-                    .padding(start = 20.dp, end = 16.dp, top = 8.dp, bottom = 4.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text(
-                    "清单",
-                    fontSize = 22.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    color = Ink,
-                    modifier = Modifier.weight(1f),
-                )
+        Column(
+            Modifier
+                .fillMaxSize()
+                .padding(horizontal = 16.dp, vertical = 4.dp),
+        ) {
+            PageTitle("清单") {
                 if (!StatsNav.contains(viewKind, date, today)) {
                     Text(
                         "今天",
@@ -131,7 +130,13 @@ fun TodoScreen(
                     )
                 }
             }
-            PeriodTabs(kind = viewKind, onKind = onKind)
+            Spacer(Modifier.height(12.dp))
+            SegmentTabs(
+                options = TodoMonth.CHECKLIST_KINDS,
+                selected = viewKind,
+                onSelect = onKind,
+                label = { it.tabLabel() },
+            )
             DateBar(
                 kind = viewKind,
                 start = start,
@@ -143,7 +148,6 @@ fun TodoScreen(
                 Modifier
                     .weight(1f)
                     .verticalScroll(rememberScrollState())
-                    .padding(horizontal = 16.dp)
                     .padding(top = 12.dp, bottom = if (viewKind == PeriodKind.DAY) 88.dp else 24.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
@@ -177,15 +181,16 @@ fun TodoScreen(
                     .clickable { adding = true },
                 contentAlignment = Alignment.Center,
             ) {
-                Text("+", color = Color.White, fontSize = 28.sp, fontWeight = FontWeight.Medium)
+                Text("+", color = OnAccent, fontSize = 28.sp, fontWeight = FontWeight.SemiBold)
             }
         }
     }
 
     if (adding) {
         AddTodoSheet(
-            onAdd = { cat, title ->
-                onAdd(cat, title)
+            date = date,
+            onAdd = { cat, title, rec ->
+                onAdd(cat, title, rec)
                 adding = false
             },
             onCancel = { adding = false },
@@ -211,9 +216,9 @@ fun TodoScreen(
     }
     editing?.let { item ->
         EditTodoSheet(
-            initial = item.title,
-            onSave = { text ->
-                onEdit(item.id, text)
+            item = item,
+            onSave = { title, cat, rec ->
+                onEdit(item.id, title, cat, rec)
                 editing = null
             },
             onCancel = { editing = null },
@@ -221,44 +226,6 @@ fun TodoScreen(
     }
     if (showDate) {
         DatePick(date, onSetDate) { showDate = false }
-    }
-}
-
-@Composable
-private fun PeriodTabs(kind: PeriodKind, onKind: (PeriodKind) -> Unit) {
-    Row(
-        Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp)
-            .clip(RoundedCornerShape(12.dp))
-            .background(PaperDeep)
-            .padding(3.dp),
-    ) {
-        TodoMonth.CHECKLIST_KINDS.forEach { k ->
-            val label = when (k) {
-                PeriodKind.DAY -> "日"
-                PeriodKind.WEEK -> "周"
-                PeriodKind.MONTH -> "月"
-                PeriodKind.YEAR -> "年"
-            }
-            val on = k == kind
-            Box(
-                Modifier
-                    .weight(1f)
-                    .clip(RoundedCornerShape(10.dp))
-                    .background(if (on) Card else Color.Transparent)
-                    .clickable { onKind(k) }
-                    .padding(vertical = 7.dp),
-                contentAlignment = Alignment.Center,
-            ) {
-                Text(
-                    label,
-                    fontSize = 13.sp,
-                    color = if (on) Ink else Ink2,
-                    fontWeight = if (on) FontWeight.SemiBold else FontWeight.Medium,
-                )
-            }
-        }
     }
 }
 
@@ -273,7 +240,7 @@ private fun DateBar(
     Row(
         Modifier
             .fillMaxWidth()
-            .padding(horizontal = 28.dp, vertical = 8.dp),
+            .padding(vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween,
     ) {
@@ -281,7 +248,7 @@ private fun DateBar(
         Text(
             TodoRange.periodLabel(kind, start, end),
             fontSize = 15.sp,
-            fontWeight = FontWeight.SemiBold,
+            fontWeight = FontWeight.Bold,
             color = Ink,
             modifier = Modifier.clickable(onClick = onOpenCalendar),
         )
@@ -308,7 +275,7 @@ private fun YearSummary(items: List<TodoItem>, year: Int) {
                 Text(
                     "${counts[cat] ?: 0}",
                     fontSize = 22.sp,
-                    fontWeight = FontWeight.SemiBold,
+                    fontWeight = FontWeight.Bold,
                     color = categoryTint(cat),
                     modifier = Modifier.padding(top = 1.dp),
                 )
@@ -401,7 +368,7 @@ private fun CategoryCard(
             Text(
                 card.category.label,
                 fontSize = 15.sp,
-                fontWeight = FontWeight.SemiBold,
+                fontWeight = FontWeight.Bold,
                 color = Ink,
                 modifier = Modifier.padding(start = 8.dp),
             )
@@ -487,20 +454,26 @@ private fun TodoRow(
             contentAlignment = Alignment.Center,
         ) {
             if (item.done) {
-                Icon(Icons.Outlined.Check, contentDescription = null, tint = Color.White, modifier = Modifier.size(14.dp))
+                Icon(Icons.Outlined.Check, contentDescription = null, tint = OnAccent, modifier = Modifier.size(14.dp))
             }
         }
-        Text(
-            item.title,
-            fontSize = 15.sp,
-            fontWeight = FontWeight.Medium,
-            color = if (look.faded) Ink2.copy(alpha = 0.62f) else Ink,
-            textDecoration = if (look.strike) TextDecoration.LineThrough else TextDecoration.None,
-            modifier = Modifier
+        Column(
+            Modifier
                 .weight(1f)
                 .padding(horizontal = 12.dp)
                 .clickable(enabled = !item.done, onClick = onOpen),
-        )
+        ) {
+            Text(
+                item.title,
+                fontSize = 15.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = if (look.faded) Ink2.copy(alpha = 0.62f) else Ink,
+                textDecoration = if (look.strike) TextDecoration.LineThrough else TextDecoration.None,
+            )
+            recurrenceHint(item.recurrence)?.let { hint ->
+                Text(hint, fontSize = 11.sp, color = Ink3)
+            }
+        }
         Icon(
             Icons.Outlined.DragHandle,
             contentDescription = null,
@@ -523,17 +496,22 @@ private fun TodoRow(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddTodoSheet(onAdd: (TodoCategory, String) -> Unit, onCancel: () -> Unit) {
+fun AddTodoSheet(
+    date: LocalDate,
+    onAdd: (TodoCategory, String, TodoRecurrence) -> Unit,
+    onCancel: () -> Unit,
+) {
     val state = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var title by remember { mutableStateOf("") }
     var category by remember { mutableStateOf(TodoCategory.WORK) }
+    var recurrence by remember { mutableStateOf<TodoRecurrence>(TodoRecurrence.None) }
     ModalBottomSheet(
         onDismissRequest = onCancel,
         sheetState = state,
         containerColor = Sheet,
     ) {
         Column(Modifier.padding(horizontal = 18.dp).padding(bottom = 28.dp)) {
-            Text("新任务", fontSize = 17.sp, fontWeight = FontWeight.SemiBold, color = Ink, modifier = Modifier.align(Alignment.CenterHorizontally))
+            Text("新任务", fontSize = 17.sp, fontWeight = FontWeight.Bold, color = Ink, modifier = Modifier.align(Alignment.CenterHorizontally))
             Spacer(Modifier.height(16.dp))
             OutlinedTextField(
                 value = title,
@@ -544,11 +522,13 @@ fun AddTodoSheet(onAdd: (TodoCategory, String) -> Unit, onCancel: () -> Unit) {
             )
             Spacer(Modifier.height(14.dp))
             CategoryChips(selected = category, onSelect = { category = it })
+            Spacer(Modifier.height(14.dp))
+            RepeatPicker(value = recurrence, date = date, onChange = { recurrence = it })
             Spacer(Modifier.height(18.dp))
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 SheetBtn("取消", false, Modifier.weight(1f), onClick = onCancel)
                 SheetBtn("添加", true, Modifier.weight(1f), enabled = title.isNotBlank()) {
-                    if (title.isNotBlank()) onAdd(category, title.trim())
+                    if (title.isNotBlank()) onAdd(category, title.trim(), recurrence)
                 }
             }
         }
@@ -557,16 +537,23 @@ fun AddTodoSheet(onAdd: (TodoCategory, String) -> Unit, onCancel: () -> Unit) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun EditTodoSheet(initial: String, onSave: (String) -> Unit, onCancel: () -> Unit) {
+private fun EditTodoSheet(
+    item: TodoItem,
+    onSave: (String, TodoCategory, TodoRecurrence) -> Unit,
+    onCancel: () -> Unit,
+) {
     val state = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-    var title by remember { mutableStateOf(initial) }
+    var title by remember { mutableStateOf(item.title) }
+    var category by remember { mutableStateOf(item.category) }
+    var recurrence by remember { mutableStateOf(item.recurrence) }
+    val date = LocalDate.ofEpochDay(item.epochDay)
     ModalBottomSheet(
         onDismissRequest = onCancel,
         sheetState = state,
         containerColor = Sheet,
     ) {
         Column(Modifier.padding(horizontal = 18.dp).padding(bottom = 28.dp)) {
-            Text("编辑", fontSize = 17.sp, fontWeight = FontWeight.SemiBold, color = Ink, modifier = Modifier.align(Alignment.CenterHorizontally))
+            Text("编辑", fontSize = 17.sp, fontWeight = FontWeight.Bold, color = Ink, modifier = Modifier.align(Alignment.CenterHorizontally))
             Spacer(Modifier.height(16.dp))
             OutlinedTextField(
                 value = title,
@@ -574,11 +561,15 @@ private fun EditTodoSheet(initial: String, onSave: (String) -> Unit, onCancel: (
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
             )
+            Spacer(Modifier.height(14.dp))
+            CategoryChips(selected = category, onSelect = { category = it })
+            Spacer(Modifier.height(14.dp))
+            RepeatPicker(value = recurrence, date = date, onChange = { recurrence = it })
             Spacer(Modifier.height(18.dp))
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 SheetBtn("取消", false, Modifier.weight(1f), onClick = onCancel)
                 SheetBtn("保存", true, Modifier.weight(1f), enabled = title.isNotBlank()) {
-                    if (title.isNotBlank()) onSave(title.trim())
+                    if (title.isNotBlank()) onSave(title.trim(), category, recurrence)
                 }
             }
         }
@@ -601,7 +592,7 @@ fun TodoActionSheet(
         containerColor = Sheet,
     ) {
         Column(Modifier.padding(horizontal = 18.dp).padding(bottom = 28.dp)) {
-            Text(title, fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = Ink)
+            Text(title, fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Ink)
             Spacer(Modifier.height(14.dp))
             ActionRow("延到明天", Ink, onDefer)
             ActionRow("编辑", Ink, onEdit)
@@ -622,9 +613,122 @@ private fun ActionRow(label: String, color: Color, onClick: () -> Unit) {
             .padding(vertical = 14.dp),
         contentAlignment = Alignment.CenterStart,
     ) {
-        Text(label, fontSize = 15.sp, fontWeight = FontWeight.Medium, color = color)
+        Text(label, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = color)
     }
 }
+
+private fun recurrenceHint(rec: TodoRecurrence): String? = when (rec) {
+    TodoRecurrence.None -> null
+    is TodoRecurrence.Weekly -> "每周"
+    is TodoRecurrence.Monthly -> "每月"
+}
+
+@Composable
+private fun RepeatPicker(
+    value: TodoRecurrence,
+    date: LocalDate,
+    onChange: (TodoRecurrence) -> Unit,
+) {
+    val kind = when (value) {
+        TodoRecurrence.None -> TodoRecurrence.KIND_NONE
+        is TodoRecurrence.Weekly -> TodoRecurrence.KIND_WEEKLY
+        is TodoRecurrence.Monthly -> TodoRecurrence.KIND_MONTHLY
+    }
+    Column {
+        Text("重复", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = Ink2)
+        Spacer(Modifier.height(8.dp))
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            RecurKindChip("不重复", kind == TodoRecurrence.KIND_NONE, Modifier.weight(1f)) {
+                onChange(TodoRecurrence.None)
+            }
+            RecurKindChip("每周", kind == TodoRecurrence.KIND_WEEKLY, Modifier.weight(1f)) {
+                val mask = (value as? TodoRecurrence.Weekly)?.daysMask
+                    ?: (1 shl (date.dayOfWeek.value - 1))
+                onChange(TodoRecurrence.Weekly(mask))
+            }
+            RecurKindChip("每月", kind == TodoRecurrence.KIND_MONTHLY, Modifier.weight(1f)) {
+                val dom = (value as? TodoRecurrence.Monthly)?.dayOfMonth ?: date.dayOfMonth
+                onChange(TodoRecurrence.Monthly(dom))
+            }
+        }
+        when (value) {
+            is TodoRecurrence.Weekly -> {
+                Spacer(Modifier.height(10.dp))
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    WEEKDAY_LABELS.forEachIndexed { i, label ->
+                        val bit = 1 shl i
+                        val on = value.daysMask and bit != 0
+                        Box(
+                            Modifier
+                                .weight(1f)
+                                .clip(RoundedCornerShape(999.dp))
+                                .background(if (on) SelectedFill else Color.Transparent)
+                                .then(if (on) Modifier else Modifier.border(1.dp, Line, RoundedCornerShape(999.dp)))
+                                .clickable {
+                                    val next = if (on) value.daysMask and bit.inv() else value.daysMask or bit
+                                    if (next != 0) onChange(TodoRecurrence.Weekly(next))
+                                }
+                                .padding(vertical = 8.dp),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            Text(label, fontSize = 12.sp, fontWeight = FontWeight.Bold, color = if (on) OnSelected else Ink2)
+                        }
+                    }
+                }
+            }
+            is TodoRecurrence.Monthly -> {
+                Spacer(Modifier.height(10.dp))
+                Row(
+                    Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center,
+                ) {
+                    Text(
+                        "‹",
+                        fontSize = 22.sp,
+                        color = Ink2,
+                        modifier = Modifier
+                            .clickable {
+                                val next = if (value.dayOfMonth <= 1) 31 else value.dayOfMonth - 1
+                                onChange(TodoRecurrence.Monthly(next))
+                            }
+                            .padding(horizontal = 16.dp, vertical = 4.dp),
+                    )
+                    Text("每月 ${value.dayOfMonth} 日", fontSize = 15.sp, fontWeight = FontWeight.Bold, color = Ink)
+                    Text(
+                        "›",
+                        fontSize = 22.sp,
+                        color = Ink2,
+                        modifier = Modifier
+                            .clickable {
+                                val next = if (value.dayOfMonth >= 31) 1 else value.dayOfMonth + 1
+                                onChange(TodoRecurrence.Monthly(next))
+                            }
+                            .padding(horizontal = 16.dp, vertical = 4.dp),
+                    )
+                }
+            }
+            TodoRecurrence.None -> {}
+        }
+    }
+}
+
+@Composable
+private fun RecurKindChip(label: String, on: Boolean, modifier: Modifier, onClick: () -> Unit) {
+    Box(
+        modifier
+            .clip(RoundedCornerShape(999.dp))
+            .background(if (on) SelectedFill else Color.Transparent)
+            .then(if (on) Modifier else Modifier.border(1.dp, Line, RoundedCornerShape(999.dp)))
+            .clickable(onClick = onClick)
+            .padding(vertical = 8.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(label, fontSize = 13.sp, fontWeight = FontWeight.Bold, color = if (on) OnSelected else Ink2)
+    }
+}
+
+private val WEEKDAY_LABELS = listOf("一", "二", "三", "四", "五", "六", "日")
 
 @Composable
 private fun CategoryChips(selected: TodoCategory, onSelect: (TodoCategory) -> Unit) {
@@ -634,12 +738,12 @@ private fun CategoryChips(selected: TodoCategory, onSelect: (TodoCategory) -> Un
             Box(
                 Modifier
                     .clip(RoundedCornerShape(999.dp))
-                    .background(if (on) Accent else Color.Transparent)
+                    .background(if (on) SelectedFill else Color.Transparent)
                     .then(if (on) Modifier else Modifier.border(1.dp, Line, RoundedCornerShape(999.dp)))
                     .clickable { onSelect(cat) }
                     .padding(horizontal = 12.dp, vertical = 8.dp),
             ) {
-                Text(cat.label, fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = if (on) Color.White else Ink2)
+                Text(cat.label, fontSize = 13.sp, fontWeight = FontWeight.Bold, color = if (on) OnSelected else Ink2)
             }
         }
     }
@@ -655,7 +759,7 @@ private fun SheetBtn(label: String, primary: Boolean, modifier: Modifier, enable
             .clickable(enabled = enabled, onClick = onClick),
         contentAlignment = Alignment.Center,
     ) {
-        Text(label, color = if (primary) Color.White else Ink2, fontWeight = FontWeight.SemiBold)
+        Text(label, color = if (primary) OnAccent else Ink2, fontWeight = FontWeight.Bold)
     }
 }
 

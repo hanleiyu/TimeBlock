@@ -65,7 +65,7 @@ fun TypesScreen(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text("‹ 设置", color = Ink2, modifier = Modifier.clickable(onClick = onBack))
-            Text("类型管理", fontSize = 17.sp, fontWeight = FontWeight.SemiBold, color = Ink, modifier = Modifier.weight(1f).padding(horizontal = 8.dp))
+            Text("类型管理", fontSize = 17.sp, fontWeight = FontWeight.Bold, color = Ink, modifier = Modifier.weight(1f).padding(horizontal = 8.dp))
             Text("完成", color = Accent, modifier = Modifier.clickable(onClick = onBack))
         }
         Column(Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(horizontal = 16.dp)) {

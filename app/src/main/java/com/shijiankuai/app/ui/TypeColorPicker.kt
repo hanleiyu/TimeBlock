@@ -114,7 +114,7 @@ fun TypeColorPicker(
                 singleLine = true,
                 textStyle = TextStyle(
                     fontSize = 14.sp,
-                    fontWeight = FontWeight.SemiBold,
+                    fontWeight = FontWeight.Bold,
                     color = Ink,
                 ),
                 modifier = Modifier.weight(1f),
@@ -135,7 +135,7 @@ fun TypeColorPicker(
                             .background(Color(ColorMath.normalize(c).toInt()))
                             .then(
                                 if (on) Modifier.border(2.dp, Ink, CircleShape)
-                                else Modifier.border(1.dp, Color(0x332B2E45), CircleShape),
+                                else Modifier.border(1.dp, Ink.copy(alpha = 0.2f), CircleShape),
                             )
                             .clickable {
                                 val n = ColorMath.normalize(c)
@@ -159,12 +159,13 @@ fun TypeColorPicker(
                 .pickColor { x, y -> emit(hueNow.value, x, 1f - y) },
         ) {
             val hueColor = Color(ColorMath.hsvToArgb(hue, 1f, 1f).toInt())
+            val ink = Ink
             Canvas(Modifier.fillMaxSize()) {
                 drawRect(Brush.horizontalGradient(listOf(Color.White, hueColor)))
                 drawRect(Brush.verticalGradient(listOf(Color.Transparent, Color.Black)))
                 val thumb = Offset(sat * size.width, (1f - value) * size.height)
                 drawCircle(Color.White, 7.dp.toPx(), thumb)
-                drawCircle(Ink, 7.dp.toPx(), thumb, style = Stroke(1.6.dp.toPx()))
+                drawCircle(ink, 7.dp.toPx(), thumb, style = Stroke(1.6.dp.toPx()))
             }
         }
         Spacer(Modifier.height(10.dp))
@@ -178,11 +179,12 @@ fun TypeColorPicker(
             val hues = listOf(0f, 60f, 120f, 180f, 240f, 300f, 360f).map {
                 Color(ColorMath.hsvToArgb(it, 1f, 1f).toInt())
             }
+            val ink = Ink
             Canvas(Modifier.fillMaxSize()) {
                 drawRect(Brush.horizontalGradient(hues))
                 val thumb = Offset((hue / 360f) * size.width, size.height / 2f)
                 drawCircle(Color.White, 7.dp.toPx(), thumb)
-                drawCircle(Ink, 7.dp.toPx(), thumb, style = Stroke(1.6.dp.toPx()))
+                drawCircle(ink, 7.dp.toPx(), thumb, style = Stroke(1.6.dp.toPx()))
             }
         }
     }

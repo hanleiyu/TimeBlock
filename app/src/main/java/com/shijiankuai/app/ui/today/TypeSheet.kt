@@ -39,6 +39,7 @@ import com.shijiankuai.app.ui.TypeColorPicker
 import com.shijiankuai.app.ui.theme.Ink
 import com.shijiankuai.app.ui.theme.Ink2
 import com.shijiankuai.app.ui.theme.Line
+import com.shijiankuai.app.ui.theme.OnInk
 import com.shijiankuai.app.ui.theme.Paper
 import com.shijiankuai.app.ui.theme.PaperDeep
 import com.shijiankuai.app.ui.theme.Sheet
@@ -70,7 +71,7 @@ fun TypePickerSheet(
             )
         } else {
             Column(Modifier.padding(horizontal = 18.dp).padding(bottom = 28.dp)) {
-                Text("标记这 $count 个时间块", fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = Ink)
+                Text("标记这 $count 个时间块", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Ink)
                 Spacer(Modifier.height(14.dp))
                 types.chunked(2).forEach { row ->
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -111,7 +112,7 @@ fun TypePickerSheet(
                             .background(Ink)
                             .clickable(onClick = onCancel),
                         contentAlignment = Alignment.Center,
-                    ) { Text("取消", color = Color(0xFFF7F1E8)) }
+                    ) { Text("取消", color = OnInk) }
                 }
             }
         }
@@ -144,7 +145,7 @@ fun AddTypeForm(onSave: (String, Long) -> Unit, onCancel: () -> Unit) {
             .padding(horizontal = 18.dp)
             .padding(bottom = 28.dp),
     ) {
-        Text("添加类型", fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = Ink)
+        Text("添加类型", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Ink)
         Spacer(Modifier.height(12.dp))
         OutlinedTextField(
             value = name,
@@ -176,7 +177,7 @@ fun AddTypeForm(onSave: (String, Long) -> Unit, onCancel: () -> Unit) {
                         if (name.isNotBlank()) onSave(name.trim(), color)
                     },
                 contentAlignment = Alignment.Center,
-            ) { Text("保存类型", color = Color(0xFFF7F1E8)) }
+            ) { Text("保存类型", color = OnInk) }
         }
     }
 }

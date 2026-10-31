@@ -1,13 +1,15 @@
 package com.shijiankuai.app
 
+import android.Manifest
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -15,13 +17,16 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material.icons.outlined.CheckBox
+import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material.icons.outlined.PieChart
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.Icon
@@ -29,6 +34,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -37,37 +43,53 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.shijiankuai.app.data.DailyBackupScheduler
+import com.shijiankuai.app.domain.DailyBackup
+import com.shijiankuai.app.exercise.data.ExerciseRepository
+import com.shijiankuai.app.exercise.ui.ExerciseVmFactory
+import com.shijiankuai.app.exercise.ui.HealthPage
+import com.shijiankuai.app.exercise.ui.HealthScreen
+import com.shijiankuai.app.exercise.ui.editor.WorkoutEditorScreen
+import com.shijiankuai.app.exercise.ui.goals.HealthGoalsScreen
+import com.shijiankuai.app.exercise.ui.metrics.MetricDetailScreen
+import com.shijiankuai.app.exercise.ui.plan.PlanScreen
 import com.shijiankuai.app.ui.AppViewModel
 import com.shijiankuai.app.ui.settings.SettingsScreen
 import com.shijiankuai.app.ui.settings.TypesScreen
 import com.shijiankuai.app.ui.stats.StatsScreen
-import com.shijiankuai.app.ui.todo.TodoScreen
 import com.shijiankuai.app.ui.theme.Ink
 import com.shijiankuai.app.ui.theme.Ink3
 import com.shijiankuai.app.ui.theme.Paper
 import com.shijiankuai.app.ui.theme.TabBar
 import com.shijiankuai.app.ui.theme.TimeBlockTheme
-import com.shijiankuai.app.data.DailyBackupScheduler
-import com.shijiankuai.app.domain.DailyBackup
 import com.shijiankuai.app.ui.today.TodayScreen
-import android.Manifest
-import android.content.pm.PackageManager
-import android.os.Build
-import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
+import com.shijiankuai.app.ui.todo.TodoScreen
+import java.time.LocalDate
+
+private sealed class Overlay {
+    data object None : Overlay()
+    data object Types : Overlay()
+    data object HealthGoals : Overlay()
+    data object Plan : Overlay()
+    data class Editor(val workoutId: Long?, val epochDay: Long?) : Overlay()
+    data class Metric(val id: Long) : Overlay()
+}
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         requestLegacyStorageIfNeeded()
-        val repo = (application as TimeBlockApp).container.repo
+        val container = (application as TimeBlockApp).container
         setContent {
-            TimeBlockTheme {
-                val vm: AppViewModel = viewModel(factory = AppViewModel.factory(repo))
-                AppRoot(vm)
+            val vm: AppViewModel = viewModel(factory = AppViewModel.factory(container.repo, container.backup))
+            val dark by vm.darkTheme.collectAsStateWithLifecycle()
+            TimeBlockTheme(dark = dark) {
+                AppRoot(vm, container.exercise)
             }
         }
     }
@@ -88,9 +110,10 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-private fun AppRoot(vm: AppViewModel) {
+private fun AppRoot(vm: AppViewModel, exercise: ExerciseRepository) {
     var tab by remember { mutableIntStateOf(0) }
-    var typesOpen by remember { mutableStateOf(false) }
+    var overlay by remember { mutableStateOf<Overlay>(Overlay.None) }
+    var healthPage by remember { mutableStateOf(HealthPage.WEEK) }
     val today by vm.today.collectAsStateWithLifecycle()
     val types by vm.types.collectAsStateWithLifecycle()
     val stats by vm.stats.collectAsStateWithLifecycle()
@@ -100,6 +123,7 @@ private fun AppRoot(vm: AppViewModel) {
     val showAllTime by vm.showAllTime.collectAsStateWithLifecycle()
     val autoBackup by vm.autoBackup.collectAsStateWithLifecycle()
     val lastAutoBackupAt by vm.lastAutoBackupAt.collectAsStateWithLifecycle()
+    val darkTheme by vm.darkTheme.collectAsStateWithLifecycle()
     val ctx = LocalContext.current
     val todoDate by vm.todoDate.collectAsStateWithLifecycle()
     val todoKind by vm.todoKind.collectAsStateWithLifecycle()
@@ -113,15 +137,38 @@ private fun AppRoot(vm: AppViewModel) {
             .background(Paper)
             .statusBarsPadding(),
     ) {
-        when {
-            typesOpen -> TypesScreen(
+        when (val layer = overlay) {
+            Overlay.Types -> TypesScreen(
                 types = types,
-                onBack = { typesOpen = false },
+                onBack = { overlay = Overlay.None },
                 onUpdate = vm::updateType,
                 onReorder = vm::reorder,
                 onAdd = vm::addType,
             )
-            else -> Box(Modifier.weight(1f)) {
+            Overlay.HealthGoals -> HealthGoalsScreen(
+                vm = viewModel(factory = ExerciseVmFactory(exercise)),
+                onBack = { overlay = Overlay.None },
+            )
+            Overlay.Plan -> PlanScreen(
+                vm = viewModel(factory = ExerciseVmFactory(exercise)),
+                onBack = { overlay = Overlay.None },
+            )
+            is Overlay.Editor -> WorkoutEditorScreen(
+                vm = viewModel(
+                    key = "workout-${layer.workoutId}-${layer.epochDay}",
+                    factory = ExerciseVmFactory(exercise, layer.workoutId),
+                ),
+                initialDate = layer.epochDay?.let(LocalDate::ofEpochDay),
+                onDone = { overlay = Overlay.None },
+            )
+            is Overlay.Metric -> MetricDetailScreen(
+                vm = viewModel(
+                    key = "metric-${layer.id}",
+                    factory = ExerciseVmFactory(exercise, layer.id),
+                ),
+                onBack = { overlay = Overlay.None },
+            )
+            Overlay.None -> Box(Modifier.weight(1f)) {
                 Box(
                     Modifier.then(
                         if (tab == 0) Modifier.fillMaxSize() else Modifier.size(0.dp),
@@ -146,6 +193,16 @@ private fun AppRoot(vm: AppViewModel) {
                     )
                 }
                 if (tab == 1) {
+                    StatsScreen(
+                        kind = kind,
+                        anchor = anchor,
+                        today = java.time.LocalDate.now(zone),
+                        stats = stats,
+                        onKind = vm::setStatsKind,
+                        onShift = vm::shiftStats,
+                        onSetAnchor = vm::setStatsAnchor,
+                    )
+                } else if (tab == 2) {
                     TodoScreen(
                         date = todoDate,
                         today = java.time.LocalDate.now(zone),
@@ -158,24 +215,25 @@ private fun AppRoot(vm: AppViewModel) {
                         onAdd = vm::addTodo,
                         onToggle = vm::setTodoDone,
                         onDefer = vm::deferTodo,
-                        onEdit = vm::updateTodoTitle,
+                        onEdit = vm::updateTodo,
                         onDelete = vm::deleteTodo,
                         onReorder = vm::reorderTodos,
                     )
-                } else if (tab == 2) {
-                    StatsScreen(
-                        kind = kind,
-                        anchor = anchor,
-                        today = java.time.LocalDate.now(zone),
-                        stats = stats,
-                        onKind = vm::setStatsKind,
-                        onShift = vm::shiftStats,
-                        onSetAnchor = vm::setStatsAnchor,
-                    )
                 } else if (tab == 3) {
+                    HealthScreen(
+                        repo = exercise,
+                        page = healthPage,
+                        onPage = { healthPage = it },
+                        onOpenPlan = { overlay = Overlay.Plan },
+                        onOpenWorkout = { overlay = Overlay.Editor(it, null) },
+                        onAddWorkout = { overlay = Overlay.Editor(null, it.toEpochDay()) },
+                        onOpenMetric = { overlay = Overlay.Metric(it) },
+                    )
+                } else if (tab == 4) {
                     SettingsScreen(
                         types = types,
-                        onOpenTypes = { typesOpen = true },
+                        onOpenTypes = { overlay = Overlay.Types },
+                        onOpenHealthGoals = { overlay = Overlay.HealthGoals },
                         exportBackup = { vm.exportBackup() },
                         restore = { vm.restore(it) },
                         showAllTime = showAllTime,
@@ -186,23 +244,26 @@ private fun AppRoot(vm: AppViewModel) {
                             vm.setAutoBackup(on)
                             DailyBackupScheduler.setEnabled(ctx, on)
                         },
+                        darkTheme = darkTheme,
+                        onDarkTheme = vm::setDarkTheme,
                     )
                 }
             }
         }
-        if (!typesOpen) {
+        if (overlay == Overlay.None) {
             Row(
                 Modifier
                     .fillMaxWidth()
                     .background(TabBar)
                     .navigationBarsPadding()
-                    .height(64.dp)
-                    .padding(bottom = 10.dp),
+                    .heightIn(min = 56.dp)
+                    .padding(top = 6.dp, bottom = 8.dp),
             ) {
                 TabItem("今天", tab == 0, Icons.Outlined.CalendarMonth, Modifier.weight(1f)) { tab = 0 }
-                TabItem("清单", tab == 1, Icons.Outlined.CheckBox, Modifier.weight(1f)) { tab = 1 }
-                TabItem("统计", tab == 2, Icons.Outlined.PieChart, Modifier.weight(1f)) { tab = 2 }
-                TabItem("设置", tab == 3, Icons.Outlined.Settings, Modifier.weight(1f)) { tab = 3 }
+                TabItem("统计", tab == 1, Icons.Outlined.PieChart, Modifier.weight(1f)) { tab = 1 }
+                TabItem("清单", tab == 2, Icons.Outlined.CheckBox, Modifier.weight(1f)) { tab = 2 }
+                TabItem("健康", tab == 3, Icons.Outlined.FavoriteBorder, Modifier.weight(1f)) { tab = 3 }
+                TabItem("设置", tab == 4, Icons.Outlined.Settings, Modifier.weight(1f)) { tab = 4 }
             }
         }
     }
@@ -216,12 +277,24 @@ private fun TabItem(
     modifier: Modifier,
     click: () -> Unit,
 ) {
+    val tint = if (on) Ink else Ink3
     Column(
-        modifier.clickable(onClick = click),
+        modifier
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null,
+                onClick = click,
+            )
+            .padding(vertical = 4.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Spacer(Modifier.height(8.dp))
-        Icon(icon, contentDescription = label, tint = if (on) Ink else Ink3)
-        Text(label, fontSize = 11.sp, fontWeight = FontWeight.Medium, color = if (on) Ink else Ink3)
+        Icon(icon, contentDescription = label, tint = tint)
+        Spacer(Modifier.height(2.dp))
+        Text(
+            label,
+            fontSize = 11.sp,
+            fontWeight = if (on) FontWeight.Bold else FontWeight.SemiBold,
+            color = tint,
+        )
     }
 }

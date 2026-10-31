@@ -19,6 +19,10 @@ data class TodoItem(
     val title: String,
     val done: Boolean,
     val sortOrder: Int,
+    val seriesId: String = id,
+    val recurrence: TodoRecurrence = TodoRecurrence.None,
+    val doneDays: Set<Long> = emptySet(),
+    val skipDays: Set<Long> = emptySet(),
 )
 
 data class TodoCard(

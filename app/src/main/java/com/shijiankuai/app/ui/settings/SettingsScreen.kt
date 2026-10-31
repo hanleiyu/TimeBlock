@@ -15,8 +15,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
@@ -33,11 +35,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.shijiankuai.app.BuildConfig
 import com.shijiankuai.app.domain.BlockType
+import com.shijiankuai.app.ui.chrome.PageTitle
+import com.shijiankuai.app.ui.chrome.SegmentTabs
 import com.shijiankuai.app.ui.theme.Accent
 import com.shijiankuai.app.ui.theme.Card
 import com.shijiankuai.app.ui.theme.Ink
@@ -51,6 +54,7 @@ import kotlinx.coroutines.launch
 fun SettingsScreen(
     types: List<BlockType>,
     onOpenTypes: () -> Unit,
+    onOpenHealthGoals: () -> Unit = {},
     exportBackup: suspend () -> String,
     restore: suspend (String) -> Boolean,
     showAllTime: Boolean = true,
@@ -58,6 +62,8 @@ fun SettingsScreen(
     autoBackup: Boolean = true,
     lastBackupLabel: String = "尚未备份",
     onAutoBackup: (Boolean) -> Unit = {},
+    darkTheme: Boolean = true,
+    onDarkTheme: (Boolean) -> Unit = {},
 ) {
     val ctx = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -80,9 +86,10 @@ fun SettingsScreen(
         Modifier
             .fillMaxSize()
             .background(Paper)
+            .verticalScroll(rememberScrollState())
             .padding(horizontal = 16.dp, vertical = 4.dp),
     ) {
-        Text("设置", fontSize = 22.sp, fontWeight = FontWeight.SemiBold, color = Ink)
+        PageTitle("设置")
         if (banner != null) {
             Text(
                 banner!!,
@@ -98,6 +105,17 @@ fun SettingsScreen(
             )
         }
         Spacer(Modifier.height(14.dp))
+        Group("外观") {
+            Column(Modifier.padding(horizontal = 10.dp, vertical = 10.dp)) {
+                SegmentTabs(
+                    options = listOf(false, true),
+                    selected = darkTheme,
+                    onSelect = onDarkTheme,
+                    label = { if (it) "深色" else "浅色" },
+                )
+            }
+        }
+        Spacer(Modifier.height(12.dp))
         Group("时间块") {
             RowItem(title = "时间块长度", value = "10 分钟")
         }
@@ -143,6 +161,22 @@ fun SettingsScreen(
             }
         }
         Spacer(Modifier.height(12.dp))
+        Group("健康") {
+            Row(
+                Modifier
+                    .fillMaxWidth()
+                    .clickable(onClick = onOpenHealthGoals)
+                    .padding(horizontal = 14.dp, vertical = 13.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Column(Modifier.weight(1f)) {
+                    Text("健康目标", fontSize = 14.sp, color = Ink)
+                    Text("渐进计划、固定目标、平衡次数", fontSize = 11.sp, color = Ink3)
+                }
+                Text("›", color = Ink2)
+            }
+        }
+        Spacer(Modifier.height(12.dp))
         Group("数据 · 仅本机") {
             Row(
                 Modifier
@@ -153,7 +187,7 @@ fun SettingsScreen(
             ) {
                 Column(Modifier.weight(1f)) {
                     Text("每晚 0 点自动备份到下载目录", fontSize = 14.sp, color = Ink)
-                    Text(lastBackupLabel, fontSize = 11.sp, color = Ink3)
+                    Text("含时间块与健康 · $lastBackupLabel", fontSize = 11.sp, color = Ink3)
                 }
                 Switch(
                     checked = autoBackup,
@@ -164,13 +198,19 @@ fun SettingsScreen(
                     ),
                 )
             }
-            RowItem("本地备份") {
+            RowItem(
+                title = "本地备份",
+                sub = "时间块 + 健康，默认名 时间块-备份.txt",
+            ) {
                 scope.launch {
                     pending.value = exportBackup()
                     create.launch("时间块-备份.txt")
                 }
             }
-            RowItem("从备份恢复") {
+            RowItem(
+                title = "从备份恢复",
+                sub = "先清空对应库再写入；全量会动两边",
+            ) {
                 open.launch(arrayOf("application/json", "text/plain", "*/*"))
             }
         }
@@ -195,7 +235,13 @@ fun SettingsScreen(
         AlertDialog(
             onDismissRequest = { confirmRestore = null },
             title = { Text("从备份恢复？") },
-            text = { Text("会覆盖当前本机的类型、时间块和睡觉记录，且不能撤销。") },
+            text = {
+                Text(
+                    "恢复会先清空对应数据库再写入，且不能撤销。" +
+                        "全量备份（version 2）会同时覆盖时间块（类型、格子、睡觉、清单）和健康数据；" +
+                        "旧时间块备份只覆盖时间块；旧运动备份只覆盖健康。",
+                )
+            },
             confirmButton = {
                 TextButton(onClick = {
                     val json = body

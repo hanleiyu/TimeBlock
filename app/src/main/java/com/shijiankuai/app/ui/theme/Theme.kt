@@ -1,29 +1,78 @@
 package com.shijiankuai.app.ui.theme
 
+import android.app.Activity
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.text.font.FontWeight
+import androidx.core.view.WindowInsetsControllerCompat
 
-private val Scheme = lightColorScheme(
-    primary = Accent,
-    onPrimary = Color(0xFFFFFFFF),
-    secondary = Wake,
-    onSecondary = Color(0xFFFFFFFF),
-    background = Paper,
-    onBackground = Ink,
-    surface = Card,
-    onSurface = Ink,
-    surfaceVariant = PaperDeep,
-    onSurfaceVariant = Ink2,
-    outline = Line,
-)
+private fun scheme(palette: Palette, dark: Boolean) = if (dark) {
+    darkColorScheme(
+        primary = palette.accent,
+        onPrimary = Color.Black,
+        secondary = palette.strength,
+        onSecondary = Color.Black,
+        background = palette.paper,
+        onBackground = palette.ink,
+        surface = palette.card,
+        onSurface = palette.ink,
+        surfaceVariant = palette.paperDeep,
+        onSurfaceVariant = palette.ink2,
+        outline = palette.line,
+        primaryContainer = palette.highlightWash,
+        onPrimaryContainer = palette.accent,
+        error = Danger,
+    )
+} else {
+    lightColorScheme(
+        primary = palette.accent,
+        onPrimary = Color(0xFFFFFFFF),
+        secondary = Wake,
+        onSecondary = Color(0xFFFFFFFF),
+        background = palette.paper,
+        onBackground = palette.ink,
+        surface = palette.card,
+        onSurface = palette.ink,
+        surfaceVariant = palette.paperDeep,
+        onSurfaceVariant = palette.ink2,
+        outline = palette.line,
+        primaryContainer = palette.highlightWash,
+        onPrimaryContainer = palette.ink,
+    )
+}
 
 @Composable
-fun TimeBlockTheme(content: @Composable () -> Unit) {
-    MaterialTheme(
-        colorScheme = Scheme,
-        typography = appTypography(),
-        content = content,
-    )
+fun TimeBlockTheme(dark: Boolean = true, content: @Composable () -> Unit) {
+    val palette = if (dark) DarkPalette else LightPalette
+    val view = LocalView.current
+    if (!view.isInEditMode) {
+        SideEffect {
+            val window = (view.context as? Activity)?.window ?: return@SideEffect
+            WindowInsetsControllerCompat(window, view).apply {
+                isAppearanceLightStatusBars = !dark
+                isAppearanceLightNavigationBars = !dark
+            }
+        }
+    }
+    CompositionLocalProvider(LocalPalette provides palette) {
+        MaterialTheme(
+            colorScheme = scheme(palette, dark),
+            typography = appTypography(),
+        ) {
+            CompositionLocalProvider(
+                LocalTextStyle provides LocalTextStyle.current.copy(
+                    fontFamily = NotoSansSc,
+                    fontWeight = FontWeight.Medium,
+                ),
+                content = content,
+            )
+        }
+    }
 }

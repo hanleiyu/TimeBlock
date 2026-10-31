@@ -50,6 +50,7 @@ import com.shijiankuai.app.ui.TodayUi
 import com.shijiankuai.app.ui.hoursLabel
 import com.shijiankuai.app.ui.theme.Accent
 import com.shijiankuai.app.ui.theme.Card
+import com.shijiankuai.app.ui.theme.GooseYellow
 import com.shijiankuai.app.ui.theme.EmptyFuture
 import com.shijiankuai.app.ui.theme.EmptyPast
 import com.shijiankuai.app.ui.theme.HighlightLine
@@ -58,6 +59,7 @@ import com.shijiankuai.app.ui.theme.Ink
 import com.shijiankuai.app.ui.theme.Ink2
 import com.shijiankuai.app.ui.theme.Ink3
 import com.shijiankuai.app.ui.theme.Line
+import com.shijiankuai.app.ui.theme.OnAccent
 import com.shijiankuai.app.ui.theme.Paper
 import com.shijiankuai.app.ui.theme.Sleep
 import com.shijiankuai.app.ui.theme.Wake
@@ -119,7 +121,7 @@ fun TodayScreen(
             Text(
                 ui.date.toCn(),
                 fontSize = 22.sp,
-                fontWeight = FontWeight.SemiBold,
+                fontWeight = FontWeight.Bold,
                 color = Ink,
                 modifier = Modifier
                     .weight(1f)
@@ -186,8 +188,8 @@ fun TodayScreen(
                     .padding(horizontal = 14.dp, vertical = 10.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Box(Modifier.size(8.dp).clip(CircleShape).background(Color(0xFFC5C8DC)))
-                Text(ui.toast, color = Color.White, fontSize = 13.sp, modifier = Modifier.padding(start = 8.dp))
+                Box(Modifier.size(8.dp).clip(CircleShape).background(OnAccent.copy(alpha = 0.7f)))
+                Text(ui.toast, color = OnAccent, fontSize = 13.sp, modifier = Modifier.padding(start = 8.dp))
             }
             Spacer(Modifier.height(10.dp))
         }
@@ -461,17 +463,17 @@ private fun HourRow(
                     Modifier
                         .fillMaxWidth()
                         .height(2.dp)
-                        .background(Accent),
+                        .background(GooseYellow),
                 )
                 Text(
                     "现在 ${"%02d:%02d".format(nowTime.hour, nowTime.minute)}",
-                    color = Color.White,
+                    color = Color.Black,
                     fontSize = 10.sp,
                     modifier = Modifier
                         .align(Alignment.CenterEnd)
                         .offset(y = (-9).dp)
                         .clip(RoundedCornerShape(999.dp))
-                        .background(Accent)
+                        .background(GooseYellow)
                         .padding(horizontal = 6.dp, vertical = 1.dp),
                 )
             }
@@ -495,7 +497,7 @@ fun AsleepScreen(
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Row(Modifier.fillMaxWidth().padding(top = 8.dp), horizontalArrangement = Arrangement.SpaceBetween) {
-            Text("时间块", fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = Ink)
+            Text("时间块", fontSize = 15.sp, fontWeight = FontWeight.Bold, color = Ink)
         }
         Spacer(Modifier.weight(1f))
         Text(
@@ -515,7 +517,7 @@ fun AsleepScreen(
                 }
                 .clickable(onClick = onOpenDate),
         )
-        Text("还在睡", fontSize = 30.sp, fontWeight = FontWeight.SemiBold, color = Ink, modifier = Modifier.padding(top = 10.dp))
+        Text("还在睡", fontSize = 30.sp, fontWeight = FontWeight.Bold, color = Ink, modifier = Modifier.padding(top = 10.dp))
         Spacer(Modifier.height(36.dp))
         Box(
             Modifier
@@ -525,7 +527,7 @@ fun AsleepScreen(
                 .clickable(onClick = onWake),
             contentAlignment = Alignment.Center,
         ) {
-            Text("我醒了", color = Color.White, fontSize = 28.sp, fontWeight = FontWeight.SemiBold)
+            Text("我醒了", color = Color.White, fontSize = 28.sp, fontWeight = FontWeight.Bold)
         }
         Spacer(Modifier.weight(1.2f))
     }

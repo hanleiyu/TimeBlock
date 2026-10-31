@@ -5,9 +5,13 @@ import androidx.compose.material.icons.automirrored.outlined.MenuBook
 import androidx.compose.material.icons.outlined.Eco
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.WorkOutline
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.shijiankuai.app.domain.TodoCategory
+import com.shijiankuai.app.ui.theme.DarkPalette
+import com.shijiankuai.app.ui.theme.LocalPalette
 
 val DoneGreen = Color(0xFF5B9A72)
 
@@ -25,9 +29,19 @@ fun categoryTint(category: TodoCategory): Color = when (category) {
     TodoCategory.STUDY -> Color(0xFFA996CF)
 }
 
-fun categoryWash(category: TodoCategory): Color = when (category) {
-    TodoCategory.WORK -> Color(0xFFE8E9F4)
-    TodoCategory.HEALTH -> Color(0xFFE4F2F0)
-    TodoCategory.LIFE -> Color(0xFFF8EEE7)
-    TodoCategory.STUDY -> Color(0xFFECEEF8)
+@Composable
+@ReadOnlyComposable
+fun categoryWash(category: TodoCategory): Color {
+    val dark = LocalPalette.current.paper == DarkPalette.paper
+    return if (dark) when (category) {
+        TodoCategory.WORK -> Color(0xFF141418)
+        TodoCategory.HEALTH -> Color(0xFF0B2A18)
+        TodoCategory.LIFE -> Color(0xFF1C1810)
+        TodoCategory.STUDY -> Color(0xFF16141C)
+    } else when (category) {
+        TodoCategory.WORK -> Color(0xFFE8E9F4)
+        TodoCategory.HEALTH -> Color(0xFFE4F2F0)
+        TodoCategory.LIFE -> Color(0xFFF8EEE7)
+        TodoCategory.STUDY -> Color(0xFFECEEF8)
+    }
 }
