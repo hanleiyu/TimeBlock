@@ -30,7 +30,7 @@ import com.shijiankuai.app.domain.TodoItem
 import com.shijiankuai.app.domain.TodoMonth
 import com.shijiankuai.app.domain.TodoRange
 import com.shijiankuai.app.ui.theme.Card
-import com.shijiankuai.app.ui.theme.HighlightWash
+import com.shijiankuai.app.ui.theme.DaySelect
 import com.shijiankuai.app.ui.theme.Ink
 import com.shijiankuai.app.ui.theme.Ink2
 import com.shijiankuai.app.ui.theme.Ink3
@@ -163,18 +163,14 @@ private fun MonthDayCell(
         verticalArrangement = Arrangement.Center,
     ) {
         Box(
-            Modifier
-                .size(32.dp)
-                .clip(CircleShape)
-                .then(
-                    when {
-                        selected -> Modifier.background(HighlightWash)
-                        isToday && inMonth -> Modifier.border(1.dp, Ink3.copy(alpha = 0.35f), CircleShape)
-                        else -> Modifier
-                    },
-                ),
+            Modifier.size(34.dp),
             contentAlignment = Alignment.Center,
         ) {
+            if (selected) {
+                Box(Modifier.size(34.dp).border(1.5.dp, DaySelect, CircleShape))
+            } else if (isToday && inMonth) {
+                Box(Modifier.size(34.dp).border(1.dp, Ink3.copy(alpha = 0.35f), CircleShape))
+            }
             Text(
                 "${day.dayOfMonth}",
                 fontSize = 14.sp,

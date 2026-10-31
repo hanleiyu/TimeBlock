@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -259,8 +260,8 @@ private fun AppRoot(vm: AppViewModel, exercise: ExerciseRepository) {
                     .fillMaxWidth()
                     .background(TabBar)
                     .navigationBarsPadding()
-                    .height(64.dp)
-                    .padding(bottom = 10.dp),
+                    .heightIn(min = 72.dp)
+                    .padding(top = 8.dp, bottom = 12.dp),
             ) {
                 TabItem("今天", tab == 0, Icons.Outlined.CalendarMonth, Modifier.weight(1f)) { tab = 0 }
                 TabItem("统计", tab == 1, Icons.Outlined.PieChart, Modifier.weight(1f)) { tab = 1 }
@@ -282,18 +283,19 @@ private fun TabItem(
 ) {
     Column(
         modifier
-            .padding(horizontal = 4.dp, vertical = 4.dp)
+            .padding(horizontal = 4.dp)
             .clip(RoundedCornerShape(10.dp))
             .background(if (on) SelectedFill else Color.Transparent)
             .clickable(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null,
                 onClick = click,
-            ),
+            )
+            .padding(vertical = 6.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Spacer(Modifier.height(8.dp))
         Icon(icon, contentDescription = label, tint = if (on) OnSelected else Ink3)
+        Spacer(Modifier.height(4.dp))
         Text(label, fontSize = 11.sp, fontWeight = FontWeight.SemiBold, color = if (on) OnSelected else Ink3)
     }
 }
