@@ -20,6 +20,9 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.ChevronRight
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -43,7 +46,6 @@ import com.shijiankuai.app.exercise.domain.formatYuan
 import com.shijiankuai.app.exercise.domain.toZhDateWeek
 import com.shijiankuai.app.exercise.ui.RecordsViewModel
 import com.shijiankuai.app.exercise.ui.components.AppCard
-import com.shijiankuai.app.ui.theme.Accent
 import com.shijiankuai.app.ui.theme.Aero
 import com.shijiankuai.app.ui.theme.DaySelect
 import com.shijiankuai.app.ui.theme.BalanceHue
@@ -64,7 +66,7 @@ import java.time.YearMonth
 fun MonthScreen(
     vm: RecordsViewModel,
     onOpen: (Long) -> Unit,
-    onAdd: (LocalDate) -> Unit,
+    onOpenMetrics: () -> Unit = {},
 ) {
     val workouts by vm.workouts.collectAsStateWithLifecycle()
     val month by vm.month.collectAsStateWithLifecycle()
@@ -135,6 +137,18 @@ fun MonthScreen(
             }
         }
         item {
+            AppCard(onClick = onOpenMetrics) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text("指标", color = Ink, fontSize = 14.sp, modifier = Modifier.weight(1f))
+                    Icon(
+                        Icons.Outlined.ChevronRight,
+                        contentDescription = null,
+                        tint = Ink2,
+                    )
+                }
+            }
+        }
+        item {
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 Text(
                     selected.toZhDateWeek(),
@@ -143,18 +157,7 @@ fun MonthScreen(
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.weight(1f),
                 )
-                Text("共${dayTotal}分钟", color = Ink2, fontSize = 13.sp, modifier = Modifier.padding(end = 10.dp))
-                Text(
-                    "＋ 记录",
-                    color = Accent,
-                    fontSize = 13.sp,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(999.dp))
-                        .background(Card)
-                        .clickable { onAdd(selected) }
-                        .padding(horizontal = 10.dp, vertical = 6.dp),
-                )
+                Text("共${dayTotal}分钟", color = Ink2, fontSize = 13.sp)
             }
         }
         if (dayWorkouts.isEmpty()) {

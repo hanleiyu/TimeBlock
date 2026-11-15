@@ -60,7 +60,9 @@ import com.shijiankuai.app.domain.TodoMonth
 import com.shijiankuai.app.domain.TodoRange
 import com.shijiankuai.app.domain.TodoRecurrence
 import com.shijiankuai.app.ui.DatePick
+import com.shijiankuai.app.ui.chrome.JumpTodayPill
 import com.shijiankuai.app.ui.chrome.PageTitle
+import com.shijiankuai.app.ui.chrome.PlainDateBar
 import com.shijiankuai.app.ui.chrome.SegmentTabs
 import com.shijiankuai.app.ui.chrome.tabLabel
 import com.shijiankuai.app.ui.theme.Accent
@@ -94,6 +96,7 @@ fun TodoScreen(
     onEdit: (String, String, TodoCategory, TodoRecurrence) -> Unit,
     onDelete: (String) -> Unit,
     onReorder: (TodoCategory, List<String>) -> Unit,
+    embedded: Boolean = false,
 ) {
     val viewKind = TodoMonth.coerceKind(kind)
     val cards = remember(items) { TodoList.cards(items) }
@@ -106,43 +109,35 @@ fun TodoScreen(
     Box(
         Modifier
             .fillMaxSize()
-            .background(Paper),
+            .then(if (embedded) Modifier else Modifier.background(Paper)),
     ) {
         Column(
             Modifier
                 .fillMaxSize()
-                .padding(horizontal = 16.dp, vertical = 4.dp),
+                .padding(horizontal = 16.dp, vertical = if (embedded) 0.dp else 4.dp),
         ) {
-            PageTitle("清单") {
-                if (!StatsNav.contains(viewKind, date, today)) {
-                    Text(
-                        "今天",
-                        color = Ink2,
-                        fontSize = 12.sp,
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(999.dp))
-                            .background(Card)
-                            .clickable {
-                                onJumpToday()
-                                showDate = false
-                            }
-                            .padding(horizontal = 10.dp, vertical = 6.dp),
-                    )
+            if (!embedded) {
+                PageTitle("清单") {
+                    if (!StatsNav.contains(viewKind, date, today)) {
+                        JumpTodayPill {
+                            onJumpToday()
+                            showDate = false
+                        }
+                    }
                 }
+                Spacer(Modifier.height(12.dp))
+                SegmentTabs(
+                    options = TodoMonth.CHECKLIST_KINDS,
+                    selected = viewKind,
+                    onSelect = onKind,
+                    label = { it.tabLabel() },
+                )
             }
-            Spacer(Modifier.height(12.dp))
-            SegmentTabs(
-                options = TodoMonth.CHECKLIST_KINDS,
-                selected = viewKind,
-                onSelect = onKind,
-                label = { it.tabLabel() },
-            )
-            DateBar(
-                kind = viewKind,
-                start = start,
-                end = end,
-                onShiftDate = onShiftDate,
-                onOpenCalendar = { showDate = true },
+            PlainDateBar(
+                label = TodoRange.periodLabel(viewKind, start, end),
+                onPrev = { onShiftDate(-1) },
+                onNext = { onShiftDate(1) },
+                onLabelClick = { showDate = true },
             )
             Column(
                 Modifier
@@ -226,33 +221,6 @@ fun TodoScreen(
     }
     if (showDate) {
         DatePick(date, onSetDate) { showDate = false }
-    }
-}
-
-@Composable
-private fun DateBar(
-    kind: PeriodKind,
-    start: LocalDate,
-    end: LocalDate,
-    onShiftDate: (Int) -> Unit,
-    onOpenCalendar: () -> Unit,
-) {
-    Row(
-        Modifier
-            .fillMaxWidth()
-            .padding(vertical = 12.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween,
-    ) {
-        Text("‹", fontSize = 22.sp, color = Ink2, modifier = Modifier.clickable { onShiftDate(-1) })
-        Text(
-            TodoRange.periodLabel(kind, start, end),
-            fontSize = 15.sp,
-            fontWeight = FontWeight.Bold,
-            color = Ink,
-            modifier = Modifier.clickable(onClick = onOpenCalendar),
-        )
-        Text("›", fontSize = 22.sp, color = Ink2, modifier = Modifier.clickable { onShiftDate(1) })
     }
 }
 

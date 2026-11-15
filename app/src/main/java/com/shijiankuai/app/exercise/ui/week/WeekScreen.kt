@@ -40,6 +40,7 @@ import com.shijiankuai.app.ui.theme.StrengthHue
 fun WeekScreen(
     vm: HomeViewModel,
     onOpenPlan: () -> Unit,
+    onOpenMetrics: () -> Unit = {},
 ) {
     val ui by vm.ui.collectAsStateWithLifecycle()
     Column(
@@ -111,6 +112,14 @@ fun WeekScreen(
         AppCard(onClick = onOpenPlan) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(ui.planEntry, color = Ink, fontSize = 14.sp, modifier = Modifier.weight(1f))
+                Icon(Icons.Outlined.ChevronRight, null, tint = Ink2)
+            }
+        }
+
+        Spacer(Modifier.height(12.dp))
+        AppCard(onClick = onOpenMetrics) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text("指标", color = Ink, fontSize = 14.sp, modifier = Modifier.weight(1f))
                 Icon(Icons.Outlined.ChevronRight, null, tint = Ink2)
             }
         }

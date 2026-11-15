@@ -47,7 +47,7 @@ import androidx.compose.ui.unit.sp
 import com.shijiankuai.app.domain.BlockType
 import com.shijiankuai.app.ui.DatePick
 import com.shijiankuai.app.ui.TodayUi
-import com.shijiankuai.app.ui.hoursLabel
+import com.shijiankuai.app.ui.chrome.CircledDateBar
 import com.shijiankuai.app.ui.theme.Accent
 import com.shijiankuai.app.ui.theme.Card
 import com.shijiankuai.app.ui.theme.GooseYellow
@@ -61,11 +61,8 @@ import com.shijiankuai.app.ui.theme.Ink3
 import com.shijiankuai.app.ui.theme.Line
 import com.shijiankuai.app.ui.theme.OnAccent
 import com.shijiankuai.app.ui.theme.Paper
-import com.shijiankuai.app.ui.theme.Sleep
 import com.shijiankuai.app.ui.theme.Wake
 import com.shijiankuai.app.ui.toCn
-import com.shijiankuai.app.ui.toHm
-import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalTime
 import kotlin.math.roundToInt
@@ -75,15 +72,14 @@ import kotlin.math.roundToInt
 fun TodayScreen(
     ui: TodayUi,
     zone: java.time.ZoneId,
-    onSleep: () -> Unit,
     onWake: () -> Unit,
     onWakeWithStart: (LocalTime) -> Unit,
     onSkipSleepStart: () -> Unit,
     onSetRange: (Int, Int, String?) -> Unit,
     onShiftDate: (Int) -> Unit,
     onSetDate: (LocalDate) -> Unit,
-    onEditLast: (LocalTime, LocalTime) -> Unit,
     onAddType: (String, Long) -> Unit,
+    onAddHealthRecord: () -> Unit,
     needSleepStart: Boolean,
     onDismissToast: () -> Unit,
     gridScroll: ScrollState,
@@ -102,7 +98,6 @@ fun TodayScreen(
         if (needSleepStart) SleepStartDialog(onConfirm = onWakeWithStart, onSkip = onSkipSleepStart)
         return
     }
-    var showEdit by remember { mutableStateOf(false) }
     var sel by remember { mutableStateOf<IntRange?>(null) }
     var showSheet by remember { mutableStateOf(false) }
 
@@ -111,70 +106,31 @@ fun TodayScreen(
             .fillMaxSize()
             .background(Paper),
     ) {
+        CircledDateBar(
+            label = ui.date.toCn(),
+            onPrev = { onShiftDate(-1) },
+            onNext = { onShiftDate(1) },
+            onLabelClick = { showDate = true },
+            modifier = Modifier.padding(horizontal = 16.dp),
+        )
         Row(
             Modifier
                 .fillMaxWidth()
-                .padding(start = 20.dp, end = 16.dp, top = 6.dp),
+                .padding(start = 16.dp, end = 16.dp, bottom = 8.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            var dragAcc by remember { mutableStateOf(0f) }
+            Text("144 块", color = Ink2, fontSize = 12.sp, modifier = Modifier.weight(1f))
             Text(
-                ui.date.toCn(),
-                fontSize = 22.sp,
-                fontWeight = FontWeight.Bold,
-                color = Ink,
+                "＋ 记录",
+                color = Accent,
+                fontSize = 13.sp,
+                fontWeight = FontWeight.SemiBold,
                 modifier = Modifier
-                    .weight(1f)
-                    .pointerInput(ui.date) {
-                        detectHorizontalDragGestures(
-                            onDragEnd = {
-                                if (dragAcc > 64) onShiftDate(-1)
-                                else if (dragAcc < -64) onShiftDate(1)
-                                dragAcc = 0f
-                            },
-                            onHorizontalDrag = { _, dx -> dragAcc += dx },
-                        )
-                    }
-                    .clickable { showDate = true },
+                    .clip(RoundedCornerShape(999.dp))
+                    .background(Card)
+                    .clickable(onClick = onAddHealthRecord)
+                    .padding(horizontal = 10.dp, vertical = 6.dp),
             )
-            if (!ui.isToday) {
-                Text(
-                    "今天",
-                    color = Ink2,
-                    fontSize = 12.sp,
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(999.dp))
-                        .background(Card)
-                        .clickable { onSetDate(LocalDate.now(zone)) }
-                        .padding(horizontal = 10.dp, vertical = 6.dp),
-                )
-            }
-            if (ui.isToday) {
-                Text(
-                    "我睡了",
-                    color = Color.White,
-                    fontSize = 12.sp,
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(999.dp))
-                        .background(Sleep)
-                        .clickable(onClick = onSleep)
-                        .padding(horizontal = 12.dp, vertical = 6.dp),
-                )
-            }
-        }
-        Row(
-            Modifier.padding(start = 20.dp, end = 16.dp, top = 6.dp, bottom = 8.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            if (ui.lastWake != null) {
-                Text(
-                    "醒了 ${ui.lastWake.toHm(zone)}",
-                    color = Ink2,
-                    fontSize = 12.sp,
-                    modifier = Modifier.clickable { showEdit = true },
-                )
-            }
-            Text("144 块", color = Ink2, fontSize = 12.sp)
         }
 
         if (ui.toast != null) {
@@ -251,18 +207,6 @@ fun TodayScreen(
     }
 
     if (showDate) DatePick(ui.date, onSetDate) { showDate = false }
-
-    if (showEdit && ui.lastSleep != null && ui.lastWake != null) {
-        EditTimesDialog(
-            start = ui.lastSleep.atZone(zone).toLocalTime(),
-            end = ui.lastWake.atZone(zone).toLocalTime(),
-            onDismiss = { showEdit = false },
-            onConfirm = { a, b ->
-                onEditLast(a, b)
-                showEdit = false
-            },
-        )
-    }
 
     if (needSleepStart) SleepStartDialog(onConfirm = onWakeWithStart, onSkip = onSkipSleepStart)
 }
@@ -496,9 +440,6 @@ fun AsleepScreen(
             .padding(horizontal = 24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Row(Modifier.fillMaxWidth().padding(top = 8.dp), horizontalArrangement = Arrangement.SpaceBetween) {
-            Text("时间块", fontSize = 15.sp, fontWeight = FontWeight.Bold, color = Ink)
-        }
         Spacer(Modifier.weight(1f))
         Text(
             "${date.year}年${date.monthValue}月${date.dayOfMonth}日 · 星期${listOf("一","二","三","四","五","六","日")[date.dayOfWeek.value - 1]}",
@@ -549,35 +490,5 @@ private fun SleepStartDialog(onConfirm: (LocalTime) -> Unit, onSkip: () -> Unit)
             TextButton(onClick = { onConfirm(LocalTime.of(state.hour, state.minute)) }) { Text("按此时入睡") }
         },
         dismissButton = { TextButton(onClick = onSkip) { Text("直接醒来") } },
-    )
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun EditTimesDialog(
-    start: LocalTime,
-    end: LocalTime,
-    onDismiss: () -> Unit,
-    onConfirm: (LocalTime, LocalTime) -> Unit,
-) {
-    var which by remember { mutableStateOf(0) }
-    val s = rememberTimePickerState(initialHour = start.hour, initialMinute = start.minute, is24Hour = true)
-    val e = rememberTimePickerState(initialHour = end.hour, initialMinute = end.minute, is24Hour = true)
-    androidx.compose.material3.AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(if (which == 0) "入睡时间" else "醒来时间") },
-        text = { TimePicker(state = if (which == 0) s else e) },
-        confirmButton = {
-            Row {
-                if (which == 0) {
-                    TextButton(onClick = { which = 1 }) { Text("下一步") }
-                } else {
-                    TextButton(onClick = {
-                        onConfirm(LocalTime.of(s.hour, s.minute), LocalTime.of(e.hour, e.minute))
-                    }) { Text("保存") }
-                }
-            }
-        },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("取消") } },
     )
 }

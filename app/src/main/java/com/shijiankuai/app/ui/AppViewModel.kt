@@ -61,7 +61,6 @@ class AppViewModel(
     private val backup: BackupOps,
 ) : ViewModel() {
     val viewedDate = MutableStateFlow(repo.clock.today())
-    val todoDate = MutableStateFlow(repo.clock.today())
     val toast = MutableStateFlow<String?>(null)
     val needSleepStart = MutableStateFlow(false)
 
@@ -138,13 +137,14 @@ class AppViewModel(
     )
 
     val statsKind = MutableStateFlow(PeriodKind.DAY)
-    val statsAnchor = MutableStateFlow(repo.clock.today())
+    val statsAnchor = viewedDate
     val showAllTime: StateFlow<Boolean> = repo.showAllTime
     val autoBackup: StateFlow<Boolean> = repo.autoBackup
     val darkTheme: StateFlow<Boolean> = repo.darkTheme
     val lastAutoBackupAt: StateFlow<Instant?> = repo.lastAutoBackupAt
 
     val todoKind = MutableStateFlow(PeriodKind.DAY)
+    val todoDate get() = viewedDate
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val todos: StateFlow<List<TodoItem>> = combine(todoDate, todoKind) { date, kind -> date to kind }
