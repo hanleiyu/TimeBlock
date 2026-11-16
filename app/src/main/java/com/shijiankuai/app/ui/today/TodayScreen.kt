@@ -48,8 +48,9 @@ import com.shijiankuai.app.domain.BlockType
 import com.shijiankuai.app.ui.DatePick
 import com.shijiankuai.app.ui.TodayUi
 import com.shijiankuai.app.ui.chrome.DateNavBar
+import com.shijiankuai.app.ui.chrome.OverlayFab
+import com.shijiankuai.app.ui.chrome.OverlayFabSpec
 import com.shijiankuai.app.ui.theme.Accent
-import com.shijiankuai.app.ui.theme.Card
 import com.shijiankuai.app.ui.theme.GooseYellow
 import com.shijiankuai.app.ui.theme.EmptyFuture
 import com.shijiankuai.app.ui.theme.EmptyPast
@@ -99,76 +100,63 @@ fun TodayScreen(
     var sel by remember { mutableStateOf<IntRange?>(null) }
     var showSheet by remember { mutableStateOf(false) }
 
-    Column(
+    Box(
         Modifier
             .fillMaxSize()
             .background(Paper),
     ) {
-        DateNavBar(
-            label = ui.date.toCn(),
-            onPrev = { onShiftDate(-1) },
-            onNext = { onShiftDate(1) },
-            onLabelClick = { showDate = true },
-            modifier = Modifier.padding(horizontal = 16.dp),
-        )
-        Row(
-            Modifier
-                .fillMaxWidth()
-                .padding(start = 16.dp, end = 16.dp, bottom = 8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Text("144 块", color = Ink2, fontSize = 12.sp, modifier = Modifier.weight(1f))
-            Text(
-                "＋ 记录",
-                color = Accent,
-                fontSize = 13.sp,
-                fontWeight = FontWeight.SemiBold,
-                modifier = Modifier
-                    .clip(RoundedCornerShape(999.dp))
-                    .background(Card)
-                    .clickable(onClick = onAddHealthRecord)
-                    .padding(horizontal = 10.dp, vertical = 6.dp),
+        Column(Modifier.fillMaxSize()) {
+            DateNavBar(
+                label = ui.date.toCn(),
+                onPrev = { onShiftDate(-1) },
+                onNext = { onShiftDate(1) },
+                onLabelClick = { showDate = true },
+                modifier = Modifier.padding(horizontal = 16.dp),
+            )
+
+            if (ui.toast != null) {
+                Row(
+                    Modifier
+                        .padding(horizontal = 16.dp)
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(Accent)
+                        .clickable(onClick = onDismissToast)
+                        .padding(horizontal = 14.dp, vertical = 10.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Box(Modifier.size(8.dp).clip(CircleShape).background(OnAccent.copy(alpha = 0.7f)))
+                    Text(ui.toast, color = OnAccent, fontSize = 13.sp, modifier = Modifier.padding(start = 8.dp))
+                }
+                Spacer(Modifier.height(10.dp))
+            }
+
+            TodayProgressBar(
+                blocks = ui.blocks,
+                types = ui.types,
+                elapsed = ui.elapsed,
+                modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 10.dp),
+            )
+
+            BlockGrid(
+                blocks = ui.blocks,
+                types = ui.types,
+                elapsed = ui.elapsed,
+                nowIndex = ui.nowIndex,
+                nowTime = ui.nowTime,
+                selection = sel,
+                onSelect = { range ->
+                    sel = range
+                    showSheet = true
+                },
+                scroll = gridScroll,
+                takeNowSnap = { takeNowSnap(ui.date, ui.isToday) },
+                modifier = Modifier.weight(1f),
             )
         }
-
-        if (ui.toast != null) {
-            Row(
-                Modifier
-                    .padding(horizontal = 16.dp)
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(Accent)
-                    .clickable(onClick = onDismissToast)
-                    .padding(horizontal = 14.dp, vertical = 10.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Box(Modifier.size(8.dp).clip(CircleShape).background(OnAccent.copy(alpha = 0.7f)))
-                Text(ui.toast, color = OnAccent, fontSize = 13.sp, modifier = Modifier.padding(start = 8.dp))
-            }
-            Spacer(Modifier.height(10.dp))
-        }
-
-        TodayProgressBar(
-            blocks = ui.blocks,
-            types = ui.types,
-            elapsed = ui.elapsed,
-            modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 10.dp),
-        )
-
-        BlockGrid(
-            blocks = ui.blocks,
-            types = ui.types,
-            elapsed = ui.elapsed,
-            nowIndex = ui.nowIndex,
-            nowTime = ui.nowTime,
-            selection = sel,
-            onSelect = { range ->
-                sel = range
-                showSheet = true
-            },
-            scroll = gridScroll,
-            takeNowSnap = { takeNowSnap(ui.date, ui.isToday) },
-            modifier = Modifier.weight(1f),
+        OverlayFab(
+            onClick = onAddHealthRecord,
+            contentDescription = OverlayFabSpec.healthRecordDescription,
         )
     }
 
@@ -303,6 +291,7 @@ fun BlockGrid(
                 labelWidth = labelW,
             )
         }
+        Spacer(Modifier.height(OverlayFabSpec.scrollClearanceDp.dp))
     }
 }
 

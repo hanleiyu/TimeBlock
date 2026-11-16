@@ -63,6 +63,8 @@ import com.shijiankuai.app.ui.DatePick
 import com.shijiankuai.app.ui.chrome.JumpTodayPill
 import com.shijiankuai.app.ui.chrome.PageTitle
 import com.shijiankuai.app.ui.chrome.DateNavBar
+import com.shijiankuai.app.ui.chrome.OverlayFab
+import com.shijiankuai.app.ui.chrome.OverlayFabSpec
 import com.shijiankuai.app.ui.chrome.SegmentTabs
 import com.shijiankuai.app.ui.chrome.tabLabel
 import com.shijiankuai.app.ui.theme.Accent
@@ -143,7 +145,7 @@ fun TodoScreen(
                 Modifier
                     .weight(1f)
                     .verticalScroll(rememberScrollState())
-                    .padding(top = 12.dp, bottom = if (viewKind == PeriodKind.DAY) 88.dp else 24.dp),
+                    .padding(top = 12.dp, bottom = if (viewKind == PeriodKind.DAY) OverlayFabSpec.scrollClearanceDp.dp else 24.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 when (viewKind) {
@@ -166,18 +168,10 @@ fun TodoScreen(
             }
         }
         if (viewKind == PeriodKind.DAY) {
-            Box(
-                Modifier
-                    .align(Alignment.BottomEnd)
-                    .padding(end = 20.dp, bottom = 20.dp)
-                    .size(56.dp)
-                    .clip(CircleShape)
-                    .background(Accent)
-                    .clickable { adding = true },
-                contentAlignment = Alignment.Center,
-            ) {
-                Text("+", color = OnAccent, fontSize = 28.sp, fontWeight = FontWeight.SemiBold)
-            }
+            OverlayFab(
+                onClick = { adding = true },
+                contentDescription = "添加待办",
+            )
         }
     }
 

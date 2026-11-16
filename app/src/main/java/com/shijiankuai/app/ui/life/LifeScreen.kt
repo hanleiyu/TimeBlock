@@ -43,6 +43,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -52,6 +53,8 @@ import com.shijiankuai.app.domain.LifeEvent
 import com.shijiankuai.app.domain.LifeMonth
 import com.shijiankuai.app.domain.LifeOrigin
 import com.shijiankuai.app.domain.LifeTone
+import com.shijiankuai.app.ui.chrome.OverlayFab
+import com.shijiankuai.app.ui.chrome.OverlayFabSpec
 import com.shijiankuai.app.ui.theme.Accent
 import com.shijiankuai.app.ui.theme.Card
 import com.shijiankuai.app.ui.theme.EmptyFuture
@@ -166,10 +169,10 @@ private fun LifeGridPane(
     val scroll = rememberScrollState()
     val density = LocalDensity.current
     val scope = rememberCoroutineScope()
-    val labelW = 36.dp
-    val trailingW = 48.dp
-    val gap = 4.dp
-    val rowH = 28.dp
+    val labelW = LifeGridSpec.ageGutterDp.dp
+    val trailingW = LifeGridSpec.trailingGutterDp.dp
+    val gap = LifeGridSpec.gapDp.dp
+    val rowH = LifeGridSpec.rowHeightDp.dp
     var gridWidthPx by remember { mutableStateOf(0f) }
     var viewportH by remember { mutableIntStateOf(0) }
     val layout = LifeHitLayout(
@@ -178,6 +181,7 @@ private fun LifeGridPane(
         trailingWidthPx = with(density) { trailingW.toPx() },
         gapPx = with(density) { gap.toPx() },
         gridWidthPx = gridWidthPx,
+        contentTopPx = with(density) { LifeGridSpec.contentTopDp.dp.toPx() },
     )
     val layoutState = rememberUpdatedState(layout)
     val originState = rememberUpdatedState(origin)
@@ -189,10 +193,10 @@ private fun LifeGridPane(
     } else null
 
     Box(Modifier.fillMaxSize()) {
-        Column(
+            Column(
             Modifier
                 .fillMaxSize()
-                .padding(horizontal = 16.dp),
+                .padding(horizontal = LifeGridSpec.pagePaddingDp.dp),
         ) {
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 Text(LifeCalendar.elapsedCaption(origin, today), color = Ink2, fontSize = 12.sp, modifier = Modifier.weight(1f))
@@ -209,6 +213,7 @@ private fun LifeGridPane(
                             "$n",
                             color = Ink3,
                             fontSize = 11.sp,
+                            textAlign = TextAlign.Center,
                             modifier = Modifier.weight(1f),
                             maxLines = 1,
                         )
@@ -225,7 +230,7 @@ private fun LifeGridPane(
                         gridWidthPx = it.width.toFloat()
                         viewportH = it.height
                     }
-                    .pointerInput(origin, events) {
+                    .pointerInput(Unit) {
                         detectTapGestures { off ->
                             val month = LifeHitTest.monthAt(off.x, off.y, scroll.value, originState.value, layoutState.value)
                                 ?: return@detectTapGestures
@@ -233,7 +238,7 @@ private fun LifeGridPane(
                             if (covering.isNotEmpty()) details = covering
                         }
                     }
-                    .pointerInput(origin) {
+                    .pointerInput(Unit) {
                         detectDragGesturesAfterLongPress(
                             onDragStart = { off ->
                                 val m = LifeHitTest.monthAt(off.x, off.y, scroll.value, originState.value, layoutState.value)
@@ -267,7 +272,7 @@ private fun LifeGridPane(
                         )
                     }
                     .verticalScroll(scroll)
-                    .padding(top = 12.dp, bottom = 88.dp),
+                    .padding(top = LifeGridSpec.contentTopDp.dp, bottom = OverlayFabSpec.scrollClearanceDp.dp),
             ) {
                 Column {
                     rows.forEach { row ->
@@ -284,26 +289,18 @@ private fun LifeGridPane(
                 }
             }
         }
-        Box(
-            Modifier
-                .align(Alignment.BottomEnd)
-                .padding(end = 20.dp, bottom = 20.dp)
-                .size(56.dp)
-                .clip(CircleShape)
-                .background(Accent)
-                .clickable {
-                    val month = when {
-                        today < origin.asMonth() -> origin.asMonth()
-                        LifeCalendar.index(origin, today) == null ->
-                            LifeCalendar.monthAt(origin, LifeCalendar.MONTHS_IN_HORIZON - 1)
-                        else -> today
-                    }
-                    form = blankEvent(month, month)
-                },
-            contentAlignment = Alignment.Center,
-        ) {
-            Text("+", color = OnAccent, fontSize = 28.sp, fontWeight = FontWeight.SemiBold)
-        }
+        OverlayFab(
+            onClick = {
+                val month = when {
+                    today < origin.asMonth() -> origin.asMonth()
+                    LifeCalendar.index(origin, today) == null ->
+                        LifeCalendar.monthAt(origin, LifeCalendar.MONTHS_IN_HORIZON - 1)
+                    else -> today
+                }
+                form = blankEvent(month, month)
+            },
+            contentDescription = OverlayFabSpec.lifeEventDescription,
+        )
     }
 
     form?.let { draft ->
@@ -384,7 +381,15 @@ private fun LifeYearRow(
             .height(rowHeight),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text(age, color = Ink3, fontSize = 11.sp, modifier = Modifier.size(width = labelWidth, height = rowHeight), maxLines = 1)
+        Text(
+            age,
+            color = Ink3,
+            fontSize = 11.sp,
+            textAlign = TextAlign.End,
+            overflow = TextOverflow.Visible,
+            modifier = Modifier.size(width = labelWidth, height = rowHeight),
+            maxLines = 1,
+        )
         Row(Modifier.weight(1f), horizontalArrangement = Arrangement.spacedBy(gap), verticalAlignment = Alignment.CenterVertically) {
             row.forEach { cell ->
                 val inSel = selected?.let { cell.month in it.first..it.second } == true
@@ -394,7 +399,7 @@ private fun LifeYearRow(
                 ) {
                     Box(
                         Modifier
-                            .size(18.dp)
+                            .size(LifeGridSpec.circleDp.dp)
                             .clip(CircleShape)
                             .background(cellFill(cell.display?.color, cell.tone))
                             .then(

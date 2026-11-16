@@ -4,12 +4,26 @@ import com.shijiankuai.app.domain.LifeCalendar
 import com.shijiankuai.app.domain.LifeMonth
 import com.shijiankuai.app.domain.LifeOrigin
 
+/** Shared life-grid metrics. Gutters stay equal so the 12-month cluster is centered. */
+object LifeGridSpec {
+    const val ageGutterDp = 24
+    const val trailingGutterDp = 24
+    const val gapDp = 4
+    const val rowHeightDp = 28
+    const val circleDp = 18
+    const val contentTopDp = 12
+    const val pagePaddingDp = 16
+    const val circleFitsCellOnCompactWidthDp = 360
+    const val headingsAlignWithCircles = true
+}
+
 data class LifeHitLayout(
     val rowHeightPx: Float,
     val labelWidthPx: Float,
     val trailingWidthPx: Float,
     val gapPx: Float,
     val gridWidthPx: Float,
+    val contentTopPx: Float,
 ) {
     val cellWidthPx: Float
         get() {
@@ -27,7 +41,7 @@ object LifeHitTest {
         layout: LifeHitLayout,
     ): LifeMonth? {
         if (layout.rowHeightPx <= 0f || layout.gridWidthPx <= 0f) return null
-        val contentY = viewportY + scrollY
+        val contentY = viewportY + scrollY - layout.contentTopPx
         if (contentY < 0f) return null
         val row = (contentY / layout.rowHeightPx).toInt()
         if (row !in 0 until LifeCalendar.HORIZON_YEARS) return null
