@@ -72,6 +72,7 @@ import com.shijiankuai.app.ui.theme.Ink3
 import com.shijiankuai.app.ui.theme.Paper
 import com.shijiankuai.app.ui.theme.TabBar
 import com.shijiankuai.app.ui.theme.TimeBlockTheme
+import com.shijiankuai.app.ui.life.LifeScreen
 import com.shijiankuai.app.ui.today.TodayScreen
 import com.shijiankuai.app.ui.todo.TodoScreen
 import java.time.LocalDate
@@ -149,8 +150,11 @@ private fun AppRoot(vm: AppViewModel, exercise: ExerciseRepository) {
         BottomTab.SETTINGS -> PeriodFeature.STATS
     }
     val periodKind = AppIa.periodKind(tab)
+    val lifeOrigin by vm.lifeOrigin.collectAsStateWithLifecycle()
+    val lifeEvents by vm.lifeEvents.collectAsStateWithLifecycle()
     val showJumpToday = tab != BottomTab.SETTINGS &&
         feature != PeriodFeature.HEALTH &&
+        feature != PeriodFeature.LIFE &&
         periodKind != null &&
         !StatsNav.contains(periodKind, anchor, todayDate)
 
@@ -313,6 +317,15 @@ private fun AppRoot(vm: AppViewModel, exercise: ExerciseRepository) {
                                 onOpenPlan = { overlay = Overlay.Plan },
                                 onOpenWorkout = { overlay = Overlay.Editor(it, null) },
                                 onOpenMetrics = { overlay = Overlay.Metrics },
+                            )
+                        } else if (feature == PeriodFeature.LIFE) {
+                            LifeScreen(
+                                origin = lifeOrigin,
+                                today = todayDate,
+                                events = lifeEvents,
+                                onSetOrigin = vm::setLifeOrigin,
+                                onSave = vm::saveLifeEvent,
+                                onDelete = vm::deleteLifeEvent,
                             )
                         }
                     }

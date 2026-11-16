@@ -42,7 +42,7 @@ class AppIaTest {
             AppIa.features(BottomTab.MONTH),
         )
         assertEquals(
-            listOf(PeriodFeature.STATS, PeriodFeature.TODO),
+            listOf(PeriodFeature.STATS, PeriodFeature.TODO, PeriodFeature.LIFE),
             AppIa.features(BottomTab.YEAR),
         )
         assertEquals(emptyList<PeriodFeature>(), AppIa.features(BottomTab.SETTINGS))
@@ -54,6 +54,7 @@ class AppIaTest {
         assertEquals("统计", PeriodFeature.STATS.label)
         assertEquals("清单", PeriodFeature.TODO.label)
         assertEquals("健康", PeriodFeature.HEALTH.label)
+        assertEquals("人生", PeriodFeature.LIFE.label)
     }
 
     @Test
@@ -74,6 +75,10 @@ class AppIaTest {
         assertFalse(all.contains(BottomTab.YEAR to PeriodFeature.BLOCKS))
         assertFalse(all.contains(BottomTab.YEAR to PeriodFeature.HEALTH))
         assertFalse(all.contains(BottomTab.DAY to PeriodFeature.HEALTH))
+        assertFalse(all.contains(BottomTab.DAY to PeriodFeature.LIFE))
+        assertFalse(all.contains(BottomTab.WEEK to PeriodFeature.LIFE))
+        assertFalse(all.contains(BottomTab.MONTH to PeriodFeature.LIFE))
+        assertTrue(all.contains(BottomTab.YEAR to PeriodFeature.LIFE))
         assertTrue(PeriodFeature.entries.none { it.name == "METRICS" })
         assertTrue(BottomTab.entries.none { it.label == "指标" })
     }

@@ -10,8 +10,8 @@ import com.shijiankuai.app.domain.BlockType
 import com.shijiankuai.app.domain.TypeSeed
 
 @Database(
-    entities = [TypeRow::class, BlockRow::class, SleepRow::class, KvRow::class, TodoRow::class],
-    version = 4,
+    entities = [TypeRow::class, BlockRow::class, SleepRow::class, KvRow::class, TodoRow::class, LifeEventRow::class],
+    version = 5,
     exportSchema = false,
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -20,6 +20,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun sleeps(): SleepDao
     abstract fun kv(): KvDao
     abstract fun todos(): TodoDao
+    abstract fun lifeEvents(): LifeEventDao
 
     companion object {
         val MIGRATION_1_2 = object : Migration(1, 2) {
@@ -55,9 +56,30 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        val MIGRATION_4_5 = object : Migration(4, 5) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    """
+                    CREATE TABLE IF NOT EXISTS life_events (
+                        id TEXT NOT NULL PRIMARY KEY,
+                        title TEXT NOT NULL,
+                        note TEXT NOT NULL,
+                        startYear INTEGER NOT NULL,
+                        startMonth INTEGER NOT NULL,
+                        endYear INTEGER NOT NULL,
+                        endMonth INTEGER NOT NULL,
+                        color INTEGER NOT NULL,
+                        createdAt INTEGER NOT NULL,
+                        updatedAt INTEGER NOT NULL
+                    )
+                    """.trimIndent(),
+                )
+            }
+        }
+
         fun create(context: Context): AppDatabase =
             Room.databaseBuilder(context, AppDatabase::class.java, "shijiankuai.db")
-                .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
+                .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5)
                 .build()
 
         suspend fun seedIfNeeded(db: AppDatabase) {

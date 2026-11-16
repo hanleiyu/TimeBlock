@@ -144,3 +144,24 @@ interface TodoDao {
     @Query("DELETE FROM todos")
     suspend fun clearAll()
 }
+
+@Dao
+interface LifeEventDao {
+    @Query("SELECT * FROM life_events ORDER BY updatedAt DESC, id DESC")
+    fun observeAll(): Flow<List<LifeEventRow>>
+
+    @Query("SELECT * FROM life_events ORDER BY updatedAt DESC, id DESC")
+    suspend fun all(): List<LifeEventRow>
+
+    @Query("SELECT * FROM life_events WHERE id = :id")
+    suspend fun byId(id: String): LifeEventRow?
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun upsert(row: LifeEventRow)
+
+    @Query("DELETE FROM life_events WHERE id = :id")
+    suspend fun delete(id: String)
+
+    @Query("DELETE FROM life_events")
+    suspend fun clearAll()
+}

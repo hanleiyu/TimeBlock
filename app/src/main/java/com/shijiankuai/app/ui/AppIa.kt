@@ -15,6 +15,7 @@ enum class PeriodFeature(val label: String) {
     STATS("统计"),
     TODO("清单"),
     HEALTH("健康"),
+    LIFE("人生"),
 }
 
 object AppIa {
@@ -22,7 +23,7 @@ object AppIa {
         BottomTab.DAY -> listOf(PeriodFeature.BLOCKS, PeriodFeature.STATS, PeriodFeature.TODO)
         BottomTab.WEEK -> listOf(PeriodFeature.STATS, PeriodFeature.HEALTH)
         BottomTab.MONTH -> listOf(PeriodFeature.STATS, PeriodFeature.TODO, PeriodFeature.HEALTH)
-        BottomTab.YEAR -> listOf(PeriodFeature.STATS, PeriodFeature.TODO)
+        BottomTab.YEAR -> listOf(PeriodFeature.STATS, PeriodFeature.TODO, PeriodFeature.LIFE)
         BottomTab.SETTINGS -> emptyList()
     }
 

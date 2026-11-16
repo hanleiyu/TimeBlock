@@ -15,6 +15,7 @@ object Backup {
         kv: List<KvRow>,
         todos: List<TodoRow>,
         exercise: JSONObject = ExerciseBackup.emptyObject(),
+        lifeEvents: List<LifeEventRow> = emptyList(),
     ): String {
         val root = JSONObject()
         root.put("version", VERSION)
@@ -76,6 +77,23 @@ object Backup {
             }
         })
         root.put("exercise", exercise)
+        root.put("lifeEvents", JSONArray().also { arr ->
+            lifeEvents.forEach { e ->
+                arr.put(
+                    JSONObject()
+                        .put("id", e.id)
+                        .put("title", e.title)
+                        .put("note", e.note)
+                        .put("startYear", e.startYear)
+                        .put("startMonth", e.startMonth)
+                        .put("endYear", e.endYear)
+                        .put("endMonth", e.endMonth)
+                        .put("color", e.color)
+                        .put("createdAt", e.createdAt)
+                        .put("updatedAt", e.updatedAt),
+                )
+            }
+        })
         return root.toString()
     }
 
@@ -160,6 +178,25 @@ object Backup {
                 }
             } ?: emptyList()
         } else emptyList()
+        val lifeEvents = if (applyTimeblock) {
+            root.optJSONArray("lifeEvents")?.let { arr ->
+                (0 until arr.length()).map { i ->
+                    val o = arr.getJSONObject(i)
+                    LifeEventRow(
+                        id = o.getString("id"),
+                        title = o.getString("title"),
+                        note = o.optString("note", ""),
+                        startYear = o.getInt("startYear"),
+                        startMonth = o.getInt("startMonth"),
+                        endYear = o.getInt("endYear"),
+                        endMonth = o.getInt("endMonth"),
+                        color = o.getLong("color"),
+                        createdAt = o.optLong("createdAt", 0L),
+                        updatedAt = o.optLong("updatedAt", o.optLong("createdAt", 0L)),
+                    )
+                }
+            } ?: emptyList()
+        } else emptyList()
         val exercise = when {
             nestedExercise != null -> ExerciseBackup.fromJson(nestedExercise)
             legacyExercise -> ExerciseBackup.fromJson(root)
@@ -173,6 +210,7 @@ object Backup {
             kv = kv,
             todos = todos,
             exercise = exercise,
+            lifeEvents = lifeEvents,
             applyTimeblock = applyTimeblock,
             applyExercise = exercise != null,
         )
@@ -198,6 +236,7 @@ object Backup {
         val kv: List<KvRow>,
         val todos: List<TodoRow>,
         val exercise: ExercisePayload? = null,
+        val lifeEvents: List<LifeEventRow> = emptyList(),
         val applyTimeblock: Boolean = true,
         val applyExercise: Boolean = false,
     )

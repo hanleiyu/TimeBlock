@@ -249,6 +249,38 @@ class BackupTest {
     }
 
     @Test
+    fun jsonRoundtripPreservesOverlappingLifeEvents() {
+        val originKv = kv + KvRow("life_origin", "1998-06")
+        val events = listOf(
+            LifeEventRow(
+                "l_school", "小学", "把这件事写下来",
+                2004, 9, 2010, 6, 0xFF74B3AEL, createdAt = 10, updatedAt = 10,
+            ),
+            LifeEventRow(
+                "l_camp", "夏令营", "",
+                2008, 7, 2008, 8, 0xFFE3C783L, createdAt = 20, updatedAt = 20,
+            ),
+        )
+        val json = Backup.exportJson(types, blocks, sleeps, originKv, todos, lifeEvents = events)
+        val snap = Backup.tryParse(json)!!
+        assertEquals(events, snap.lifeEvents)
+        val root = org.json.JSONObject(json)
+        assertTrue(root.has("lifeEvents"))
+        assertEquals(2, root.getJSONArray("lifeEvents").length())
+        assertEquals("1998-06", snap.kv.single { it.key == "life_origin" }.value)
+    }
+
+    @Test
+    fun oldBackupWithoutLifeEventsStaysCompatible() {
+        val json = Backup.exportJson(types, blocks, sleeps, kv, todos)
+        val slim = org.json.JSONObject(json).apply { remove("lifeEvents") }.toString()
+        val snap = Backup.tryParse(slim)!!
+        assertTrue(snap.lifeEvents.isEmpty())
+        assertEquals(types, snap.types)
+        assertEquals(todos, snap.todos)
+    }
+
+    @Test
     fun tryParseRejectsGarbage() {
         assertNull(Backup.tryParse("{not-json"))
         assertNull(Backup.tryParse("{}"))

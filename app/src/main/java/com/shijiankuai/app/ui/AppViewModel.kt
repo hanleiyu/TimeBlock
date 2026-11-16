@@ -20,6 +20,8 @@ import com.shijiankuai.app.domain.StatsNav
 import com.shijiankuai.app.domain.TodoCategory
 import com.shijiankuai.app.domain.TodoItem
 import com.shijiankuai.app.domain.TodoMonth
+import com.shijiankuai.app.domain.LifeEvent
+import com.shijiankuai.app.domain.LifeOrigin
 import com.shijiankuai.app.domain.TodoRecurrence
 import com.shijiankuai.app.domain.WakeFill
 import com.shijiankuai.app.domain.WakeFillResult
@@ -161,6 +163,10 @@ class AppViewModel(
     val todoCompletedDays: StateFlow<Set<LocalDate>> = repo.todoCompletedDays()
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptySet())
 
+    val lifeOrigin: StateFlow<LifeOrigin?> = repo.lifeOrigin
+    val lifeEvents: StateFlow<List<LifeEvent>> = repo.lifeEvents
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+
     @OptIn(ExperimentalCoroutinesApi::class)
     val stats: StateFlow<PeriodStats?> = combine(statsKind, statsAnchor) { kind, anchor -> kind to anchor }
         .flatMapLatest { (kind, anchor) -> repo.statsFlow(kind, anchor, tick) }
@@ -230,6 +236,18 @@ class AppViewModel(
 
     fun deferTodo(id: String) {
         viewModelScope.launch { repo.deferTodo(id) }
+    }
+
+    fun setLifeOrigin(origin: LifeOrigin) {
+        viewModelScope.launch { repo.setLifeOrigin(origin) }
+    }
+
+    fun saveLifeEvent(event: LifeEvent) {
+        viewModelScope.launch { repo.saveLifeEvent(event) }
+    }
+
+    fun deleteLifeEvent(id: String) {
+        viewModelScope.launch { repo.deleteLifeEvent(id) }
     }
 
     fun markSleep() {
