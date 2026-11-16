@@ -34,7 +34,7 @@ import com.shijiankuai.app.domain.PeriodKind
 import com.shijiankuai.app.domain.PeriodStats
 import com.shijiankuai.app.domain.StatsNav
 import com.shijiankuai.app.ui.DatePick
-import com.shijiankuai.app.ui.chrome.CircledDateBar
+import com.shijiankuai.app.ui.chrome.DateNavBar
 import com.shijiankuai.app.ui.chrome.JumpTodayPill
 import com.shijiankuai.app.ui.chrome.PageTitle
 import com.shijiankuai.app.ui.chrome.SegmentTabs
@@ -81,7 +81,7 @@ fun StatsScreen(
                 label = { it.tabLabel() },
             )
         }
-        CircledDateBar(
+        DateNavBar(
             label = kind.barLabel(stats?.start ?: anchor, stats?.endInclusive ?: anchor),
             onPrev = { onShift(-1) },
             onNext = { onShift(1) },

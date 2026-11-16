@@ -62,7 +62,7 @@ import com.shijiankuai.app.domain.TodoRecurrence
 import com.shijiankuai.app.ui.DatePick
 import com.shijiankuai.app.ui.chrome.JumpTodayPill
 import com.shijiankuai.app.ui.chrome.PageTitle
-import com.shijiankuai.app.ui.chrome.PlainDateBar
+import com.shijiankuai.app.ui.chrome.DateNavBar
 import com.shijiankuai.app.ui.chrome.SegmentTabs
 import com.shijiankuai.app.ui.chrome.tabLabel
 import com.shijiankuai.app.ui.theme.Accent
@@ -133,7 +133,7 @@ fun TodoScreen(
                     label = { it.tabLabel() },
                 )
             }
-            PlainDateBar(
+            DateNavBar(
                 label = TodoRange.periodLabel(viewKind, start, end),
                 onPrev = { onShiftDate(-1) },
                 onNext = { onShiftDate(1) },

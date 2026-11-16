@@ -47,7 +47,7 @@ import androidx.compose.ui.unit.sp
 import com.shijiankuai.app.domain.BlockType
 import com.shijiankuai.app.ui.DatePick
 import com.shijiankuai.app.ui.TodayUi
-import com.shijiankuai.app.ui.chrome.CircledDateBar
+import com.shijiankuai.app.ui.chrome.DateNavBar
 import com.shijiankuai.app.ui.theme.Accent
 import com.shijiankuai.app.ui.theme.Card
 import com.shijiankuai.app.ui.theme.GooseYellow
@@ -104,7 +104,7 @@ fun TodayScreen(
             .fillMaxSize()
             .background(Paper),
     ) {
-        CircledDateBar(
+        DateNavBar(
             label = ui.date.toCn(),
             onPrev = { onShiftDate(-1) },
             onNext = { onShiftDate(1) },

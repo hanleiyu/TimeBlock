@@ -39,6 +39,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.shijiankuai.app.domain.PeriodKind
 import com.shijiankuai.app.exercise.domain.Category
 import com.shijiankuai.app.exercise.domain.WeekCalculator
 import com.shijiankuai.app.exercise.domain.Workout
@@ -46,6 +47,8 @@ import com.shijiankuai.app.exercise.domain.formatYuan
 import com.shijiankuai.app.exercise.domain.toZhDateWeek
 import com.shijiankuai.app.exercise.ui.RecordsViewModel
 import com.shijiankuai.app.exercise.ui.components.AppCard
+import com.shijiankuai.app.ui.chrome.DateNavBar
+import com.shijiankuai.app.ui.chrome.barLabel
 import com.shijiankuai.app.ui.theme.Aero
 import com.shijiankuai.app.ui.theme.DaySelect
 import com.shijiankuai.app.ui.theme.BalanceHue
@@ -87,9 +90,12 @@ fun MonthScreen(
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         item {
+            DateNavBar(
+                label = PeriodKind.MONTH.barLabel(month.atDay(1), month.atEndOfMonth()),
+                onPrev = vm::prevMonth,
+                onNext = vm::nextMonth,
+            )
             AppCard {
-                MonthHeader(month, onPrev = vm::prevMonth, onNext = vm::nextMonth)
-                Spacer(Modifier.height(12.dp))
                 WeekdayRow()
                 Spacer(Modifier.height(6.dp))
                 MonthGrid(
@@ -169,22 +175,6 @@ fun MonthScreen(
                 DayWorkoutRow(w) { onOpen(w.id) }
             }
         }
-    }
-}
-
-@Composable
-private fun MonthHeader(month: YearMonth, onPrev: () -> Unit, onNext: () -> Unit) {
-    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-        Text("‹", color = Ink, fontSize = 22.sp, modifier = Modifier.clickable(onClick = onPrev).padding(8.dp))
-        Text(
-            "${month.year}年${month.monthValue}月",
-            color = Ink,
-            fontSize = 16.sp,
-            fontWeight = FontWeight.Bold,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.weight(1f),
-        )
-        Text("›", color = Ink, fontSize = 22.sp, modifier = Modifier.clickable(onClick = onNext).padding(8.dp))
     }
 }
 

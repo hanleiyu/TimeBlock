@@ -3,7 +3,6 @@ package com.shijiankuai.app.ui.chrome
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
@@ -15,8 +14,11 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.ChevronLeft
+import androidx.compose.material.icons.outlined.ChevronRight
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -25,7 +27,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.shijiankuai.app.domain.PeriodKind
@@ -148,61 +152,59 @@ fun PeriodScaffold(
 }
 
 @Composable
-fun CircledDateBar(
+fun DateNavBar(
     label: String,
     onPrev: () -> Unit,
     onNext: () -> Unit,
-    onLabelClick: () -> Unit,
     modifier: Modifier = Modifier,
+    onLabelClick: (() -> Unit)? = null,
 ) {
     Row(
         modifier
             .fillMaxWidth()
-            .padding(vertical = 12.dp),
+            .padding(vertical = DateNavSpec.verticalPaddingDp.dp),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween,
     ) {
-        Box(
-            Modifier.size(28.dp).clip(CircleShape).background(Card).clickable(onClick = onPrev),
-            contentAlignment = Alignment.Center,
-        ) { Text("‹", color = Ink2) }
+        DateNavChevron(previous = true, onClick = onPrev)
         Text(
             label,
-            fontSize = 14.sp,
+            fontSize = DateNavSpec.labelSizeSp.sp,
             color = Ink,
-            modifier = Modifier.clickable(onClick = onLabelClick),
+            textAlign = TextAlign.Center,
+            maxLines = 1,
+            modifier = Modifier
+                .weight(1f)
+                .then(
+                    if (onLabelClick != null) {
+                        Modifier.clickable(onClick = onLabelClick)
+                    } else {
+                        Modifier
+                    },
+                )
+                .padding(horizontal = 8.dp),
         )
-        Box(
-            Modifier.size(28.dp).clip(CircleShape).background(Card).clickable(onClick = onNext),
-            contentAlignment = Alignment.Center,
-        ) { Text("›", color = Ink2) }
+        DateNavChevron(previous = false, onClick = onNext)
     }
 }
 
 @Composable
-fun PlainDateBar(
-    label: String,
-    onPrev: () -> Unit,
-    onNext: () -> Unit,
-    onLabelClick: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    Row(
-        modifier
-            .fillMaxWidth()
-            .padding(vertical = 12.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween,
+private fun DateNavChevron(previous: Boolean, onClick: () -> Unit) {
+    Box(
+        Modifier
+            .size(DateNavSpec.minTouchTargetDp.dp)
+            .clickable(role = Role.Button, onClick = onClick),
+        contentAlignment = Alignment.Center,
     ) {
-        Text("‹", fontSize = 22.sp, color = Ink2, modifier = Modifier.clickable(onClick = onPrev))
-        Text(
-            label,
-            fontSize = 15.sp,
-            fontWeight = FontWeight.Bold,
-            color = Ink,
-            modifier = Modifier.clickable(onClick = onLabelClick),
+        Icon(
+            imageVector = if (previous) Icons.Outlined.ChevronLeft else Icons.Outlined.ChevronRight,
+            contentDescription = if (previous) {
+                DateNavSpec.prevContentDescription
+            } else {
+                DateNavSpec.nextContentDescription
+            },
+            tint = Ink2,
+            modifier = Modifier.size(DateNavSpec.chevronSizeDp.dp),
         )
-        Text("›", fontSize = 22.sp, color = Ink2, modifier = Modifier.clickable(onClick = onNext))
     }
 }
 
