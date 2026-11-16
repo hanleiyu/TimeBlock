@@ -25,6 +25,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
@@ -473,6 +475,8 @@ private fun LifeEventSheet(
     val state = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var start by remember { mutableStateOf(draft.start) }
     var end by remember { mutableStateOf(draft.end) }
+    var single by remember { mutableStateOf(LifeFormSpec.initialSingle(draft.start, draft.end)) }
+    var rememberedEnd by remember { mutableStateOf(if (draft.start == draft.end) null else draft.end) }
     var title by remember { mutableStateOf(draft.title) }
     var note by remember { mutableStateOf(draft.note) }
     var color by remember { mutableStateOf(draft.color) }
@@ -481,12 +485,41 @@ private fun LifeEventSheet(
         Column(Modifier.padding(horizontal = 18.dp).padding(bottom = 28.dp)) {
             Text("记录事件", fontSize = 17.sp, fontWeight = FontWeight.Bold, color = Ink)
             Spacer(Modifier.height(16.dp))
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                YearMonthField("开始年月", start, years, Modifier.weight(1f)) { start = it }
-                YearMonthField("结束年月", end, years, Modifier.weight(1f)) { end = it }
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                Text(LifeFormSpec.singleSwitchLabel, fontSize = 14.sp, color = Ink, modifier = Modifier.weight(1f))
+                Switch(
+                    checked = single,
+                    onCheckedChange = { on ->
+                        single = on
+                        if (on) {
+                            val collapsed = LifeFormSpec.collapseToStart(start, end, rememberedEnd)
+                            end = collapsed.first
+                            rememberedEnd = collapsed.second
+                        } else {
+                            end = LifeFormSpec.expandFromStart(start, rememberedEnd)
+                        }
+                    },
+                    colors = SwitchDefaults.colors(
+                        checkedThumbColor = Color.White,
+                        checkedTrackColor = Accent,
+                    ),
+                )
             }
-            Spacer(Modifier.height(6.dp))
-            Text("单个月把起止设成同一个月即可", fontSize = 12.sp, color = Ink3)
+            Spacer(Modifier.height(12.dp))
+            if (single) {
+                YearMonthField("年月", start, years, Modifier.fillMaxWidth()) {
+                    start = it
+                    end = LifeFormSpec.endAfterStartChange(true, it, end)
+                }
+            } else {
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    YearMonthField("开始年月", start, years, Modifier.weight(1f)) {
+                        start = it
+                        end = LifeFormSpec.endAfterStartChange(false, it, end)
+                    }
+                    YearMonthField("结束年月", end, years, Modifier.weight(1f)) { end = it }
+                }
+            }
             Spacer(Modifier.height(12.dp))
             Text("标题 必填", fontSize = 12.sp, color = Accent)
             Spacer(Modifier.height(6.dp))
@@ -531,7 +564,7 @@ private fun LifeEventSheet(
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 SheetBtn("取消", false, Modifier.weight(1f), onClick = onCancel)
                 SheetBtn("保存", true, Modifier.weight(1f), enabled = title.isNotBlank()) {
-                    val range = LifeCalendar.normalizeRange(start, end)
+                    val range = LifeFormSpec.saveBounds(single, start, end)
                     onSave(
                         draft.copy(
                             title = title.trim(),

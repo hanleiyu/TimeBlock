@@ -5,6 +5,7 @@ import com.shijiankuai.app.domain.LifeEvent
 import com.shijiankuai.app.domain.LifeMonth
 import com.shijiankuai.app.domain.LifeOrigin
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -108,6 +109,8 @@ class LifeTapTest {
         val range = LifeCalendar.normalizeRange(b, a)
         assertEquals(a to b, range)
         assertEquals(LifeTap.OpenForm(a, b), LifeTap.OpenForm(range.first, range.second))
+        assertFalse(LifeFormSpec.initialSingle(range.first, range.second))
+        assertTrue(LifeFormSpec.initialSingle(a, a))
         assertTrue(LifeCalendar.index(origin, a) != null)
         assertTrue(LifeCalendar.index(origin, b) != null)
     }
