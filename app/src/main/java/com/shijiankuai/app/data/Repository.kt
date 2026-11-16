@@ -328,7 +328,20 @@ class Repository(
 
     suspend fun deleteTodo(id: String) {
         val (seriesId, _) = TodoRecurrence.parseOcc(id)
-        db.todos().delete(seriesId)
+        val row = db.todos().byId(seriesId) ?: return
+        val kept = TodoRecurrence.deleteOccurrence(listOf(row.toDomain()), id)
+        if (kept.isEmpty()) {
+            db.todos().delete(seriesId)
+            return
+        }
+        val next = kept.single()
+        db.todos().update(
+            row.copy(
+                doneDays = TodoRecurrence.encodeDays(next.doneDays),
+                skipDays = TodoRecurrence.encodeDays(next.skipDays),
+                untilDay = next.untilDay ?: 0L,
+            ),
+        )
     }
 
     suspend fun reorderTodos(date: LocalDate, category: TodoCategory, orderedIds: List<String>) {
@@ -392,4 +405,5 @@ private fun TodoRow.toDomain() = TodoItem(
     recurrence = TodoRecurrence.parse(recurKind, recurMask),
     doneDays = TodoRecurrence.decodeDays(doneDays),
     skipDays = TodoRecurrence.decodeDays(skipDays),
+    untilDay = untilDay.takeIf { it != 0L },
 )

@@ -231,6 +231,21 @@ class BackupTest {
         assertEquals(0, row.recurMask)
         assertEquals("", row.doneDays)
         assertEquals("", row.skipDays)
+        assertEquals(0L, row.untilDay)
+    }
+
+    @Test
+    fun jsonRoundtripPreservesTodoUntilDay() {
+        val cut = listOf(
+            TodoRow(
+                "t_w", 20_000L, "work", "站会", done = false, sortOrder = 0,
+                recurKind = "weekly", recurMask = 31, doneDays = "20000", skipDays = "",
+                untilDay = 20_014L,
+            ),
+        )
+        val snap = Backup.tryParse(Backup.exportJson(types, blocks, sleeps, kv, cut))!!
+        assertEquals(cut, snap.todos)
+        assertEquals(20_014L, snap.todos.single().untilDay)
     }
 
     @Test

@@ -70,7 +70,8 @@ object Backup {
                         .put("recurKind", t.recurKind)
                         .put("recurMask", t.recurMask)
                         .put("doneDays", t.doneDays)
-                        .put("skipDays", t.skipDays),
+                        .put("skipDays", t.skipDays)
+                        .put("untilDay", t.untilDay),
                 )
             }
         })
@@ -154,6 +155,7 @@ object Backup {
                         recurMask = o.optInt("recurMask", 0),
                         doneDays = o.optString("doneDays", ""),
                         skipDays = o.optString("skipDays", ""),
+                        untilDay = o.optLong("untilDay", 0),
                     )
                 }
             } ?: emptyList()

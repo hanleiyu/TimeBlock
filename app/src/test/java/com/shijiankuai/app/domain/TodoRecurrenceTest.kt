@@ -107,4 +107,89 @@ class TodoRecurrenceTest {
         assertTrue(TodoRecurrence.decodeDays("").isEmpty())
         assertTrue(TodoRecurrence.decodeDays(null).isEmpty())
     }
+
+    @Test
+    fun deletingMiddleOccurrenceKeepsEarlierDoneAndOpenAndStopsLater() {
+        val tue = monday.plusDays(1)
+        val wed = monday.plusDays(2)
+        val series = item(
+            "stand",
+            rec = TodoRecurrence.weekly(setOf(1, 2, 3, 4, 5)),
+            doneDays = setOf(monday.toEpochDay(), wed.toEpochDay()),
+        )
+        val after = TodoRecurrence.deleteOccurrence(
+            listOf(series),
+            TodoRecurrence.occId("stand", wed.toEpochDay()),
+        )
+        val kept = after.single()
+        val week = TodoRecurrence.expand(after, monday, monday.plusDays(10))
+        assertEquals(listOf(monday.toEpochDay(), tue.toEpochDay()), week.map { it.epochDay })
+        assertTrue(week[0].done)
+        assertFalse(week[1].done)
+        assertEquals(setOf(monday.toEpochDay()), kept.doneDays)
+        assertFalse(week.any { it.epochDay >= wed.toEpochDay() })
+        assertEquals(setOf(monday.toEpochDay()), TodoRecurrence.completedEpochDays(after))
+    }
+
+    @Test
+    fun deletingFirstOccurrenceRemovesTheWholeFutureAndKeepsTheSeriesRow() {
+        val series = item("rent", rec = TodoRecurrence.Monthly(26))
+        val after = TodoRecurrence.deleteOccurrence(
+            listOf(series),
+            TodoRecurrence.occId("rent", monday.toEpochDay()),
+        )
+        assertEquals(1, after.size)
+        assertTrue(
+            TodoRecurrence.expand(after, monday.minusMonths(1), monday.plusMonths(6)).isEmpty(),
+        )
+    }
+
+    @Test
+    fun deletingOneOffRemovesOnlyThatItem() {
+        val once = item("once")
+        val other = item("keep", monday.plusDays(1).toEpochDay())
+        val after = TodoRecurrence.deleteOccurrence(listOf(once, other), "once")
+        assertEquals(listOf("keep"), after.map { it.id })
+    }
+
+    @Test
+    fun cutoffUsesTheOccurrenceDateNotSystemToday() {
+        val historical = LocalDate.of(2026, 9, 7)
+        val series = item(
+            "old",
+            epochDay = historical.toEpochDay(),
+            rec = TodoRecurrence.weekly(setOf(1)),
+            doneDays = setOf(historical.toEpochDay()),
+        )
+        val cut = historical.plusWeeks(2)
+        val after = TodoRecurrence.deleteOccurrence(
+            listOf(series),
+            TodoRecurrence.occId("old", cut.toEpochDay()),
+        )
+        val range = TodoRecurrence.expand(after, historical, LocalDate.of(2026, 12, 1))
+        assertEquals(
+            listOf(historical, historical.plusWeeks(1)).map { it.toEpochDay() },
+            range.map { it.epochDay },
+        )
+        assertTrue(range[0].done)
+        assertFalse(range[1].done)
+        assertTrue(range.none { it.epochDay >= cut.toEpochDay() })
+    }
+
+    @Test
+    fun cutoffSurvivesReExpandLikeARestart() {
+        val series = item(
+            "loop",
+            rec = TodoRecurrence.weekly(setOf(1)),
+            doneDays = setOf(monday.toEpochDay()),
+        )
+        val after = TodoRecurrence.deleteOccurrence(
+            listOf(series),
+            TodoRecurrence.occId("loop", monday.plusWeeks(1).toEpochDay()),
+        )
+        val again = TodoRecurrence.expand(after, monday, monday.plusWeeks(8))
+        assertEquals(listOf(monday.toEpochDay()), again.map { it.epochDay })
+        assertTrue(again.single().done)
+        assertEquals(setOf(monday.toEpochDay()), TodoRecurrence.completedEpochDays(after))
+    }
 }

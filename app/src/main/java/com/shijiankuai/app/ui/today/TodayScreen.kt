@@ -53,8 +53,6 @@ import com.shijiankuai.app.ui.theme.Card
 import com.shijiankuai.app.ui.theme.GooseYellow
 import com.shijiankuai.app.ui.theme.EmptyFuture
 import com.shijiankuai.app.ui.theme.EmptyPast
-import com.shijiankuai.app.ui.theme.HighlightLine
-import com.shijiankuai.app.ui.theme.HighlightWash
 import com.shijiankuai.app.ui.theme.Ink
 import com.shijiankuai.app.ui.theme.Ink2
 import com.shijiankuai.app.ui.theme.Ink3
@@ -156,16 +154,6 @@ fun TodayScreen(
             elapsed = ui.elapsed,
             modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 10.dp),
         )
-        Row(
-            Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            StatCard(ui.elapsed.toString(), "已过", highlight = true, modifier = Modifier.weight(1f))
-            StatCard(ui.remaining.toString(), "剩余", modifier = Modifier.weight(1f))
-        }
-        Spacer(Modifier.height(8.dp))
 
         BlockGrid(
             blocks = ui.blocks,
@@ -209,21 +197,6 @@ fun TodayScreen(
     if (showDate) DatePick(ui.date, onSetDate) { showDate = false }
 
     if (needSleepStart) SleepStartDialog(onConfirm = onWakeWithStart, onSkip = onSkipSleepStart)
-}
-
-@Composable
-private fun StatCard(value: String, label: String, highlight: Boolean = false, modifier: Modifier = Modifier) {
-    Column(
-        modifier
-            .clip(RoundedCornerShape(14.dp))
-            .background(if (highlight) HighlightWash else Card)
-            .border(1.dp, if (highlight) HighlightLine else Line, RoundedCornerShape(14.dp))
-            .padding(vertical = 10.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        Text(value, fontSize = 22.sp, fontWeight = FontWeight.Bold, color = Ink)
-        Text(label, fontSize = 11.sp, color = Ink3)
-    }
 }
 
 @Composable

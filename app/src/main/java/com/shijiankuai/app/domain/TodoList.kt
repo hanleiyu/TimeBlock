@@ -23,6 +23,7 @@ data class TodoItem(
     val recurrence: TodoRecurrence = TodoRecurrence.None,
     val doneDays: Set<Long> = emptySet(),
     val skipDays: Set<Long> = emptySet(),
+    val untilDay: Long? = null,
 )
 
 data class TodoCard(

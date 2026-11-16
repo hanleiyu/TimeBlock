@@ -47,4 +47,5 @@ data class TodoRow(
     val recurMask: Int = 0,
     val doneDays: String = "",
     val skipDays: String = "",
+    val untilDay: Long = 0,
 )
