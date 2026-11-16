@@ -22,8 +22,7 @@ fun HealthPane(
     Box(
         Modifier
             .fillMaxSize()
-            .padding(horizontal = 16.dp)
-            .padding(top = 4.dp),
+            .padding(horizontal = 16.dp),
     ) {
         if (week) {
             WeekScreen(

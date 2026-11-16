@@ -15,6 +15,8 @@ object LifeGridSpec {
     const val pagePaddingDp = 16
     const val circleFitsCellOnCompactWidthDp = 360
     const val headingsAlignWithCircles = true
+    const val progressStartInsetDp = ageGutterDp
+    const val progressEndInsetDp = trailingGutterDp
 }
 
 data class LifeHitLayout(

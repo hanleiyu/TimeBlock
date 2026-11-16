@@ -40,9 +40,9 @@ object TodoRange {
     fun periodLabel(kind: PeriodKind, start: LocalDate, end: LocalDate): String = when (kind) {
         PeriodKind.DAY -> {
             val w = listOf("一", "二", "三", "四", "五", "六", "日")[start.dayOfWeek.value - 1]
-            "${start.monthValue}月${start.dayOfMonth}日周$w"
+            "${start.monthValue}月${start.dayOfMonth}日 周$w"
         }
-        PeriodKind.WEEK -> "${start.monthValue}月${start.dayOfMonth}日-${end.monthValue}月${end.dayOfMonth}日"
+        PeriodKind.WEEK -> "${start.monthValue}/${start.dayOfMonth} – ${end.monthValue}/${end.dayOfMonth}"
         PeriodKind.MONTH -> "${start.year}年${start.monthValue}月"
         PeriodKind.YEAR -> "${start.year}年"
     }

@@ -63,6 +63,7 @@ import com.shijiankuai.app.ui.DatePick
 import com.shijiankuai.app.ui.chrome.JumpTodayPill
 import com.shijiankuai.app.ui.chrome.PageTitle
 import com.shijiankuai.app.ui.chrome.DateNavBar
+import com.shijiankuai.app.ui.chrome.DateNavSpec
 import com.shijiankuai.app.ui.chrome.OverlayFab
 import com.shijiankuai.app.ui.chrome.OverlayFabSpec
 import com.shijiankuai.app.ui.chrome.SegmentTabs
@@ -136,7 +137,7 @@ fun TodoScreen(
                 )
             }
             DateNavBar(
-                label = TodoRange.periodLabel(viewKind, start, end),
+                label = DateNavSpec.checklistLabel(viewKind, start, end),
                 onPrev = { onShiftDate(-1) },
                 onNext = { onShiftDate(1) },
                 onLabelClick = { showDate = true },

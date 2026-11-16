@@ -37,13 +37,19 @@ class DateNavSpecTest {
     }
 
     @Test
-    fun checklistLabelsStayKindSpecific() {
+    fun dayChecklistAndMonthHealthUseCanonicalBarLabels() {
         val day = LocalDate.of(2026, 11, 16)
-        val weekStart = LocalDate.of(2026, 11, 16)
         val weekEnd = LocalDate.of(2026, 11, 22)
-        assertEquals("11月16日周一", TodoRange.periodLabel(PeriodKind.DAY, day, day))
-        assertEquals("11月16日-11月22日", TodoRange.periodLabel(PeriodKind.WEEK, weekStart, weekEnd))
-        assertEquals("2026年11月", TodoRange.periodLabel(PeriodKind.MONTH, day, day))
-        assertEquals("2026年", TodoRange.periodLabel(PeriodKind.YEAR, day, day))
+        val month = java.time.YearMonth.of(2026, 11)
+        assertEquals(PeriodKind.DAY.barLabel(day, day), DateNavSpec.checklistLabel(PeriodKind.DAY, day, day))
+        assertEquals(day.toCn(), DateNavSpec.checklistLabel(PeriodKind.DAY, day, day))
+        assertEquals("11月16日 周一", DateNavSpec.checklistLabel(PeriodKind.DAY, day, day))
+        assertEquals("11/16 – 11/22", DateNavSpec.checklistLabel(PeriodKind.WEEK, day, weekEnd))
+        assertEquals("2026年11月", DateNavSpec.monthHealthLabel(month))
+        assertEquals(PeriodKind.MONTH.barLabel(month.atDay(1), month.atEndOfMonth()), DateNavSpec.monthHealthLabel(month))
+        assertEquals(DateNavSpec.checklistLabel(PeriodKind.DAY, day, day), TodoRange.periodLabel(PeriodKind.DAY, day, day))
+        assertEquals(DateNavSpec.checklistLabel(PeriodKind.WEEK, day, weekEnd), TodoRange.periodLabel(PeriodKind.WEEK, day, weekEnd))
+        assertEquals(DateNavSpec.checklistLabel(PeriodKind.MONTH, day, day), TodoRange.periodLabel(PeriodKind.MONTH, day, day))
+        assertEquals(DateNavSpec.checklistLabel(PeriodKind.YEAR, day, day), TodoRange.periodLabel(PeriodKind.YEAR, day, day))
     }
 }

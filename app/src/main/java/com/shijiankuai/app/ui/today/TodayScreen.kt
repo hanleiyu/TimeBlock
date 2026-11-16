@@ -135,7 +135,11 @@ fun TodayScreen(
                 blocks = ui.blocks,
                 types = ui.types,
                 elapsed = ui.elapsed,
-                modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 10.dp),
+                modifier = Modifier.padding(
+                    start = TodayGridSpec.progressStartInsetDp.dp,
+                    end = TodayGridSpec.progressEndInsetDp.dp,
+                    bottom = 10.dp,
+                ),
             )
 
             BlockGrid(
@@ -202,9 +206,9 @@ fun BlockGrid(
 ) {
     val colors = remember(types) { types.associate { it.id to Color(it.color.toInt()) } }
     val density = LocalDensity.current
-    val rowH = 44.dp
-    val labelW = 42.dp
-    val gap = 5.dp
+    val rowH = TodayGridSpec.rowHeightDp.dp
+    val labelW = TodayGridSpec.labelWidthDp.dp
+    val gap = TodayGridSpec.gapDp.dp
 
     var gridWidthPx by remember { mutableStateOf(0f) }
     val layout = BlockHitLayout(
@@ -244,7 +248,7 @@ fun BlockGrid(
     Column(
         modifier
             .fillMaxSize()
-            .padding(start = 10.dp, end = 14.dp)
+            .padding(start = TodayGridSpec.startPadDp.dp, end = TodayGridSpec.endPadDp.dp)
             .onSizeChanged { gridWidthPx = it.width.toFloat() }
             .pointerInput(Unit) {
                 detectTapGestures { off ->
@@ -322,7 +326,7 @@ private fun HourRow(
             )
             Row(
                 Modifier.weight(1f),
-                horizontalArrangement = Arrangement.spacedBy(5.dp),
+                horizontalArrangement = Arrangement.spacedBy(TodayGridSpec.gapDp.dp),
             ) {
                 repeat(6) { col ->
                     val idx = hour * 6 + col

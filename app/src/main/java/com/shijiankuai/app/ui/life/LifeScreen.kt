@@ -164,7 +164,7 @@ private fun LifeGridPane(
     val segs = remember(origin, today, events) { LifeCalendar.progress(origin, today, events) }
     val rows = remember(cells) { cells.chunked(12) }
     var form by remember { mutableStateOf<LifeEvent?>(null) }
-    var details by remember { mutableStateOf<List<LifeEvent>?>(null) }
+    var details by remember { mutableStateOf<LifeTap.OpenDetails?>(null) }
     var editingOrigin by remember { mutableStateOf(false) }
     val scroll = rememberScrollState()
     val density = LocalDensity.current
@@ -232,10 +232,18 @@ private fun LifeGridPane(
                     }
                     .pointerInput(Unit) {
                         detectTapGestures { off ->
-                            val month = LifeHitTest.monthAt(off.x, off.y, scroll.value, originState.value, layoutState.value)
-                                ?: return@detectTapGestures
-                            val covering = LifeCalendar.covering(eventsState.value, month)
-                            if (covering.isNotEmpty()) details = covering
+                            val month = LifeHitTest.monthAt(
+                                off.x,
+                                off.y,
+                                scroll.value,
+                                originState.value,
+                                layoutState.value,
+                            )
+                            when (val action = LifeTap.fromHit(month, eventsState.value)) {
+                                is LifeTap.OpenForm -> form = LifeTap.blankEvent(action.start, action.end)
+                                is LifeTap.OpenDetails -> details = action
+                                null -> {}
+                            }
                         }
                     }
                     .pointerInput(Unit) {
@@ -252,7 +260,7 @@ private fun LifeGridPane(
                                 dragEnd = null
                                 if (a != null && b != null) {
                                     val range = LifeCalendar.normalizeRange(a, b)
-                                    form = blankEvent(range.first, range.second)
+                                    form = LifeTap.blankEvent(range.first, range.second)
                                 }
                             },
                             onDragCancel = { dragStart = null; dragEnd = null },
@@ -297,7 +305,7 @@ private fun LifeGridPane(
                         LifeCalendar.monthAt(origin, LifeCalendar.MONTHS_IN_HORIZON - 1)
                     else -> today
                 }
-                form = blankEvent(month, month)
+                form = LifeTap.blankEvent(month, month)
             },
             contentDescription = OverlayFabSpec.lifeEventDescription,
         )
@@ -314,17 +322,21 @@ private fun LifeGridPane(
             onCancel = { form = null },
         )
     }
-    details?.let { covering ->
+    details?.let { sheet ->
         LifeDetailsSheet(
-            events = covering,
+            events = sheet.covering,
+            onAdd = {
+                details = null
+                form = LifeTap.blankEvent(sheet.month, sheet.month)
+            },
             onEdit = { event ->
                 details = null
                 form = event
             },
             onDelete = { id ->
                 onDelete(id)
-                val rest = covering.filter { it.id != id }
-                details = rest.ifEmpty { null }
+                val rest = sheet.covering.filter { it.id != id }
+                details = if (rest.isEmpty()) null else sheet.copy(covering = rest)
             },
             onCancel = { details = null },
         )
@@ -348,6 +360,10 @@ private fun LifeProgressBar(segs: List<com.shijiankuai.app.domain.LifeProgressSe
     Row(
         Modifier
             .fillMaxWidth()
+            .padding(
+                start = LifeGridSpec.progressStartInsetDp.dp,
+                end = LifeGridSpec.progressEndInsetDp.dp,
+            )
             .height(8.dp)
             .clip(RoundedCornerShape(999.dp))
             .background(EmptyFuture),
@@ -412,14 +428,16 @@ private fun LifeYearRow(
                                     else -> Modifier
                                 },
                             )
-                            .then(if (cell.birth) Modifier.clickable(onClick = onBirth) else Modifier),
                     )
                     if (cell.birth) {
                         Text(
                             "出生",
                             color = Ink2,
                             fontSize = 9.sp,
-                            modifier = Modifier.align(Alignment.TopCenter).offset(y = (-11).dp),
+                            modifier = Modifier
+                                .align(Alignment.TopCenter)
+                                .offset(y = (-11).dp)
+                                .clickable(onClick = onBirth),
                             maxLines = 1,
                         )
                     }
@@ -443,17 +461,6 @@ private fun cellFill(color: Long?, tone: LifeTone): Color = when {
     tone == LifeTone.PAST || tone == LifeTone.CURRENT -> EmptyPast
     else -> EmptyFuture
 }
-
-private fun blankEvent(start: LifeMonth, end: LifeMonth) = LifeEvent(
-    id = "",
-    title = "",
-    note = "",
-    start = start,
-    end = end,
-    color = LifeCalendar.colors.first(),
-    createdAt = 0L,
-    updatedAt = 0L,
-)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -616,6 +623,7 @@ private fun YearMonthPicker(
 @Composable
 private fun LifeDetailsSheet(
     events: List<LifeEvent>,
+    onAdd: () -> Unit,
     onEdit: (LifeEvent) -> Unit,
     onDelete: (String) -> Unit,
     onCancel: () -> Unit,
@@ -623,7 +631,16 @@ private fun LifeDetailsSheet(
     val state = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     ModalBottomSheet(onDismissRequest = onCancel, sheetState = state, containerColor = Sheet) {
         Column(Modifier.padding(horizontal = 18.dp).padding(bottom = 28.dp)) {
-            Text("事件", fontSize = 17.sp, fontWeight = FontWeight.Bold, color = Ink)
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                Text("事件", fontSize = 17.sp, fontWeight = FontWeight.Bold, color = Ink, modifier = Modifier.weight(1f))
+                Text(
+                    "添加",
+                    color = Accent,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier.clickable(onClick = onAdd).padding(horizontal = 4.dp, vertical = 6.dp),
+                )
+            }
             Spacer(Modifier.height(12.dp))
             events.forEach { event ->
                 Column(

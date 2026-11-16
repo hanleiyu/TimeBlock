@@ -15,7 +15,9 @@ class LifeGridSpecTest {
         assertTrue(LifeGridSpec.headingsAlignWithCircles)
         assertEquals(LifeGridSpec.circleDp, 18)
         assertEquals(LifeGridSpec.gapDp, 4)
-        assertEquals(LifeGridSpec.rowHeightDp, 28)
+        assertEquals(28, LifeGridSpec.rowHeightDp)
+        assertEquals(LifeGridSpec.ageGutterDp, LifeGridSpec.progressStartInsetDp)
+        assertEquals(LifeGridSpec.trailingGutterDp, LifeGridSpec.progressEndInsetDp)
     }
 
     @Test

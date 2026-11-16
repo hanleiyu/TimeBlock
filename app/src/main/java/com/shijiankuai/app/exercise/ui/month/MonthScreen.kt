@@ -26,6 +26,9 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -39,7 +42,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.shijiankuai.app.domain.PeriodKind
 import com.shijiankuai.app.exercise.domain.Category
 import com.shijiankuai.app.exercise.domain.WeekCalculator
 import com.shijiankuai.app.exercise.domain.Workout
@@ -47,8 +49,9 @@ import com.shijiankuai.app.exercise.domain.formatYuan
 import com.shijiankuai.app.exercise.domain.toZhDateWeek
 import com.shijiankuai.app.exercise.ui.RecordsViewModel
 import com.shijiankuai.app.exercise.ui.components.AppCard
+import com.shijiankuai.app.ui.DatePick
 import com.shijiankuai.app.ui.chrome.DateNavBar
-import com.shijiankuai.app.ui.chrome.barLabel
+import com.shijiankuai.app.ui.chrome.DateNavSpec
 import com.shijiankuai.app.ui.theme.Aero
 import com.shijiankuai.app.ui.theme.DaySelect
 import com.shijiankuai.app.ui.theme.BalanceHue
@@ -83,19 +86,22 @@ fun MonthScreen(
         .filter { YearMonth.from(it.date) == month }
         .groupBy { it.date }
         .mapValues { (_, list) -> list.map { it.category }.toSet() }
+    var showDate by remember { mutableStateOf(false) }
 
-    LazyColumn(
-        Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(bottom = 24.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
-    ) {
-        item {
-            DateNavBar(
-                label = PeriodKind.MONTH.barLabel(month.atDay(1), month.atEndOfMonth()),
-                onPrev = vm::prevMonth,
-                onNext = vm::nextMonth,
-            )
-            AppCard {
+    Column(Modifier.fillMaxSize()) {
+        DateNavBar(
+            label = DateNavSpec.monthHealthLabel(month),
+            onPrev = vm::prevMonth,
+            onNext = vm::nextMonth,
+            onLabelClick = { showDate = true },
+        )
+        LazyColumn(
+            Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(bottom = 24.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            item {
+                AppCard {
                 WeekdayRow()
                 Spacer(Modifier.height(6.dp))
                 MonthGrid(
@@ -175,6 +181,10 @@ fun MonthScreen(
                 DayWorkoutRow(w) { onOpen(w.id) }
             }
         }
+        }
+    }
+    if (showDate) {
+        DatePick(selected, { vm.select(it); showDate = false }) { showDate = false }
     }
 }
 
