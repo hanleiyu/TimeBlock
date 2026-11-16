@@ -10,12 +10,13 @@ class BackupOps(
 
     suspend fun restore(json: String): Boolean {
         val snap = Backup.tryParse(json) ?: return false
-        if (snap.applyTimeblock) {
-            repo.restoreTimeblock(snap)
+        return RestoreGuard.runSuspend {
+            if (snap.applyTimeblock) {
+                repo.restoreTimeblock(snap)
+            }
+            if (snap.applyExercise) {
+                snap.exercise?.let { exercise.restorePayload(it) }
+            }
         }
-        if (snap.applyExercise) {
-            snap.exercise?.let { exercise.restorePayload(it) }
-        }
-        return true
     }
 }

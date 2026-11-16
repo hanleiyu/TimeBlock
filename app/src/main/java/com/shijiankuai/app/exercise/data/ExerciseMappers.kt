@@ -19,11 +19,17 @@ fun WorkoutEntity.toDomain() = Workout(
     category = Category.valueOf(category),
     activityName = activityName,
     durationMinutes = durationMinutes,
-    intensity = intensity?.let { Intensity.valueOf(it) },
+    intensity = parseIntensity(intensity),
     date = LocalDate.ofEpochDay(dateEpochDay),
-    note = note,
+    note = note.takeUnless { it.isNullOrBlank() || it == "null" },
     isFree = isFree,
 )
+
+fun parseIntensity(raw: String?): Intensity? {
+    val name = raw?.trim().orEmpty()
+    if (name.isEmpty() || name == "null") return null
+    return Intensity.entries.find { it.name == name }
+}
 
 fun Workout.toEntity(createdAt: Long = System.currentTimeMillis()) = WorkoutEntity(
     id = id,

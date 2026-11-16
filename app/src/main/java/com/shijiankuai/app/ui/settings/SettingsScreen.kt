@@ -238,7 +238,7 @@ fun SettingsScreen(
             text = {
                 Text(
                     "恢复会先清空对应数据库再写入，且不能撤销。" +
-                        "全量备份（version 2）会同时覆盖时间块（类型、格子、睡觉、清单）和健康数据；" +
+                        "全量备份（version 2）会同时覆盖时间块（类型、格子、睡觉、清单、人生）和健康数据；" +
                         "旧时间块备份只覆盖时间块；旧运动备份只覆盖健康。",
                 )
             },
@@ -247,7 +247,11 @@ fun SettingsScreen(
                     val json = body
                     confirmRestore = null
                     scope.launch {
-                        banner = if (restore(json)) "已从备份恢复" else "备份文件读不出来"
+                        banner = try {
+                            if (restore(json)) "已从备份恢复" else "备份文件读不出来"
+                        } catch (_: Exception) {
+                            "备份文件读不出来"
+                        }
                     }
                 }) { Text("覆盖恢复") }
             },
