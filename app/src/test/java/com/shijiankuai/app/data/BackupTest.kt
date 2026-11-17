@@ -231,6 +231,53 @@ class BackupTest {
         assertEquals(0, row.recurMask)
         assertEquals("", row.doneDays)
         assertEquals("", row.skipDays)
+        assertEquals(0L, row.untilDay)
+    }
+
+    @Test
+    fun jsonRoundtripPreservesTodoUntilDay() {
+        val cut = listOf(
+            TodoRow(
+                "t_w", 20_000L, "work", "站会", done = false, sortOrder = 0,
+                recurKind = "weekly", recurMask = 31, doneDays = "20000", skipDays = "",
+                untilDay = 20_014L,
+            ),
+        )
+        val snap = Backup.tryParse(Backup.exportJson(types, blocks, sleeps, kv, cut))!!
+        assertEquals(cut, snap.todos)
+        assertEquals(20_014L, snap.todos.single().untilDay)
+    }
+
+    @Test
+    fun jsonRoundtripPreservesOverlappingLifeEvents() {
+        val originKv = kv + KvRow("life_origin", "1998-06")
+        val events = listOf(
+            LifeEventRow(
+                "l_school", "小学", "把这件事写下来",
+                2004, 9, 2010, 6, 0xFF74B3AEL, createdAt = 10, updatedAt = 10,
+            ),
+            LifeEventRow(
+                "l_camp", "夏令营", "",
+                2008, 7, 2008, 8, 0xFFE3C783L, createdAt = 20, updatedAt = 20,
+            ),
+        )
+        val json = Backup.exportJson(types, blocks, sleeps, originKv, todos, lifeEvents = events)
+        val snap = Backup.tryParse(json)!!
+        assertEquals(events, snap.lifeEvents)
+        val root = org.json.JSONObject(json)
+        assertTrue(root.has("lifeEvents"))
+        assertEquals(2, root.getJSONArray("lifeEvents").length())
+        assertEquals("1998-06", snap.kv.single { it.key == "life_origin" }.value)
+    }
+
+    @Test
+    fun oldBackupWithoutLifeEventsStaysCompatible() {
+        val json = Backup.exportJson(types, blocks, sleeps, kv, todos)
+        val slim = org.json.JSONObject(json).apply { remove("lifeEvents") }.toString()
+        val snap = Backup.tryParse(slim)!!
+        assertTrue(snap.lifeEvents.isEmpty())
+        assertEquals(types, snap.types)
+        assertEquals(todos, snap.todos)
     }
 
     @Test

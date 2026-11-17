@@ -47,4 +47,19 @@ data class TodoRow(
     val recurMask: Int = 0,
     val doneDays: String = "",
     val skipDays: String = "",
+    val untilDay: Long = 0,
+)
+
+@Entity(tableName = "life_events")
+data class LifeEventRow(
+    @PrimaryKey val id: String,
+    val title: String,
+    val note: String,
+    val startYear: Int,
+    val startMonth: Int,
+    val endYear: Int,
+    val endMonth: Int,
+    val color: Long,
+    val createdAt: Long,
+    val updatedAt: Long,
 )

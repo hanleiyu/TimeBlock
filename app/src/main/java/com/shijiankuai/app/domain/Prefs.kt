@@ -7,6 +7,7 @@ object Prefs {
     const val AUTO_BACKUP = "auto_backup"
     const val LAST_AUTO_BACKUP_AT = "last_auto_backup_at"
     const val DARK_THEME = "dark_theme"
+    const val LIFE_ORIGIN = "life_origin"
 
     fun showAllTimeEnabled(raw: String?): Boolean = raw != "0"
 

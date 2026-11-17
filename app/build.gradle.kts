@@ -13,8 +13,8 @@ android {
         applicationId = "com.shijiankuai.app"
         minSdk = 26
         targetSdk = 35
-        versionCode = 9
-        versionName = "1.3.5"
+        versionCode = 17
+        versionName = "1.5.5"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -91,15 +91,17 @@ tasks.register<Copy>("exportDebugApk") {
     rename { "shijiankuai-debug.apk" }
     doLast {
         val apk = layout.buildDirectory.file("outputs/apk/debug/app-debug.apk")
-        copy {
-            from(apk)
-            into(rootProject.layout.projectDirectory.dir("artifacts"))
-            rename { "shijiankuai-debug.apk" }
+        listOf("shijiankuai-debug.apk", "时间块-1.5.5.apk", "TimeBlock-1.5.5.apk").forEach { name ->
+            copy {
+                from(apk)
+                into(rootProject.layout.projectDirectory.dir("artifacts"))
+                rename { name }
+            }
         }
         listOf(
-            "shijiankuai-debug-v10.apk",
-            "shijiankuai-debug-v10-pinned.apk",
-            "时间块-v10-清单统计.apk",
+            "时间块-1.5.5.apk",
+            "TimeBlock-1.5.5.apk",
+            "shijiankuai-debug.apk",
         ).forEach { name ->
             copy {
                 from(apk)

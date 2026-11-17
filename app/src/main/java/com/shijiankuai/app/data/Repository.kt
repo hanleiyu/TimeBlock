@@ -19,6 +19,11 @@ import com.shijiankuai.app.domain.TodoCategory
 import com.shijiankuai.app.domain.TodoItem
 import com.shijiankuai.app.domain.TodoList
 import com.shijiankuai.app.domain.TodoRecurrence
+import com.shijiankuai.app.domain.LifeCalendar
+import com.shijiankuai.app.domain.LifeEvent
+import com.shijiankuai.app.domain.LifeMonth
+import com.shijiankuai.app.domain.LifeOrigin
+import com.shijiankuai.app.domain.LifeSave
 import com.shijiankuai.app.domain.WakeFill
 import com.shijiankuai.app.domain.WakeFillResult
 import kotlinx.coroutines.flow.Flow
@@ -43,6 +48,8 @@ class Repository(
     val darkTheme: StateFlow<Boolean> = _darkTheme
     private val _lastAutoBackupAt = MutableStateFlow<Instant?>(null)
     val lastAutoBackupAt: StateFlow<Instant?> = _lastAutoBackupAt
+    private val _lifeOrigin = MutableStateFlow<LifeOrigin?>(null)
+    val lifeOrigin: StateFlow<LifeOrigin?> = _lifeOrigin
 
     val types: Flow<List<BlockType>> = db.types().observe().map { rows ->
         rows.map { it.toDomain() }
@@ -70,6 +77,10 @@ class Repository(
             )
         }
 
+    val lifeEvents: Flow<List<LifeEvent>> = db.lifeEvents().observeAll().map { rows ->
+        rows.map { it.toDomain() }
+    }
+
     suspend fun hydrate() {
         AppDatabase.seedIfNeeded(db)
         _isAsleep.value = db.kv().get("is_asleep") != "0"
@@ -77,6 +88,7 @@ class Repository(
         _autoBackup.value = Prefs.autoBackupEnabled(db.kv().get(Prefs.AUTO_BACKUP))
         _darkTheme.value = Prefs.darkThemeEnabled(db.kv().get(Prefs.DARK_THEME))
         _lastAutoBackupAt.value = Prefs.lastAutoBackupAt(db.kv().get(Prefs.LAST_AUTO_BACKUP_AT))
+        _lifeOrigin.value = LifeOrigin.parse(db.kv().get(Prefs.LIFE_ORIGIN))
     }
 
     suspend fun setShowAllTime(on: Boolean) {
@@ -97,6 +109,40 @@ class Repository(
     suspend fun markAutoBackupDone(at: Instant) {
         db.kv().put(KvRow(Prefs.LAST_AUTO_BACKUP_AT, at.toEpochMilli().toString()))
         _lastAutoBackupAt.value = at
+    }
+
+    suspend fun setLifeOrigin(origin: LifeOrigin) {
+        db.kv().put(KvRow(Prefs.LIFE_ORIGIN, origin.encode()))
+        _lifeOrigin.value = origin
+    }
+
+    suspend fun saveLifeEvent(draft: LifeEvent): LifeSave {
+        val existing = db.lifeEvents().all().map { it.toDomain() }
+        val now = clock.now().toEpochMilli()
+        val candidate = if (draft.id.isBlank()) {
+            draft.copy(
+                id = "l_" + UUID.randomUUID().toString().take(8),
+                createdAt = now,
+                updatedAt = now,
+            )
+        } else {
+            val row = db.lifeEvents().byId(draft.id)
+            draft.copy(
+                createdAt = row?.createdAt ?: draft.createdAt.takeIf { it != 0L } ?: now,
+                updatedAt = now,
+            )
+        }
+        return when (val result = LifeCalendar.validate(existing, candidate, candidate.id)) {
+            is LifeSave.Ok -> {
+                db.lifeEvents().upsert(result.event.toRow())
+                result
+            }
+            else -> result
+        }
+    }
+
+    suspend fun deleteLifeEvent(id: String) {
+        db.lifeEvents().delete(id)
     }
 
     suspend fun markSleep(): Instant {
@@ -231,6 +277,7 @@ class Repository(
             db.kv().all(),
             db.todos().all(),
             exercise,
+            db.lifeEvents().all(),
         )
 
     suspend fun restoreBackup(json: String): Boolean {
@@ -246,17 +293,20 @@ class Repository(
             db.sleeps().clearAll()
             db.kv().clearAll()
             db.todos().clearAll()
+            db.lifeEvents().clearAll()
             snap.types.forEach { db.types().upsert(it) }
             db.blocks().upsertAll(snap.blocks)
             snap.sleeps.forEach { db.sleeps().insert(it.copy(id = 0)) }
             snap.kv.forEach { db.kv().put(it) }
             snap.todos.forEach { db.todos().upsert(it) }
+            snap.lifeEvents.forEach { db.lifeEvents().upsert(it) }
         }
         _isAsleep.value = db.kv().get("is_asleep") != "0"
         _showAllTime.value = Prefs.showAllTimeEnabled(db.kv().get(Prefs.SHOW_ALL_TIME))
         _autoBackup.value = Prefs.autoBackupEnabled(db.kv().get(Prefs.AUTO_BACKUP))
         _darkTheme.value = Prefs.darkThemeEnabled(db.kv().get(Prefs.DARK_THEME))
         _lastAutoBackupAt.value = Prefs.lastAutoBackupAt(db.kv().get(Prefs.LAST_AUTO_BACKUP_AT))
+        _lifeOrigin.value = LifeOrigin.parse(db.kv().get(Prefs.LIFE_ORIGIN))
     }
 
     fun sleptBlocksToday(date: LocalDate, map: Map<Int, String>): Int =
@@ -328,7 +378,20 @@ class Repository(
 
     suspend fun deleteTodo(id: String) {
         val (seriesId, _) = TodoRecurrence.parseOcc(id)
-        db.todos().delete(seriesId)
+        val row = db.todos().byId(seriesId) ?: return
+        val kept = TodoRecurrence.deleteOccurrence(listOf(row.toDomain()), id)
+        if (kept.isEmpty()) {
+            db.todos().delete(seriesId)
+            return
+        }
+        val next = kept.single()
+        db.todos().update(
+            row.copy(
+                doneDays = TodoRecurrence.encodeDays(next.doneDays),
+                skipDays = TodoRecurrence.encodeDays(next.skipDays),
+                untilDay = next.untilDay ?: 0L,
+            ),
+        )
     }
 
     suspend fun reorderTodos(date: LocalDate, category: TodoCategory, orderedIds: List<String>) {
@@ -392,4 +455,29 @@ private fun TodoRow.toDomain() = TodoItem(
     recurrence = TodoRecurrence.parse(recurKind, recurMask),
     doneDays = TodoRecurrence.decodeDays(doneDays),
     skipDays = TodoRecurrence.decodeDays(skipDays),
+    untilDay = untilDay.takeIf { it != 0L },
+)
+
+private fun LifeEventRow.toDomain() = LifeEvent(
+    id = id,
+    title = title,
+    note = note,
+    start = LifeMonth(startYear, startMonth),
+    end = LifeMonth(endYear, endMonth),
+    color = color,
+    createdAt = createdAt,
+    updatedAt = updatedAt,
+)
+
+private fun LifeEvent.toRow() = LifeEventRow(
+    id = id,
+    title = title,
+    note = note,
+    startYear = start.year,
+    startMonth = start.month,
+    endYear = end.year,
+    endMonth = end.month,
+    color = color,
+    createdAt = createdAt,
+    updatedAt = updatedAt,
 )

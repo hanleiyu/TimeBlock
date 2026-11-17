@@ -84,8 +84,8 @@ class TodoRangeTest {
     fun periodLabelMatchesChecklistCopy() {
         val start = LocalDate.of(2026, 10, 20)
         val end = LocalDate.of(2026, 10, 26)
-        assertEquals("10月26日周一", TodoRange.periodLabel(PeriodKind.DAY, end, end))
-        assertEquals("10月20日-10月26日", TodoRange.periodLabel(PeriodKind.WEEK, start, end))
+        assertEquals("10月26日 周一", TodoRange.periodLabel(PeriodKind.DAY, end, end))
+        assertEquals("10/20 – 10/26", TodoRange.periodLabel(PeriodKind.WEEK, start, end))
         assertEquals("2026年10月", TodoRange.periodLabel(PeriodKind.MONTH, start, end))
         assertEquals("2026年", TodoRange.periodLabel(PeriodKind.YEAR, start, end))
     }

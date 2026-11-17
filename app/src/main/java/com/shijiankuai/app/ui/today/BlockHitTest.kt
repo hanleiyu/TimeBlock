@@ -2,6 +2,20 @@ package com.shijiankuai.app.ui.today
 
 import com.shijiankuai.app.domain.BLOCKS_PER_DAY
 
+/** Time-block grid metrics. Progress track uses first/last cell outer edges, not the hour gutter. */
+object TodayGridSpec {
+    const val startPadDp = 10
+    const val endPadDp = 14
+    const val labelWidthDp = 42
+    const val gapDp = 5
+    const val columns = 6
+    const val rowHeightDp = 44
+    const val progressStartInsetDp = startPadDp + labelWidthDp
+    const val progressEndInsetDp = endPadDp
+    const val firstCellLeftDp = progressStartInsetDp
+    const val lastCellRightInsetDp = progressEndInsetDp
+}
+
 data class BlockHitLayout(
     val rowHeightPx: Float,
     val labelWidthPx: Float,

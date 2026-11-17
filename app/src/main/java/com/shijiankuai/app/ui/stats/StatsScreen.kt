@@ -2,7 +2,6 @@ package com.shijiankuai.app.ui.stats
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -15,7 +14,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -36,17 +34,18 @@ import com.shijiankuai.app.domain.PeriodKind
 import com.shijiankuai.app.domain.PeriodStats
 import com.shijiankuai.app.domain.StatsNav
 import com.shijiankuai.app.ui.DatePick
+import com.shijiankuai.app.ui.chrome.DateNavBar
+import com.shijiankuai.app.ui.chrome.JumpTodayPill
 import com.shijiankuai.app.ui.chrome.PageTitle
 import com.shijiankuai.app.ui.chrome.SegmentTabs
+import com.shijiankuai.app.ui.chrome.barLabel
 import com.shijiankuai.app.ui.chrome.tabLabel
 import com.shijiankuai.app.ui.hoursLabel
-import com.shijiankuai.app.ui.theme.Card
 import com.shijiankuai.app.ui.theme.Ink
 import com.shijiankuai.app.ui.theme.Ink2
 import com.shijiankuai.app.ui.theme.Ink3
 import com.shijiankuai.app.ui.theme.Paper
 import com.shijiankuai.app.ui.theme.Unfilled
-import com.shijiankuai.app.ui.toCn
 import java.time.LocalDate
 
 @Composable
@@ -55,59 +54,39 @@ fun StatsScreen(
     anchor: LocalDate,
     today: LocalDate,
     stats: PeriodStats?,
-    onKind: (PeriodKind) -> Unit,
+    onKind: (PeriodKind) -> Unit = {},
     onShift: (Int) -> Unit,
     onSetAnchor: (LocalDate) -> Unit,
+    embedded: Boolean = false,
 ) {
     var showDate by remember { mutableStateOf(false) }
     Column(
         Modifier
             .fillMaxSize()
-            .background(Paper)
+            .then(if (embedded) Modifier else Modifier.background(Paper))
             .verticalScroll(rememberScrollState())
-            .padding(horizontal = 16.dp, vertical = 4.dp),
+            .padding(horizontal = 16.dp, vertical = if (embedded) 0.dp else 4.dp),
     ) {
-        PageTitle("统计") {
-            if (!StatsNav.contains(kind, anchor, today)) {
-                Text(
-                    "今天",
-                    color = Ink2,
-                    fontSize = 12.sp,
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(999.dp))
-                        .background(Card)
-                        .clickable { onSetAnchor(today) }
-                        .padding(horizontal = 10.dp, vertical = 6.dp),
-                )
+        if (!embedded) {
+            PageTitle("统计") {
+                if (!StatsNav.contains(kind, anchor, today)) {
+                    JumpTodayPill { onSetAnchor(today) }
+                }
             }
-        }
-        Spacer(Modifier.height(12.dp))
-        SegmentTabs(
-            options = PeriodKind.entries,
-            selected = kind,
-            onSelect = onKind,
-            label = { it.tabLabel() },
-        )
-        Row(
-            Modifier.fillMaxWidth().padding(vertical = 12.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween,
-        ) {
-            Box(
-                Modifier.size(28.dp).clip(CircleShape).background(Card).clickable { onShift(-1) },
-                contentAlignment = Alignment.Center,
-            ) { Text("‹", color = Ink2) }
-            Text(
-                periodLabel(kind, stats?.start ?: anchor, stats?.endInclusive ?: anchor),
-                fontSize = 14.sp,
-                color = Ink,
-                modifier = Modifier.clickable { showDate = true },
+            Spacer(Modifier.height(12.dp))
+            SegmentTabs(
+                options = PeriodKind.entries,
+                selected = kind,
+                onSelect = onKind,
+                label = { it.tabLabel() },
             )
-            Box(
-                Modifier.size(28.dp).clip(CircleShape).background(Card).clickable { onShift(1) },
-                contentAlignment = Alignment.Center,
-            ) { Text("›", color = Ink2) }
         }
+        DateNavBar(
+            label = kind.barLabel(stats?.start ?: anchor, stats?.endInclusive ?: anchor),
+            onPrev = { onShift(-1) },
+            onNext = { onShift(1) },
+            onLabelClick = { showDate = true },
+        )
 
         val s = stats
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
@@ -194,10 +173,3 @@ private fun StatRow(color: Color, name: String, blocks: Int, total: Int) {
 }
 
 private fun Float.roundToIntSafe(): Int = kotlin.math.round(this).toInt()
-
-private fun periodLabel(kind: PeriodKind, start: LocalDate, end: LocalDate): String = when (kind) {
-    PeriodKind.DAY -> start.toCn()
-    PeriodKind.WEEK -> "${start.monthValue}/${start.dayOfMonth} – ${end.monthValue}/${end.dayOfMonth}"
-    PeriodKind.MONTH -> "${start.year}年${start.monthValue}月"
-    PeriodKind.YEAR -> "${start.year}年"
-}

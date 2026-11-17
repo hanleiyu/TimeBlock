@@ -20,6 +20,8 @@ import com.shijiankuai.app.domain.StatsNav
 import com.shijiankuai.app.domain.TodoCategory
 import com.shijiankuai.app.domain.TodoItem
 import com.shijiankuai.app.domain.TodoMonth
+import com.shijiankuai.app.domain.LifeEvent
+import com.shijiankuai.app.domain.LifeOrigin
 import com.shijiankuai.app.domain.TodoRecurrence
 import com.shijiankuai.app.domain.WakeFill
 import com.shijiankuai.app.domain.WakeFillResult
@@ -61,7 +63,6 @@ class AppViewModel(
     private val backup: BackupOps,
 ) : ViewModel() {
     val viewedDate = MutableStateFlow(repo.clock.today())
-    val todoDate = MutableStateFlow(repo.clock.today())
     val toast = MutableStateFlow<String?>(null)
     val needSleepStart = MutableStateFlow(false)
 
@@ -138,13 +139,14 @@ class AppViewModel(
     )
 
     val statsKind = MutableStateFlow(PeriodKind.DAY)
-    val statsAnchor = MutableStateFlow(repo.clock.today())
+    val statsAnchor = viewedDate
     val showAllTime: StateFlow<Boolean> = repo.showAllTime
     val autoBackup: StateFlow<Boolean> = repo.autoBackup
     val darkTheme: StateFlow<Boolean> = repo.darkTheme
     val lastAutoBackupAt: StateFlow<Instant?> = repo.lastAutoBackupAt
 
     val todoKind = MutableStateFlow(PeriodKind.DAY)
+    val todoDate get() = viewedDate
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val todos: StateFlow<List<TodoItem>> = combine(todoDate, todoKind) { date, kind -> date to kind }
@@ -160,6 +162,10 @@ class AppViewModel(
 
     val todoCompletedDays: StateFlow<Set<LocalDate>> = repo.todoCompletedDays()
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptySet())
+
+    val lifeOrigin: StateFlow<LifeOrigin?> = repo.lifeOrigin
+    val lifeEvents: StateFlow<List<LifeEvent>> = repo.lifeEvents
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val stats: StateFlow<PeriodStats?> = combine(statsKind, statsAnchor) { kind, anchor -> kind to anchor }
@@ -230,6 +236,18 @@ class AppViewModel(
 
     fun deferTodo(id: String) {
         viewModelScope.launch { repo.deferTodo(id) }
+    }
+
+    fun setLifeOrigin(origin: LifeOrigin) {
+        viewModelScope.launch { repo.setLifeOrigin(origin) }
+    }
+
+    fun saveLifeEvent(event: LifeEvent) {
+        viewModelScope.launch { repo.saveLifeEvent(event) }
+    }
+
+    fun deleteLifeEvent(id: String) {
+        viewModelScope.launch { repo.deleteLifeEvent(id) }
     }
 
     fun markSleep() {

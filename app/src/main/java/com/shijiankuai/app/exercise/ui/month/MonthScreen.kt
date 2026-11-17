@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -17,12 +18,17 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.ChevronRight
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -32,23 +38,25 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.shijiankuai.app.domain.TodoCalendar
 import com.shijiankuai.app.exercise.domain.Category
 import com.shijiankuai.app.exercise.domain.WeekCalculator
 import com.shijiankuai.app.exercise.domain.Workout
 import com.shijiankuai.app.exercise.domain.formatYuan
 import com.shijiankuai.app.exercise.domain.toZhDateWeek
 import com.shijiankuai.app.exercise.ui.RecordsViewModel
-import com.shijiankuai.app.exercise.ui.components.AppCard
-import com.shijiankuai.app.ui.theme.Accent
+import com.shijiankuai.app.ui.DatePick
+import com.shijiankuai.app.ui.chrome.DateNavBar
+import com.shijiankuai.app.ui.chrome.DateNavSpec
+import com.shijiankuai.app.ui.chrome.MonthCardSpec
+import com.shijiankuai.app.ui.chrome.MonthFrame
 import com.shijiankuai.app.ui.theme.Aero
 import com.shijiankuai.app.ui.theme.DaySelect
 import com.shijiankuai.app.ui.theme.BalanceHue
 import com.shijiankuai.app.ui.theme.BowelMark
-import com.shijiankuai.app.ui.theme.Card
 import com.shijiankuai.app.ui.theme.EarlySleepMark
 import com.shijiankuai.app.ui.theme.Ink
 import com.shijiankuai.app.ui.theme.Ink2
@@ -56,7 +64,6 @@ import com.shijiankuai.app.ui.theme.Ink3
 import com.shijiankuai.app.ui.theme.Line
 import com.shijiankuai.app.ui.theme.PeriodMark
 import com.shijiankuai.app.ui.theme.StrengthHue
-import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.YearMonth
 
@@ -64,7 +71,7 @@ import java.time.YearMonth
 fun MonthScreen(
     vm: RecordsViewModel,
     onOpen: (Long) -> Unit,
-    onAdd: (LocalDate) -> Unit,
+    onOpenMetrics: () -> Unit = {},
 ) {
     val workouts by vm.workouts.collectAsStateWithLifecycle()
     val month by vm.month.collectAsStateWithLifecycle()
@@ -74,160 +81,151 @@ fun MonthScreen(
     val totalEarn = WeekCalculator.totalEarnYuan(workouts)
     val dayWorkouts = workouts.filter { it.date == selected }
     val dayTotal = dayWorkouts.filter { it.category.countsTowardStats }.sumOf { it.rawMinutes }
-    val dotsByDay = workouts
-        .filter { YearMonth.from(it.date) == month }
-        .groupBy { it.date }
-        .mapValues { (_, list) -> list.map { it.category }.toSet() }
+    val dotsByDay = remember(workouts) {
+        workouts.groupBy { it.date }.mapValues { (_, list) -> list.map { it.category }.toSet() }
+    }
+    val grid = remember(month) { HealthMonthLayout.grid(month) }
+    val today = remember { LocalDate.now() }
+    var showDate by remember { mutableStateOf(false) }
 
-    LazyColumn(
-        Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(bottom = 24.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
-    ) {
-        item {
-            AppCard {
-                MonthHeader(month, onPrev = vm::prevMonth, onNext = vm::nextMonth)
-                Spacer(Modifier.height(12.dp))
-                WeekdayRow()
-                Spacer(Modifier.height(6.dp))
-                MonthGrid(
+    Column(Modifier.fillMaxSize()) {
+        DateNavBar(
+            label = DateNavSpec.monthHealthLabel(month),
+            onPrev = vm::prevMonth,
+            onNext = vm::nextMonth,
+            onLabelClick = { showDate = true },
+        )
+        LazyColumn(
+            Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(bottom = 24.dp),
+            verticalArrangement = Arrangement.spacedBy(MonthCardSpec.gapDp.dp),
+        ) {
+            item {
+                MonthKalendarCard(
                     month = month,
                     selected = selected,
+                    today = today,
+                    grid = grid,
                     dotsByDay = dotsByDay,
                     onSelect = vm::select,
                 )
             }
-        }
-        item {
-            AppCard {
-                Text("本月", color = Ink, fontSize = 14.sp, fontWeight = FontWeight.Bold)
-                Spacer(Modifier.height(12.dp))
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                    MonthStat("有氧", "${monthStats.rawAerobic}分钟")
-                    MonthStat("力量", "${monthStats.rawStrength}分钟")
-                    MonthStat("平衡", "${monthStats.balanceSessions}次")
-                }
-                Spacer(Modifier.height(14.dp))
-                Box(Modifier.fillMaxWidth().height(1.dp).background(Line))
-                Spacer(Modifier.height(14.dp))
-                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.Bottom) {
-                    Column(Modifier.weight(1f)) {
-                        Text("本月净赚", color = Ink, fontSize = 13.sp)
-                        Spacer(Modifier.height(4.dp))
-                        Text(
-                            formatYuan(monthEarn),
-                            color = Aero,
-                            fontSize = 24.sp,
-                            fontWeight = FontWeight.Bold,
-                        )
-                    }
-                    Column(horizontalAlignment = Alignment.End) {
-                        Text("累计", color = Ink, fontSize = 13.sp)
-                        Spacer(Modifier.height(4.dp))
-                        Text(
-                            formatYuan(totalEarn),
-                            color = Ink,
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.Bold,
-                        )
-                    }
-                }
-            }
-        }
-        item {
-            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    selected.toZhDateWeek(),
-                    color = Ink,
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.weight(1f),
-                )
-                Text("共${dayTotal}分钟", color = Ink2, fontSize = 13.sp, modifier = Modifier.padding(end = 10.dp))
-                Text(
-                    "＋ 记录",
-                    color = Accent,
-                    fontSize = 13.sp,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(999.dp))
-                        .background(Card)
-                        .clickable { onAdd(selected) }
-                        .padding(horizontal = 10.dp, vertical = 6.dp),
-                )
-            }
-        }
-        if (dayWorkouts.isEmpty()) {
             item {
-                AppCard { Text("没有记录", color = Ink, fontSize = 14.sp) }
+                MonthFrame {
+                    Text("本月", color = Ink, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                    Spacer(Modifier.height(12.dp))
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                        MonthStat("有氧", "${monthStats.rawAerobic}分钟")
+                        MonthStat("力量", "${monthStats.rawStrength}分钟")
+                        MonthStat("平衡", "${monthStats.balanceSessions}次")
+                    }
+                    Spacer(Modifier.height(14.dp))
+                    Box(Modifier.fillMaxWidth().height(1.dp).background(Line))
+                    Spacer(Modifier.height(14.dp))
+                    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.Bottom) {
+                        Column(Modifier.weight(1f)) {
+                            Text("本月净赚", color = Ink, fontSize = 13.sp)
+                            Spacer(Modifier.height(4.dp))
+                            Text(
+                                formatYuan(monthEarn),
+                                color = Aero,
+                                fontSize = 24.sp,
+                                fontWeight = FontWeight.Bold,
+                            )
+                        }
+                        Column(horizontalAlignment = Alignment.End) {
+                            Text("累计", color = Ink, fontSize = 13.sp)
+                            Spacer(Modifier.height(4.dp))
+                            Text(
+                                formatYuan(totalEarn),
+                                color = Ink,
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.Bold,
+                            )
+                        }
+                    }
+                }
             }
-        } else {
-            items(dayWorkouts, key = { it.id }) { w ->
-                DayWorkoutRow(w) { onOpen(w.id) }
+            item {
+                MonthFrame(onClick = onOpenMetrics) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text("指标", color = Ink, fontSize = 14.sp, modifier = Modifier.weight(1f))
+                        Icon(
+                            Icons.Outlined.ChevronRight,
+                            contentDescription = null,
+                            tint = Ink2,
+                        )
+                    }
+                }
+            }
+            item {
+                MonthFrame {
+                    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            selected.toZhDateWeek(),
+                            color = Ink,
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.weight(1f),
+                        )
+                        Text("共${dayTotal}分钟", color = Ink2, fontSize = 13.sp)
+                    }
+                    if (dayWorkouts.isEmpty()) {
+                        Box(
+                            Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 28.dp),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            Text("没有记录", color = Ink2, fontSize = 14.sp)
+                        }
+                    } else {
+                        Spacer(Modifier.height(8.dp))
+                        dayWorkouts.forEach { w ->
+                            DayWorkoutRow(w) { onOpen(w.id) }
+                        }
+                    }
+                }
             }
         }
     }
-}
-
-@Composable
-private fun MonthHeader(month: YearMonth, onPrev: () -> Unit, onNext: () -> Unit) {
-    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-        Text("‹", color = Ink, fontSize = 22.sp, modifier = Modifier.clickable(onClick = onPrev).padding(8.dp))
-        Text(
-            "${month.year}年${month.monthValue}月",
-            color = Ink,
-            fontSize = 16.sp,
-            fontWeight = FontWeight.Bold,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.weight(1f),
-        )
-        Text("›", color = Ink, fontSize = 22.sp, modifier = Modifier.clickable(onClick = onNext).padding(8.dp))
+    if (showDate) {
+        DatePick(selected, { vm.select(it); showDate = false }) { showDate = false }
     }
 }
 
 @Composable
-private fun WeekdayRow() {
-    Row(Modifier.fillMaxWidth()) {
-        listOf("一", "二", "三", "四", "五", "六", "日").forEach { label ->
-            Text(
-                label,
-                color = Ink3,
-                fontSize = 12.sp,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.weight(1f),
-            )
-        }
-    }
-}
-
-@Composable
-private fun MonthGrid(
+private fun MonthKalendarCard(
     month: YearMonth,
     selected: LocalDate,
+    today: LocalDate,
+    grid: List<LocalDate>,
     dotsByDay: Map<LocalDate, Set<Category>>,
     onSelect: (LocalDate) -> Unit,
 ) {
-    val first = month.atDay(1)
-    val shift = (first.dayOfWeek.value - DayOfWeek.MONDAY.value + 7) % 7
-    val start = first.minusDays(shift.toLong())
-    val rows = WeekCalculator.weekRowsForMonth(month)
-    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        repeat(rows) { week ->
+    MonthFrame(
+        padHDp = MonthCardSpec.calendarPadHDp,
+        padVDp = MonthCardSpec.calendarPadVDp,
+    ) {
+        Row(Modifier.fillMaxWidth()) {
+            TodoCalendar.WEEKDAY_LABELS.forEach { label ->
+                Box(Modifier.weight(1f), contentAlignment = Alignment.Center) {
+                    Text(label, fontSize = MonthCardSpec.weekdaySp.sp, color = Ink3)
+                }
+            }
+        }
+        grid.chunked(7).forEach { week ->
             Row(Modifier.fillMaxWidth()) {
-                repeat(7) { dow ->
-                    val date = start.plusDays((week * 7 + dow).toLong())
-                    Box(Modifier.weight(1f), contentAlignment = Alignment.TopCenter) {
-                        if (YearMonth.from(date) == month) {
-                            DayCell(
-                                date = date,
-                                selected = selected,
-                                dots = dotsByDay[date].orEmpty(),
-                                onSelect = onSelect,
-                            )
-                        } else {
-                            Spacer(Modifier.height(48.dp))
-                        }
-                    }
+                week.forEach { day ->
+                    DayCell(
+                        date = day,
+                        inMonth = YearMonth.from(day) == month,
+                        selected = day == selected,
+                        isToday = day == today,
+                        dots = dotsByDay[day].orEmpty(),
+                        onSelect = onSelect,
+                        modifier = Modifier.weight(1f),
+                    )
                 }
             }
         }
@@ -237,50 +235,79 @@ private fun MonthGrid(
 @Composable
 private fun DayCell(
     date: LocalDate,
-    selected: LocalDate,
+    inMonth: Boolean,
+    selected: Boolean,
+    isToday: Boolean,
     dots: Set<Category>,
     onSelect: (LocalDate) -> Unit,
+    modifier: Modifier,
 ) {
-    val selectedDay = date == selected
     val hasPeriod = Category.PERIOD in dots
     val hasBowel = Category.BOWEL in dots
     val hasEarlySleep = Category.EARLY_SLEEP in dots
-    val dayNumberColor = if (hasEarlySleep) EarlySleepMark else Ink
+    val fade = if (inMonth) 1f else 0.45f
+    val numberColor = when {
+        selected -> if (hasEarlySleep && inMonth) EarlySleepMark else Ink
+        !inMonth -> Ink3.copy(alpha = 0.38f)
+        hasEarlySleep -> EarlySleepMark
+        else -> Ink
+    }
     Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier
-            .fillMaxWidth()
+        modifier
+            .aspectRatio(MonthCardSpec.cellAspect)
             .clickable { onSelect(date) }
             .padding(vertical = 2.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
     ) {
-        Box(Modifier.size(34.dp), contentAlignment = Alignment.Center) {
-            if (selectedDay) {
-                Box(Modifier.size(34.dp).border(1.5.dp, DaySelect, CircleShape))
+        Box(
+            Modifier.size(MonthCardSpec.dayCircleDp.dp),
+            contentAlignment = Alignment.Center,
+        ) {
+            if (selected) {
+                Box(
+                    Modifier
+                        .size(MonthCardSpec.dayCircleDp.dp)
+                        .border(MonthCardSpec.selectedStrokeDp.dp, DaySelect, CircleShape),
+                )
+            } else if (isToday && inMonth) {
+                Box(
+                    Modifier
+                        .size(MonthCardSpec.dayCircleDp.dp)
+                        .border(MonthCardSpec.todayStrokeDp.dp, Ink3.copy(alpha = 0.35f), CircleShape),
+                )
             }
             Text(
-                date.dayOfMonth.toString(),
-                color = dayNumberColor,
-                fontSize = 14.sp,
-                fontWeight = if (selectedDay) FontWeight.Bold else FontWeight.Medium,
+                "${date.dayOfMonth}",
+                color = numberColor,
+                fontSize = MonthCardSpec.dayNumberSp.sp,
+                fontWeight = if (selected || isToday) FontWeight.Bold else FontWeight.SemiBold,
             )
         }
-        Spacer(Modifier.height(4.dp))
-        Row(horizontalArrangement = Arrangement.spacedBy(3.dp), verticalAlignment = Alignment.CenterVertically) {
+        Row(
+            Modifier.height(10.dp).padding(top = 2.dp),
+            horizontalArrangement = Arrangement.spacedBy(3.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
             Category.entries.forEach { cat ->
                 if (cat.showsCalendarDot && cat in dots) {
-                    Box(Modifier.size(5.dp).clip(CircleShape).background(cat.dotColor()))
+                    Box(
+                        Modifier
+                            .size(5.dp)
+                            .clip(CircleShape)
+                            .background(cat.dotColor().copy(alpha = fade)),
+                    )
                 }
             }
-            if (hasPeriod) PeriodTriangleMark()
-            if (hasBowel) BowelCheckMark()
+            if (hasPeriod) PeriodTriangleMark(alpha = fade)
+            if (hasBowel) BowelCheckMark(alpha = fade)
         }
-        Spacer(Modifier.height(4.dp))
     }
 }
 
 @Composable
-private fun PeriodTriangleMark() {
-    val mark = PeriodMark
+private fun PeriodTriangleMark(alpha: Float) {
+    val mark = PeriodMark.copy(alpha = PeriodMark.alpha * alpha)
     Canvas(Modifier.size(6.dp)) {
         val path = Path().apply {
             moveTo(size.width / 2f, 0f)
@@ -293,8 +320,8 @@ private fun PeriodTriangleMark() {
 }
 
 @Composable
-private fun BowelCheckMark() {
-    val mark = BowelMark
+private fun BowelCheckMark(alpha: Float) {
+    val mark = BowelMark.copy(alpha = BowelMark.alpha * alpha)
     Canvas(Modifier.size(7.dp)) {
         val stroke = Stroke(width = size.minDimension * 0.22f, cap = StrokeCap.Round, join = StrokeJoin.Round)
         val path = Path().apply {
@@ -321,10 +348,8 @@ private fun DayWorkoutRow(w: Workout, onClick: () -> Unit) {
     Row(
         Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
-            .background(Card)
             .clickable(onClick = onClick)
-            .padding(horizontal = 14.dp, vertical = 12.dp),
+            .padding(vertical = 4.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Box(

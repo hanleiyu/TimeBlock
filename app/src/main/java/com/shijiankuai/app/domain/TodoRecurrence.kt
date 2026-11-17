@@ -67,6 +67,28 @@ sealed class TodoRecurrence {
             return id.substring(0, i) to id.substring(i + 1).toLongOrNull()
         }
 
+        fun endAt(item: TodoItem, occurrenceDay: Long): TodoItem {
+            val cutoff = item.untilDay?.let { minOf(it, occurrenceDay) } ?: occurrenceDay
+            return item.copy(
+                untilDay = cutoff,
+                doneDays = item.doneDays.filter { it < cutoff }.toSet(),
+                skipDays = item.skipDays.filter { it < cutoff }.toSet(),
+            )
+        }
+
+        fun deleteOccurrence(items: List<TodoItem>, occurrenceId: String): List<TodoItem> {
+            val (seriesId, occDay) = parseOcc(occurrenceId)
+            return items.mapNotNull { item ->
+                if (item.seriesId != seriesId && item.id != seriesId) {
+                    item
+                } else if (item.recurrence is None) {
+                    null
+                } else {
+                    endAt(item, occDay ?: item.epochDay)
+                }
+            }
+        }
+
         fun encodeDays(days: Set<Long>): String =
             days.sorted().joinToString(",")
 
@@ -83,8 +105,16 @@ sealed class TodoRecurrence {
                         if (!day.isBefore(start) && !day.isAfter(end)) out += item
                     }
                     else -> {
-                        val from = LocalDate.ofEpochDay(item.epochDay).let { if (it.isAfter(start)) it else start }
-                        datesMatching(rec, from, end).forEach { date ->
+                        val seriesStart = LocalDate.ofEpochDay(item.epochDay)
+                        val from = if (seriesStart.isAfter(start)) seriesStart else start
+                        val lastInclusive = item.untilDay?.let { LocalDate.ofEpochDay(it).minusDays(1) }
+                        val to = when {
+                            lastInclusive == null -> end
+                            lastInclusive.isBefore(end) -> lastInclusive
+                            else -> end
+                        }
+                        if (from.isAfter(to)) return@forEach
+                        datesMatching(rec, from, to).forEach { date ->
                             val epoch = date.toEpochDay()
                             if (epoch in item.skipDays) return@forEach
                             out += item.copy(
@@ -105,7 +135,8 @@ sealed class TodoRecurrence {
                 if (item.recurrence is None) {
                     if (item.done) days += item.epochDay
                 } else {
-                    days += item.doneDays
+                    val cutoff = item.untilDay
+                    days += if (cutoff == null) item.doneDays else item.doneDays.filter { it < cutoff }
                 }
             }
             return days

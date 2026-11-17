@@ -29,6 +29,8 @@ import com.shijiankuai.app.domain.TodoCategory
 import com.shijiankuai.app.domain.TodoItem
 import com.shijiankuai.app.domain.TodoMonth
 import com.shijiankuai.app.domain.TodoRange
+import com.shijiankuai.app.ui.chrome.MonthCardSpec
+import com.shijiankuai.app.ui.chrome.MonthFrame
 import com.shijiankuai.app.ui.theme.Card
 import com.shijiankuai.app.ui.theme.DaySelect
 import com.shijiankuai.app.ui.theme.Ink
@@ -51,7 +53,7 @@ fun TodoMonthPanel(
     val done = remember(items, date) { TodoMonth.doneOn(items, date) }
     val grid = remember(month) { TodoMonth.monthGrid(month) }
 
-    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+    Column(verticalArrangement = Arrangement.spacedBy(MonthCardSpec.gapDp.dp)) {
         MonthKalendarCard(
             month = month,
             selected = date,
@@ -67,15 +69,15 @@ fun TodoMonthPanel(
 
 @Composable
 private fun MonthCountRow(counts: Map<TodoCategory, Int>) {
-    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(MonthCardSpec.countChipGapDp.dp)) {
         TodoRange.SUMMARY_ORDER.forEach { cat ->
             Column(
                 Modifier
                     .weight(1f)
-                    .clip(RoundedCornerShape(14.dp))
+                    .clip(RoundedCornerShape(MonthCardSpec.countChipRadiusDp.dp))
                     .background(Card)
-                    .border(1.dp, Line, RoundedCornerShape(14.dp))
-                    .padding(vertical = 6.dp),
+                    .border(MonthCardSpec.borderWidthDp.dp, Line, RoundedCornerShape(MonthCardSpec.countChipRadiusDp.dp))
+                    .padding(vertical = MonthCardSpec.countChipPadVDp.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 Icon(
@@ -106,18 +108,14 @@ private fun MonthKalendarCard(
     dots: Map<LocalDate, List<TodoCategory>>,
     onSelect: (LocalDate) -> Unit,
 ) {
-    Column(
-        Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
-            .background(Card)
-            .border(1.dp, Line, RoundedCornerShape(16.dp))
-            .padding(horizontal = 10.dp, vertical = 12.dp),
+    MonthFrame(
+        padHDp = MonthCardSpec.calendarPadHDp,
+        padVDp = MonthCardSpec.calendarPadVDp,
     ) {
         Row(Modifier.fillMaxWidth()) {
             TodoCalendar.WEEKDAY_LABELS.forEach { label ->
                 Box(Modifier.weight(1f), contentAlignment = Alignment.Center) {
-                    Text(label, fontSize = 12.sp, color = Ink3)
+                    Text(label, fontSize = MonthCardSpec.weekdaySp.sp, color = Ink3)
                 }
             }
         }
@@ -156,24 +154,24 @@ private fun MonthDayCell(
     }
     Column(
         modifier
-            .aspectRatio(0.92f)
+            .aspectRatio(MonthCardSpec.cellAspect)
             .clickable(onClick = onClick)
             .padding(vertical = 2.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
         Box(
-            Modifier.size(34.dp),
+            Modifier.size(MonthCardSpec.dayCircleDp.dp),
             contentAlignment = Alignment.Center,
         ) {
             if (selected) {
-                Box(Modifier.size(34.dp).border(1.5.dp, DaySelect, CircleShape))
+                Box(Modifier.size(MonthCardSpec.dayCircleDp.dp).border(MonthCardSpec.selectedStrokeDp.dp, DaySelect, CircleShape))
             } else if (isToday && inMonth) {
-                Box(Modifier.size(34.dp).border(1.dp, Ink3.copy(alpha = 0.35f), CircleShape))
+                Box(Modifier.size(MonthCardSpec.dayCircleDp.dp).border(MonthCardSpec.todayStrokeDp.dp, Ink3.copy(alpha = 0.35f), CircleShape))
             }
             Text(
                 "${day.dayOfMonth}",
-                fontSize = 14.sp,
+                fontSize = MonthCardSpec.dayNumberSp.sp,
                 fontWeight = if (selected || isToday) FontWeight.Bold else FontWeight.SemiBold,
                 color = numberColor,
             )
@@ -197,14 +195,7 @@ private fun MonthDayCell(
 
 @Composable
 private fun DayDoneSummary(date: LocalDate, done: List<TodoItem>) {
-    Column(
-        Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
-            .background(Card)
-            .border(1.dp, Line, RoundedCornerShape(16.dp))
-            .padding(horizontal = 16.dp, vertical = 14.dp),
-    ) {
+    MonthFrame {
         Text(
             TodoMonth.summaryTitle(date),
             fontSize = 15.sp,

@@ -19,26 +19,26 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.CalendarMonth
-import androidx.compose.material.icons.outlined.CheckBox
-import androidx.compose.material.icons.outlined.FavoriteBorder
-import androidx.compose.material.icons.outlined.PieChart
+import androidx.compose.material.icons.outlined.CalendarViewMonth
+import androidx.compose.material.icons.outlined.DateRange
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -49,15 +49,21 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.shijiankuai.app.data.DailyBackupScheduler
 import com.shijiankuai.app.domain.DailyBackup
+import com.shijiankuai.app.domain.StatsNav
 import com.shijiankuai.app.exercise.data.ExerciseRepository
 import com.shijiankuai.app.exercise.ui.ExerciseVmFactory
-import com.shijiankuai.app.exercise.ui.HealthPage
-import com.shijiankuai.app.exercise.ui.HealthScreen
+import com.shijiankuai.app.exercise.ui.HealthPane
 import com.shijiankuai.app.exercise.ui.editor.WorkoutEditorScreen
 import com.shijiankuai.app.exercise.ui.goals.HealthGoalsScreen
 import com.shijiankuai.app.exercise.ui.metrics.MetricDetailScreen
+import com.shijiankuai.app.exercise.ui.metrics.MetricsScreen
 import com.shijiankuai.app.exercise.ui.plan.PlanScreen
 import com.shijiankuai.app.ui.AppViewModel
+import com.shijiankuai.app.ui.BottomTab
+import com.shijiankuai.app.ui.PeriodFeature
+import com.shijiankuai.app.ui.AppIa
+import com.shijiankuai.app.ui.chrome.PeriodScaffold
+import com.shijiankuai.app.exercise.ui.components.ScreenHeader
 import com.shijiankuai.app.ui.settings.SettingsScreen
 import com.shijiankuai.app.ui.settings.TypesScreen
 import com.shijiankuai.app.ui.stats.StatsScreen
@@ -66,6 +72,7 @@ import com.shijiankuai.app.ui.theme.Ink3
 import com.shijiankuai.app.ui.theme.Paper
 import com.shijiankuai.app.ui.theme.TabBar
 import com.shijiankuai.app.ui.theme.TimeBlockTheme
+import com.shijiankuai.app.ui.life.LifeScreen
 import com.shijiankuai.app.ui.today.TodayScreen
 import com.shijiankuai.app.ui.todo.TodoScreen
 import java.time.LocalDate
@@ -75,6 +82,7 @@ private sealed class Overlay {
     data object Types : Overlay()
     data object HealthGoals : Overlay()
     data object Plan : Overlay()
+    data object Metrics : Overlay()
     data class Editor(val workoutId: Long?, val epochDay: Long?) : Overlay()
     data class Metric(val id: Long) : Overlay()
 }
@@ -111,9 +119,12 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 private fun AppRoot(vm: AppViewModel, exercise: ExerciseRepository) {
-    var tab by remember { mutableIntStateOf(0) }
+    var tab by remember { mutableStateOf(BottomTab.DAY) }
     var overlay by remember { mutableStateOf<Overlay>(Overlay.None) }
-    var healthPage by remember { mutableStateOf(HealthPage.WEEK) }
+    var dayFeature by remember { mutableStateOf(PeriodFeature.BLOCKS) }
+    var weekFeature by remember { mutableStateOf(PeriodFeature.STATS) }
+    var monthFeature by remember { mutableStateOf(PeriodFeature.STATS) }
+    var yearFeature by remember { mutableStateOf(PeriodFeature.STATS) }
     val today by vm.today.collectAsStateWithLifecycle()
     val types by vm.types.collectAsStateWithLifecycle()
     val stats by vm.stats.collectAsStateWithLifecycle()
@@ -130,6 +141,40 @@ private fun AppRoot(vm: AppViewModel, exercise: ExerciseRepository) {
     val todos by vm.todos.collectAsStateWithLifecycle()
     val zone = remember { java.time.ZoneId.systemDefault() }
     val todayScroll = rememberScrollState()
+    val todayDate = LocalDate.now(zone)
+    val feature = when (tab) {
+        BottomTab.DAY -> dayFeature
+        BottomTab.WEEK -> weekFeature
+        BottomTab.MONTH -> monthFeature
+        BottomTab.YEAR -> yearFeature
+        BottomTab.SETTINGS -> PeriodFeature.STATS
+    }
+    val periodKind = AppIa.periodKind(tab)
+    val lifeOrigin by vm.lifeOrigin.collectAsStateWithLifecycle()
+    val lifeEvents by vm.lifeEvents.collectAsStateWithLifecycle()
+    val showJumpToday = tab != BottomTab.SETTINGS &&
+        feature != PeriodFeature.HEALTH &&
+        feature != PeriodFeature.LIFE &&
+        periodKind != null &&
+        !StatsNav.contains(periodKind, anchor, todayDate)
+
+    fun selectTab(next: BottomTab) {
+        tab = next
+        AppIa.periodKind(next)?.let { nextKind ->
+            vm.setStatsKind(nextKind)
+            vm.setTodoKind(nextKind)
+        }
+    }
+
+    fun selectFeature(next: PeriodFeature) {
+        when (tab) {
+            BottomTab.DAY -> dayFeature = next
+            BottomTab.WEEK -> weekFeature = next
+            BottomTab.MONTH -> monthFeature = next
+            BottomTab.YEAR -> yearFeature = next
+            BottomTab.SETTINGS -> {}
+        }
+    }
 
     Column(
         Modifier
@@ -153,6 +198,21 @@ private fun AppRoot(vm: AppViewModel, exercise: ExerciseRepository) {
                 vm = viewModel(factory = ExerciseVmFactory(exercise)),
                 onBack = { overlay = Overlay.None },
             )
+            Overlay.Metrics -> Column(
+                Modifier
+                    .fillMaxSize()
+                    .background(Paper)
+                    .padding(horizontal = 16.dp, vertical = 4.dp),
+            ) {
+                ScreenHeader("指标", onBack = { overlay = Overlay.None })
+                Spacer(Modifier.height(12.dp))
+                Box(Modifier.weight(1f)) {
+                    MetricsScreen(
+                        vm = viewModel(factory = ExerciseVmFactory(exercise)),
+                        onOpen = { overlay = Overlay.Metric(it) },
+                    )
+                }
+            }
             is Overlay.Editor -> WorkoutEditorScreen(
                 vm = viewModel(
                     key = "workout-${layer.workoutId}-${layer.epochDay}",
@@ -166,71 +226,11 @@ private fun AppRoot(vm: AppViewModel, exercise: ExerciseRepository) {
                     key = "metric-${layer.id}",
                     factory = ExerciseVmFactory(exercise, layer.id),
                 ),
-                onBack = { overlay = Overlay.None },
+                onBack = { overlay = Overlay.Metrics },
             )
             Overlay.None -> Box(Modifier.weight(1f)) {
-                Box(
-                    Modifier.then(
-                        if (tab == 0) Modifier.fillMaxSize() else Modifier.size(0.dp),
-                    ),
-                ) {
-                    TodayScreen(
-                        ui = today,
-                        zone = zone,
-                        onSleep = vm::markSleep,
-                        onWake = vm::markWake,
-                        onWakeWithStart = vm::markWakeWithStart,
-                        onSkipSleepStart = vm::skipSleepStart,
-                        onSetRange = vm::setRange,
-                        onShiftDate = vm::shiftDate,
-                        onSetDate = vm::setDate,
-                        onEditLast = vm::editLast,
-                        onAddType = vm::addType,
-                        needSleepStart = needStart,
-                        onDismissToast = vm::dismissToast,
-                        gridScroll = todayScroll,
-                        takeNowSnap = vm::takeNowSnap,
-                    )
-                }
-                if (tab == 1) {
-                    StatsScreen(
-                        kind = kind,
-                        anchor = anchor,
-                        today = java.time.LocalDate.now(zone),
-                        stats = stats,
-                        onKind = vm::setStatsKind,
-                        onShift = vm::shiftStats,
-                        onSetAnchor = vm::setStatsAnchor,
-                    )
-                } else if (tab == 2) {
-                    TodoScreen(
-                        date = todoDate,
-                        today = java.time.LocalDate.now(zone),
-                        kind = todoKind,
-                        items = todos,
-                        onShiftDate = vm::shiftTodoDate,
-                        onSetDate = vm::setTodoDate,
-                        onJumpToday = vm::jumpTodoToday,
-                        onKind = vm::setTodoKind,
-                        onAdd = vm::addTodo,
-                        onToggle = vm::setTodoDone,
-                        onDefer = vm::deferTodo,
-                        onEdit = vm::updateTodo,
-                        onDelete = vm::deleteTodo,
-                        onReorder = vm::reorderTodos,
-                    )
-                } else if (tab == 3) {
-                    HealthScreen(
-                        repo = exercise,
-                        page = healthPage,
-                        onPage = { healthPage = it },
-                        onOpenPlan = { overlay = Overlay.Plan },
-                        onOpenWorkout = { overlay = Overlay.Editor(it, null) },
-                        onAddWorkout = { overlay = Overlay.Editor(null, it.toEpochDay()) },
-                        onOpenMetric = { overlay = Overlay.Metric(it) },
-                    )
-                } else if (tab == 4) {
-                    SettingsScreen(
+                when (tab) {
+                    BottomTab.SETTINGS -> SettingsScreen(
                         types = types,
                         onOpenTypes = { overlay = Overlay.Types },
                         onOpenHealthGoals = { overlay = Overlay.HealthGoals },
@@ -247,6 +247,88 @@ private fun AppRoot(vm: AppViewModel, exercise: ExerciseRepository) {
                         darkTheme = darkTheme,
                         onDarkTheme = vm::setDarkTheme,
                     )
+                    else -> PeriodScaffold(
+                        title = feature.label,
+                        features = AppIa.features(tab),
+                        selected = feature,
+                        onSelect = ::selectFeature,
+                        showJumpToday = showJumpToday,
+                        onJumpToday = vm::jumpStatsToday,
+                    ) {
+                        if (tab == BottomTab.DAY) {
+                            Box(
+                                Modifier.then(
+                                    if (feature == PeriodFeature.BLOCKS) Modifier.fillMaxSize()
+                                    else Modifier.size(0.dp),
+                                ),
+                            ) {
+                                TodayScreen(
+                                    ui = today,
+                                    zone = zone,
+                                    onWake = vm::markWake,
+                                    onWakeWithStart = vm::markWakeWithStart,
+                                    onSkipSleepStart = vm::skipSleepStart,
+                                    onSetRange = vm::setRange,
+                                    onShiftDate = vm::shiftDate,
+                                    onSetDate = vm::setDate,
+                                    onAddType = vm::addType,
+                                    onAddHealthRecord = {
+                                        overlay = Overlay.Editor(null, today.date.toEpochDay())
+                                    },
+                                    needSleepStart = needStart,
+                                    onDismissToast = vm::dismissToast,
+                                    gridScroll = todayScroll,
+                                    takeNowSnap = vm::takeNowSnap,
+                                )
+                            }
+                        }
+                        if (feature == PeriodFeature.STATS) {
+                            StatsScreen(
+                                kind = kind,
+                                anchor = anchor,
+                                today = todayDate,
+                                stats = stats,
+                                onShift = vm::shiftStats,
+                                onSetAnchor = vm::setStatsAnchor,
+                                embedded = true,
+                            )
+                        } else if (feature == PeriodFeature.TODO) {
+                            TodoScreen(
+                                date = todoDate,
+                                today = todayDate,
+                                kind = todoKind,
+                                items = todos,
+                                onShiftDate = vm::shiftTodoDate,
+                                onSetDate = vm::setTodoDate,
+                                onJumpToday = vm::jumpTodoToday,
+                                onKind = vm::setTodoKind,
+                                onAdd = vm::addTodo,
+                                onToggle = vm::setTodoDone,
+                                onDefer = vm::deferTodo,
+                                onEdit = vm::updateTodo,
+                                onDelete = vm::deleteTodo,
+                                onReorder = vm::reorderTodos,
+                                embedded = true,
+                            )
+                        } else if (feature == PeriodFeature.HEALTH) {
+                            HealthPane(
+                                repo = exercise,
+                                week = tab == BottomTab.WEEK,
+                                onOpenPlan = { overlay = Overlay.Plan },
+                                onOpenWorkout = { overlay = Overlay.Editor(it, null) },
+                                onOpenMetrics = { overlay = Overlay.Metrics },
+                            )
+                        } else if (feature == PeriodFeature.LIFE) {
+                            LifeScreen(
+                                origin = lifeOrigin,
+                                today = todayDate,
+                                events = lifeEvents,
+                                onSetOrigin = vm::setLifeOrigin,
+                                onSave = vm::saveLifeEvent,
+                                onDelete = vm::deleteLifeEvent,
+                            )
+                        }
+                    }
                 }
             }
         }
@@ -259,13 +341,37 @@ private fun AppRoot(vm: AppViewModel, exercise: ExerciseRepository) {
                     .heightIn(min = 56.dp)
                     .padding(top = 6.dp, bottom = 8.dp),
             ) {
-                TabItem("今天", tab == 0, Icons.Outlined.CalendarMonth, Modifier.weight(1f)) { tab = 0 }
-                TabItem("统计", tab == 1, Icons.Outlined.PieChart, Modifier.weight(1f)) { tab = 1 }
-                TabItem("清单", tab == 2, Icons.Outlined.CheckBox, Modifier.weight(1f)) { tab = 2 }
-                TabItem("健康", tab == 3, Icons.Outlined.FavoriteBorder, Modifier.weight(1f)) { tab = 3 }
-                TabItem("设置", tab == 4, Icons.Outlined.Settings, Modifier.weight(1f)) { tab = 4 }
+                BottomTab.entries.forEach { item ->
+                    TabItem(
+                        label = item.label,
+                        on = tab == item,
+                        modifier = Modifier.weight(1f),
+                        icon = { tint -> NavIcon(item, tint) },
+                        click = { selectTab(item) },
+                    )
+                }
             }
         }
+    }
+}
+
+@Composable
+private fun NavIcon(tab: BottomTab, tint: Color) {
+    when (tab) {
+        BottomTab.DAY -> Icon(Icons.Outlined.CalendarMonth, contentDescription = tab.label, tint = tint)
+        BottomTab.WEEK -> Icon(Icons.Outlined.DateRange, contentDescription = tab.label, tint = tint)
+        BottomTab.MONTH -> Icon(Icons.Outlined.CalendarViewMonth, contentDescription = tab.label, tint = tint)
+        BottomTab.YEAR -> Box(Modifier.size(24.dp), contentAlignment = Alignment.Center) {
+            Icon(Icons.Outlined.CalendarMonth, contentDescription = null, tint = tint)
+            Text(
+                "年",
+                color = tint,
+                fontSize = 8.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.offset(y = 2.dp),
+            )
+        }
+        BottomTab.SETTINGS -> Icon(Icons.Outlined.Settings, contentDescription = tab.label, tint = tint)
     }
 }
 
@@ -273,7 +379,7 @@ private fun AppRoot(vm: AppViewModel, exercise: ExerciseRepository) {
 private fun TabItem(
     label: String,
     on: Boolean,
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    icon: @Composable (Color) -> Unit,
     modifier: Modifier,
     click: () -> Unit,
 ) {
@@ -288,7 +394,7 @@ private fun TabItem(
             .padding(vertical = 4.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Icon(icon, contentDescription = label, tint = tint)
+        icon(tint)
         Spacer(Modifier.height(2.dp))
         Text(
             label,

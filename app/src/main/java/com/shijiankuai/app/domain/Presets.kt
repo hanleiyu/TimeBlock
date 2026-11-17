@@ -18,6 +18,7 @@ object Presets {
         0xFFF2C4A8L,
         0xFFB8D4C0L,
         0xFFE8D4A0L,
+        0xFFEEAE23L,
     )
 
     val swatches: List<Long> = types.map { it.color } + extraColors

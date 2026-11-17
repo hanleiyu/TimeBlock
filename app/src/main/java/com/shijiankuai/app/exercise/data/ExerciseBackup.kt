@@ -1,5 +1,6 @@
 package com.shijiankuai.app.exercise.data
 
+import com.shijiankuai.app.data.JsonNulls
 import com.shijiankuai.app.exercise.domain.AppSettings
 import com.shijiankuai.app.exercise.domain.toIso
 import org.json.JSONArray
@@ -104,7 +105,7 @@ object ExerciseBackup {
                 "weeksSpentJson",
                 """{"STAGE_1":0,"STAGE_2":0,"STAGE_3":0,"MAINTAIN":0}""",
             ),
-            pendingAdvanceMessage = s.optString("pendingAdvanceMessage").ifBlank { null },
+            pendingAdvanceMessage = JsonNulls.text(s, "pendingAdvanceMessage"),
             stage1Aerobic = s.optInt("stage1Aerobic", 60),
             stage1Strength = s.optInt("stage1Strength", 40),
             stage2Aerobic = s.optInt("stage2Aerobic", 80),
@@ -118,9 +119,9 @@ object ExerciseBackup {
                 category = o.getString("category"),
                 activityName = o.getString("activityName"),
                 durationMinutes = o.getInt("durationMinutes"),
-                intensity = o.optString("intensity").ifBlank { null },
+                intensity = JsonNulls.text(o, "intensity"),
                 dateEpochDay = LocalDate.parse(o.getString("date")).toEpochDay(),
-                note = o.optString("note").ifBlank { null },
+                note = JsonNulls.text(o, "note"),
                 createdAt = System.currentTimeMillis(),
                 isFree = o.optBoolean("isFree", false),
             )
