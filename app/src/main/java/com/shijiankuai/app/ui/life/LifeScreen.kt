@@ -392,7 +392,6 @@ private fun LifeYearRow(
     onBirth: () -> Unit,
 ) {
     val age = row.firstOrNull { it.ageLabel != null }?.ageLabel.orEmpty()
-    val title = row.lastOrNull { it.eventLabel != null }?.eventLabel
     Row(
         Modifier
             .fillMaxWidth()
@@ -446,14 +445,9 @@ private fun LifeYearRow(
                 }
             }
         }
-        Text(
-            title.orEmpty(),
-            color = Ink2,
-            fontSize = 11.sp,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.size(width = trailingWidth, height = rowHeight),
-        )
+        if (trailingWidth > 0.dp) {
+            Spacer(Modifier.size(width = trailingWidth, height = rowHeight))
+        }
     }
 }
 

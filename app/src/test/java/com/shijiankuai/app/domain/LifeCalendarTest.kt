@@ -254,5 +254,7 @@ class LifeCalendarTest {
     fun presetPaletteIsTheTypeSwatches() {
         assertEquals(Presets.swatches, LifeCalendar.colors)
         assertTrue(LifeCalendar.colors.size >= 8)
+        assertTrue(0xFFEEAE23L in LifeCalendar.colors)
+        assertTrue(0xFF9CCB97L in LifeCalendar.colors)
     }
 }

@@ -4,16 +4,17 @@ import com.shijiankuai.app.domain.LifeCalendar
 import com.shijiankuai.app.domain.LifeMonth
 import com.shijiankuai.app.domain.LifeOrigin
 
-/** Shared life-grid metrics. Gutters stay equal so the 12-month cluster is centered. */
+/** Shared life-grid metrics. Right title gutter is gone; the 12-month cluster uses that width. */
 object LifeGridSpec {
     const val ageGutterDp = 24
-    const val trailingGutterDp = 24
-    const val gapDp = 4
-    const val rowHeightDp = 28
-    const val circleDp = 18
+    const val trailingGutterDp = 0
+    const val gapDp = 2
+    const val rowHeightDp = 30
+    const val circleDp = 20
     const val contentTopDp = 12
     const val pagePaddingDp = 16
     const val circleFitsCellOnCompactWidthDp = 360
+    const val minPhoneWidthDp = 320
     const val headingsAlignWithCircles = true
     const val progressStartInsetDp = ageGutterDp
     const val progressEndInsetDp = trailingGutterDp

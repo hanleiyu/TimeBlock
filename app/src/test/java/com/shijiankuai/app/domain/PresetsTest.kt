@@ -22,7 +22,29 @@ class PresetsTest {
     @Test
     fun swatchesStayInTheSoftFamily() {
         assertEquals(Presets.types.map { it.color } + Presets.extraColors, Presets.swatches)
-        assertEquals(13, Presets.swatches.size)
+        assertEquals(14, Presets.swatches.size)
+        assertTrue(0xFF9CCB97L in Presets.swatches)
+        assertTrue(0xFFEEAE23L in Presets.swatches)
+        assertEquals(1, Presets.swatches.count { it == 0xFFEEAE23L })
+        assertEquals(1, Presets.swatches.count { it == 0xFF9CCB97L })
+        assertEquals(9, Presets.types.size)
+    }
+
+    @Test
+    fun originalBackupLifeEventColorsAlreadyExistOnSwatches() {
+        val originalUnique = listOf(
+            0xFF808BD0L,
+            0xFF8EBFD2L,
+            0xFFC4B5E3L,
+            0xFFDE8B9DL,
+            0xFFE5AD8CL,
+        )
+        originalUnique.forEach { argb ->
+            assertTrue("$argb", argb in Presets.swatches)
+        }
+        assertTrue(0xFF9CCB97L in Presets.swatches)
+        assertTrue(0xFFEEAE23L in Presets.extraColors)
+        assertTrue(Presets.types.none { it.color == 0xFFEEAE23L })
     }
 
     @Test

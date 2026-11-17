@@ -104,9 +104,13 @@ class LifeHitTestTest {
     @Test
     fun lastYearLastMonthAndBeyondHorizon() {
         val grid = specLayout()
-        val decX = grid.gridWidthPx - grid.trailingWidthPx / 2f
+        val decX = grid.labelWidthPx + 11 * (grid.cellWidthPx + grid.gapPx) + grid.cellWidthPx / 2f
         val lastRowY = grid.contentTopPx + 89 * grid.rowHeightPx + grid.rowHeightPx / 2f
         assertEquals(LifeMonth(2087, 12), LifeHitTest.monthAt(decX, lastRowY, 0, origin, grid))
+        assertEquals(
+            LifeMonth(1998, 12),
+            LifeHitTest.monthAt(grid.gridWidthPx - 0.5f, grid.contentTopPx + grid.rowHeightPx / 2f, 0, origin, grid),
+        )
         assertNull(
             LifeHitTest.monthAt(
                 decX,
