@@ -64,6 +64,12 @@ data class LifeProgressSeg(
     val tone: LifeTone,
 )
 
+data class LifeDotSector(
+    val color: Long,
+    val startDeg: Float,
+    val sweepDeg: Float,
+)
+
 sealed class LifeSave {
     data class Ok(val event: LifeEvent) : LifeSave()
     data object EmptyTitle : LifeSave()
@@ -73,6 +79,8 @@ sealed class LifeSave {
 object LifeCalendar {
     const val HORIZON_YEARS = 90
     const val MONTHS_IN_HORIZON = HORIZON_YEARS * 12
+    /** 6 o'clock; clockwise so two colors are left then right. */
+    const val DOT_START_DEG = 90f
     val colors: List<Long> get() = Presets.swatches
 
     private val coverOrder = compareByDescending<LifeEvent> { it.updatedAt }
@@ -107,6 +115,27 @@ object LifeCalendar {
 
     fun displayEvent(events: List<LifeEvent>, month: LifeMonth): LifeEvent? =
         covering(events, month).firstOrNull()
+
+    /** Distinct covering colors in cover order (latest-updated, then id). Duplicates drop. */
+    fun dotColors(covering: List<LifeEvent>): List<Long> {
+        val out = ArrayList<Long>()
+        covering.forEach { event ->
+            val color = ColorMath.normalize(event.color)
+            if (out.none { it == color }) out += color
+        }
+        return out
+    }
+
+    fun dotColors(events: List<LifeEvent>, month: LifeMonth): List<Long> =
+        dotColors(covering(events, month))
+
+    fun dotSectors(colors: List<Long>): List<LifeDotSector> {
+        if (colors.isEmpty()) return emptyList()
+        val sweep = 360f / colors.size
+        return colors.mapIndexed { i, color ->
+            LifeDotSector(color, DOT_START_DEG + i * sweep, sweep)
+        }
+    }
 
     fun normalizeRange(a: LifeMonth, b: LifeMonth): Pair<LifeMonth, LifeMonth> =
         if (a <= b) a to b else b to a

@@ -1,5 +1,6 @@
 package com.shijiankuai.app.ui.life
 
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -414,21 +415,10 @@ private fun LifeYearRow(
                     Modifier.weight(1f).height(rowHeight),
                     contentAlignment = Alignment.Center,
                 ) {
-                    Box(
-                        Modifier
-                            .size(LifeGridSpec.circleDp.dp)
-                            .clip(CircleShape)
-                            .background(cellFill(cell.display?.color, cell.tone))
-                            .then(
-                                when {
-                                    inSel -> Modifier.border(2.dp, Ink, CircleShape)
-                                    cell.tone == LifeTone.CURRENT -> Modifier.border(1.5.dp, Ink2, CircleShape)
-                                    cell.display == null &&
-                                        (cell.tone == LifeTone.FUTURE || cell.tone == LifeTone.PREBIRTH) ->
-                                        Modifier.border(1.dp, Line, CircleShape)
-                                    else -> Modifier
-                                },
-                            )
+                    LifeMonthDot(
+                        colors = LifeCalendar.dotColors(cell.covering),
+                        tone = cell.tone,
+                        selected = inSel,
                     )
                     if (cell.birth) {
                         Text(
@@ -447,6 +437,47 @@ private fun LifeYearRow(
         }
         if (trailingWidth > 0.dp) {
             Spacer(Modifier.size(width = trailingWidth, height = rowHeight))
+        }
+    }
+}
+
+@Composable
+private fun LifeMonthDot(
+    colors: List<Long>,
+    tone: LifeTone,
+    selected: Boolean,
+) {
+    val empty = cellFill(null, tone)
+    Box(
+        Modifier
+            .size(LifeGridSpec.circleDp.dp)
+            .clip(CircleShape)
+            .then(
+                when {
+                    selected -> Modifier.border(2.dp, Ink, CircleShape)
+                    tone == LifeTone.CURRENT -> Modifier.border(1.5.dp, Ink2, CircleShape)
+                    colors.isEmpty() && (tone == LifeTone.FUTURE || tone == LifeTone.PREBIRTH) ->
+                        Modifier.border(1.dp, Line, CircleShape)
+                    else -> Modifier
+                },
+            ),
+    ) {
+        when {
+            colors.isEmpty() -> Box(Modifier.fillMaxSize().background(empty))
+            colors.size == 1 -> Box(Modifier.fillMaxSize().background(Color(colors[0].toInt())))
+            else -> {
+                val sectors = LifeCalendar.dotSectors(colors)
+                Canvas(Modifier.fillMaxSize()) {
+                    sectors.forEach { sector ->
+                        drawArc(
+                            color = Color(sector.color.toInt()),
+                            startAngle = sector.startDeg,
+                            sweepAngle = sector.sweepDeg,
+                            useCenter = true,
+                        )
+                    }
+                }
+            }
         }
     }
 }

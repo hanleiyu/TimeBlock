@@ -158,6 +158,10 @@ class LifeCalendarTest {
         assertEquals(0xFFE3C783L, LifeCalendar.displayEvent(events, july)?.color)
         assertEquals(school, LifeCalendar.displayEvent(events, LifeMonth(2008, 6)))
         assertEquals(school, LifeCalendar.displayEvent(events, LifeMonth(2008, 9)))
+        assertEquals(
+            listOf(ColorMath.normalize(0xFFE3C783L), ColorMath.normalize(0xFF74B3AEL)),
+            LifeCalendar.dotColors(events, july),
+        )
     }
 
     @Test
@@ -196,6 +200,9 @@ class LifeCalendarTest {
         assertEquals("e:camp", july.fillKey())
         assertEquals(0xFFE3C783L, july.display?.color)
         assertEquals(2, july.covering.size)
+        assertEquals(2, LifeCalendar.dotColors(july.covering).size)
+        val julySeg = segs.first { it.fillKey == "e:camp" }
+        assertEquals(ColorMath.normalize(0xFFE3C783L), ColorMath.normalize(julySeg.color!!))
     }
 
     @Test
